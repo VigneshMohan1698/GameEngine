@@ -12,6 +12,6 @@ Game Engine Features :
 6. Texture and Shader Pipeline (DX11, DX12 and DXR)
 7. Deferred Rendering Pipeline
 8. Multithreaded Job System
-9. Spritesheets and Animation System
+9. 2D Sprite Sheet Animation System
 10 Raytracing Pipeline
 
