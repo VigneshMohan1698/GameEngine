@@ -13,6 +13,5 @@ Game Engine Features :
 7. Deferred Rendering Pipeline
 8. Multithreaded Job System
 9. 2D Sprite Sheet Animation System
-10 Raytracing Pipeline
 
 
