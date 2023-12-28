@@ -77,6 +77,7 @@ void Renderer::Startup()
 	CreateConstantBuffer(sizeof(NoiseConstants), m_fireNoiseCBO);
 	CreateConstantBuffer(sizeof(DistortionConstants), m_fireDistortionCBO);
 
+	
 	m_immediateIBO = new IndexBuffer(sizeof(unsigned int));
 	CreateIndexBuffer(sizeof(unsigned int), m_immediateIBO);
 	SetBlendMode(BlendMode::ALPHA);
@@ -478,7 +479,7 @@ bool Renderer::CompileShaderToByteCode(std::vector<unsigned char>& outByteCode, 
 	ID3DBlob* errorBlobs = nullptr;
 	ID3DBlob* shaderBlobs = nullptr;
 	UINT flags = NULL;
-	#if defined( ENGINE_DEBUG_RENDER )
+	#if _DEBUG
 	flags |= D3DCOMPILE_DEBUG;
 	flags |= D3DCOMPILE_SKIP_OPTIMIZATION;
 	#endif
@@ -905,8 +906,7 @@ void Renderer::BeginCamera(const Camera& camera)
 		SetRasterizerState(CullMode::BACK, FillMode::SOLID, WindingOrder::COUNTERCLOCKWISE);
 		SetDepthStencilState(DepthTest::LESSEQUAL, true);
 		SetSamplerMode(SamplerMode::BILINEARWRAP);
-
-
+		SetBlendMode(BlendMode::ALPHA);
 	}
 	else if (camera.m_cameraView == CameraView::Orthographic)
 	{
@@ -1150,9 +1150,57 @@ void Renderer::DrawVertexArray(int numVertexes, std::vector<Vertex_PCU> const& v
 	CopyCPUToGPU(&modelConstant, sizeof(modelConstant), m_modalCBO);
 	BindConstantBuffer(m_modalconstantBufferSlot, m_modalCBO);
 
+	if (m_currentShader->GetName().find("Fire") != std::string::npos)
+	{
+		DistortionConstants fireDistortion;
+		fireDistortion.distortion1[0] = 0.1f;
+		fireDistortion.distortion1[1] = 0.2f;
+		fireDistortion.distortion2[0] = 0.1f;
+		fireDistortion.distortion2[1] = 0.3f;
+		fireDistortion.distortion3[0] = 0.1f;
+		fireDistortion.distortion3[1] = 0.1f;
+		fireDistortion.distortionScale = 0.8f;
+		fireDistortion.distortionBias = 0.5f;
+
+		CopyCPUToGPU(&fireDistortion, sizeof(fireDistortion), m_fireDistortionCBO);
+		BindConstantBuffer(m_fireDistortionConstantBufferSlot, m_fireDistortionCBO);
+
+		NoiseConstants fireNoise;
+		fireNoise.frameTime = m_frameTime;
+		fireNoise.scrollSpeeds[0] = -1.3f;
+		fireNoise.scrollSpeeds[1] = -2.1f;
+		fireNoise.scrollSpeeds[2] = -2.3f;
+		fireNoise.scales[0] = 1.0f;
+		fireNoise.scales[1] = 2.0f;
+		fireNoise.scales[2] = 3.0f;
+
+		CopyCPUToGPU(&fireNoise, sizeof(fireNoise), m_fireNoiseCBO);
+		BindConstantBuffer(m_fireNoiseConstantBufferSlot, m_fireNoiseCBO);
+	}
+	if (m_currentShader->GetName().find("Lit") != std::string::npos)
+	{
+		if ((int)m_pointLights.size() != 0)
+		{
+			CopyCPUToGPU(&m_pointLights[0], sizeof(PointLights), m_pointLightCBO);
+			BindConstantBuffer(5, m_pointLightCBO);
+		}
+	}
 	size_t size = sizeof(Vertex_PCU) * numVertexes;
 	CopyCPUToGPU(vertexes.data(), size, m_immediateVBO);
 	DrawVertexBuffer(m_immediateVBO, numVertexes, 0);
+
+	/*ModelConstants modelConstant;
+	modelConstant.ModelMatrix = m_modelMatrix;
+	modelConstant.color[0] = m_modelColor[0];
+	modelConstant.color[1] = m_modelColor[1];
+	modelConstant.color[2] = m_modelColor[2];
+	modelConstant.color[3] = m_modelColor[3];
+	CopyCPUToGPU(&modelConstant, sizeof(modelConstant), m_modalCBO);
+	BindConstantBuffer(m_modalconstantBufferSlot, m_modalCBO);
+
+	size_t size = sizeof(Vertex_PCU) * numVertexes;
+	CopyCPUToGPU(vertexes.data(), size, m_immediateVBO);
+	DrawVertexBuffer(m_immediateVBO, numVertexes, 0);*/
 }
 
 void Renderer::DrawIndexedVertexArray(int numVertexes, Vertex_PCU const* vertexes, int indeces, const unsigned int* indexes, VertexBuffer* vertexBuffer, IndexBuffer* indexBuffer)

@@ -28,7 +28,7 @@ struct Vec3{
 		Vec3 const GetRotatedAboutZDegrees(float deltaDegrees) const;
 		Vec3 const GetClamped(float maxLength) const;
 		Vec3 const GetNormalized() const;
-
+		Vec3 GetReflected(Vec3& incomingVector) const;
 		//operators (Self Mutating Non Const)
 		bool		operator==(Vec3 const& compare) const;
 		bool		operator!=(Vec3 const& compare) const;

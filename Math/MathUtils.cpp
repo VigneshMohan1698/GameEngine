@@ -366,6 +366,40 @@ PlaneRaycastResult2D RaycasVsPlane2D(const Vec2& startPos, const Vec2& fwdNormal
 
 	return planeRaycast;
 }
+
+PlaneRaycastResult3D RaycastVsPlane3D(const Vec3& startPos, const Vec3& fwdNormal, const float& maxDist, Plane3D plane)
+{
+	PlaneRaycastResult3D result;
+
+	float planeDistance = plane.m_distance;
+	Vec3 endPost = startPos  + fwdNormal * maxDist;
+	float startDot = DotProduct3D(startPos, plane.m_planeNormal);
+	float endDot = DotProduct3D(endPost, plane.m_planeNormal);
+
+	//-------------EARLY OUTS FOR IF RAY START AND END IS ON SAME SIDE-------------
+	if (startDot > planeDistance && endDot > planeDistance)
+	{
+		return result;
+	}
+	if (startDot < planeDistance && endDot < planeDistance)
+	{
+		return result;
+	}
+
+	float rayProject = DotProduct3D(fwdNormal, plane.m_planeNormal.GetNormalized());
+	float startPointAltitude = startDot - plane.m_distance;
+	float impactDistance = fabsf(startPointAltitude / rayProject);
+	if (impactDistance > maxDist)
+	{
+		return result;
+	}
+	result.m_didImpact = true;
+	result.m_impactPosition = startPos + fwdNormal * impactDistance;
+	Vec3 planeNormalInverse = -plane.m_planeNormal;
+	result.m_impactSurfaceNormal = fwdNormal.GetReflected(planeNormalInverse).GetNormalized();
+	return result;
+}
+
 RaycastResult2D RaycastVsAABB2(Vec2 startPos, Vec2 fwdNormal, float maxDist, AABB2 aabbBounds)
 {
 	RaycastResult2D returnValue;
@@ -726,6 +760,33 @@ RaycastResult3D RaycastVsSphere3D(Vec3 startPos, Vec3 fwdNormal, float maxDist, 
 	}
 	return returnValue;
 }
+
+bool OverlapAABB2DVsAABB2D(const AABB3& a, const AABB3& b)
+{
+	Vec3 bmins = b.m_mins;
+	Vec3 amins = a.m_mins;
+	Vec3 amaxs = a.m_maxs;
+	Vec3 bmaxs = b.m_maxs;
+	if (amins.y > bmaxs.y)
+	{
+		return false;
+	}
+	if (bmins.y > amaxs.y)
+	{
+		return false;
+	}
+	if (amins.z > bmaxs.z)
+	{
+		return false;
+	}
+	if (bmins.z > amaxs.z)
+	{
+		return false;
+	}
+
+	return true;
+}
+
 
 bool OverlapAABB3DVsAABB3D(const AABB3& a, const AABB3& b)
 {

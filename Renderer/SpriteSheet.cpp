@@ -43,6 +43,20 @@ SpriteSheet::SpriteSheet(const Texture& texture, IntVec2 const& textureDimension
 
 SpriteSheet::SpriteSheet(const Texture& texture, IntVec2 const& textureDimensions, IntVec2 const& simpleGridLayout, bool textureLoader) : m_texture(texture)
 {
+	textureLoader = false;
+	//int index = 0;
+	//for (float yIncrement = 1; yIncrement > 0;)
+	//{
+	//	for (float xIncrement = 0; xIncrement < 1;)
+	//	{
+	//		float xInc = ((float)1 / simpleGridLayout.x) + (1 / (textureDimensions.x * 100));
+	//		float yInc = ((float)1 / simpleGridLayout.y) + (1 / (textureDimensions.y * 100));
+	//		m_spriteDefs.push_back(SpriteDefinition(*this, index, Vec2(xIncrement, yIncrement), Vec2(xIncrement + xInc, yIncrement - yInc)));
+	//		xIncrement += xInc;
+	//		index++;
+	//	}
+	//	yIncrement -= (float)1 / simpleGridLayout.y;
+	//}
 
 	int index = 0;
 	for (float yIncrement = 0; yIncrement < 1;)

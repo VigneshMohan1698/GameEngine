@@ -60,6 +60,7 @@ struct IDXGIDebug;
 //	int instanceIndex;
 //};
 
+
 struct RenderItems
 {
 	VertexBufferD12<Vertex_PNCUTB> verticesPNCUTB;
@@ -69,6 +70,7 @@ struct RenderItems
 	UINT64 fenceValue = 1;
 	HANDLE fenceEvent;
 };
+
 enum class RenderingPipeline
 {
 	Rasterization,
@@ -84,9 +86,9 @@ enum class CompiledShaderByteCodes
 
 struct RaytracedPointLights
 {
-	Vec4 PointLightPosition[20];
+	Vec4 PointLightPosition[30];
 	int	 Counter = -1;
-	int  MaxLights = 20;
+	int  MaxLights = 30;
 };
 
 class ShaderCompiler
@@ -152,6 +154,38 @@ enum class Default3DRootSignatureParams {
 	Count
 };
 
+enum class PBRRootSignatureParams {
+
+	//----SRV---
+	DiffuseTexture = 0,
+	NormalTexture,
+	MetallicTexture,
+	RoughnessTexture,
+	ShadowMapTexture,
+
+	//---CBV-----
+	CameraConstantBuffer,
+	GameConstantBuffer,
+	Count
+};
+
+enum class DFSRootSignatureParams {
+
+	//----SRV---
+	DiffuseTexture = 0,
+	NormalTexture,
+	MetallicTexture,
+	RoughnessTexture,
+	ShadowMapTexture,
+	HazardTexture,
+
+	//---CBV-----
+	CameraConstantBuffer,
+	GameConstantBuffer,
+	RotHazardConstantBuffer,
+	Count
+};
+
 struct CameraConstantBuffer
 {
 	Mat44 projectionMatrix;
@@ -163,10 +197,10 @@ struct CameraConstantBuffer
 };
 struct GameDataBuffer
 {
-	Vec4 globalLightPosition;
-	Vec4 globalLightDirection;
-	Vec4 globalLightColor;
-	Vec4 ViewX_GIOnY_ShadowPassZ;
+	Vec4 globalLightPosition[4];
+	Vec4 globalLightDirection[4];
+	Vec4 globalLightColor[4];
+	Vec4 ViewX_GIOnY_ShadowPassZ_FrameTime;
 	float  renderOutput; // ------- 0 final output 1 Normals 
 };
 
@@ -185,8 +219,9 @@ struct SceneConstantBuffer
 	Vec4 samplingData;
 	Vec4  lightBools;
 	Vec4 textureMappings;
-	Vec4 lightfallOff_AmbientIntensity_CosineSampling;
+	Vec4 lightfallOff_AmbientIntensity_CosineSampling_DayNight;
 };
+
 struct CubeConstantBuffer
 {
 	Vec4 albedo;
@@ -200,11 +235,14 @@ enum class GlobalRootSignatureParams {
 	GBufferDepthSlot,
 	GBufferOcclusionSlot,
 	GBufferVariance, // --------JUST TO CLEAR IT-----------
+	EmissivityTexture, 
 	VertexBuffersSlot,
 	TextureBufferSlot,
 	NormalMapBufferSlot,
-	SpecularMapTextureSlot,
+	MetalnessMapTextureSlot,
+	RougnessMapTextureSlot,
 	SkyboxTextureSlot,
+	SkyboxNightTextureSlot,
 	AccelerationStructureSlot,
 	SceneConstantSlot,
 	Count
@@ -255,6 +293,7 @@ enum class GBufferResources
 	OcclusionTexture,
 	VertexIndirectAlbedo,
 	CompositorOutput,
+	GBufferEmissivity,
 	Count
 };
 
@@ -374,6 +413,8 @@ class RendererD12
 
 		 //----------------------------MESH FUNCTIONS--------------------------
 		 MeshBuilder*   GetMesh(const char* filePath);
+		 MeshBuilder*   GetMeshForName(const char* name);
+		 MeshBuilder*	GetMeshAtIndex(int index);
 		 MeshBuilder*   CreateMesh(const char* filePath);
 		 MeshBuilder*	CreateOrGetMesh(const char* filePath);
 		 MeshBuilder*	CreateMeshFromSavedFile(const char* filePath);
@@ -408,19 +449,28 @@ class RendererD12
 		 UINT			AllocateDescriptor(ID3D12DescriptorHeap* heap, D3D12_CPU_DESCRIPTOR_HANDLE* cpuDescriptor, UINT& allocatedDescriptors, UINT descriptorIndexToUse = UINT_MAX);
 		 void			CopyTextureResourceFromBuffer(GpuBuffer* source, GpuBuffer* dest);
 		 void			CopyTextureResourceFromBuffer(GpuBuffer* source, GpuBuffer* dest , IntVec2 dimensionsToCopy);
+		 void			TransitionBufferToSRV(GpuBuffer* buffer);
+		 void			TransitionBufferToUAV(GpuBuffer* buffer);
+		 void			CreateGPUBuffer(GpuBuffer* buffer, DXGI_FORMAT format, IntVec2 resourceDimensions, LPCWSTR name = L"");
 
-		 TextureD12*	LoadTexture(std::string fileName, std::string filePath, TextureType type);
+		 TextureD12*	LoadTexture(std::string fileName, std::string filePath, TextureType type = TextureType::WICT);
 		 TextureD12*	GetTextureForFileName(char const* name);
 		 TextureD12*	GetTextureForFileNameOrPath(char const* fileName, char const* imageFilePath);
 		 TextureD12*	CreateTextureFromImage(const Image& image);;
 		 TextureD12*	CreateOrGetTextureFromFile(char const* name, char const* imageFilePath);
 		 TextureD12*	CreateTextureFromFile(char const* imageFilePath);
 		 void	     	BindTexture(int index, TextureD12* textureToBind);
+		 void	     	BindComputeTexture(int index, TextureD12* textureToBind);
+		 void	     	BindComputeGpuBuffer(int index, GpuBuffer* buffer, bool isUAV = false);
 		 void	     	BindHandle(int index, D3D12_GPU_DESCRIPTOR_HANDLE& handle);
+		 void	     	WriteGpuBufferToFile(GpuBuffer* buffer, std::string filePath);
+
 		 //----------------SHADERS----------------------
-		 ShaderD12*		CreateOrGetShader(const char* shaderName, const char* shaderFilePath, bool containsTesselation = false);
+		 ShaderD12*		CreateOrGetShader(const char* shaderName, const char* shaderFilePath, bool isCompute = false, bool containsTesselation = false);
 		 ShaderD12*		GetShader(const char* shaderName);
-		 void			BindShader(ShaderD12* shader);
+		 void			BindShader(ShaderD12* shader, bool isForShadowMap = false);
+		 void			BindComputeShader(ShaderD12* shader);
+		 void			DispatchComputeShader(int x, int y, int z, ShaderD12* shader);
 
 		 //----------------BITMAP FONTS----------------------
 		 BitmapFont*	CreateBitmapFont(const char* bitmapFontFilePathWithNoExtension);
@@ -436,6 +486,7 @@ class RendererD12
 		 void			Present(Rgba8 color);
 		 void			DrawVertexArray(int size, VertexNormalArray array);
 		 void			DrawIndexedVertexArray(int numberOfVertices, std::vector<Vertex_PNCUTB>& verticesToDraw, std::vector<unsigned int>& indexes);
+		 void			DrawVertexArray(int numberOfVertices, std::vector<Vertex_PNCUTB>& verticesToDraw);
 		 void			DrawVertexArray(int size, VertexArray array);
 		 void			SetDepthStencilState(DepthTestD12 depthTest, bool writeDepth);
 
@@ -480,7 +531,7 @@ class RendererD12
 	//--------------------SCENE VARIABLES-----------------------
 	public:	
 		Scenes							 m_currentScene = Scenes::Minecraft;
-		const static unsigned int		 MINECRAFTCHUNKS = 600;
+		const static unsigned int		 MINECRAFTCHUNKS = 500;
 		bool							 m_isFirstFrame = true;
 		IntVec2							 m_dimensions;
 		IntVec2							 m_windowDimensions;
@@ -614,6 +665,7 @@ class RendererD12
 		static const wchar_t*					c_hitGroupName;
 		static const wchar_t*					c_raygenShaderName;
 		static const wchar_t*					c_closestHitShaderName;
+		static const wchar_t*					c_anyHitShaderName;
 		static const wchar_t*					c_missShaderName;
 		ShaderTable                             HitShaderTable;
 		ShaderTable                             RaygenShaderTable;

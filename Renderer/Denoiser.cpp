@@ -48,11 +48,12 @@ void Denoiser::Run(ID3D12GraphicsCommandList4* commandList, UINT filterStep, ID3
 	if (temporalSamplerOn)
 	{
 		m_temporalSampler->Run(commandList, filterStep, descriptorHeap);
-		if (m_varianceFilteringOn)
+		GpuBuffer* temporalOutput = &g_theRenderer->m_denoiser->m_temporalSampler->m_temporalOutput;
+		if (denoiserOn)
 		{
-			GpuBuffer* temporalOutput = &g_theRenderer->m_denoiser->m_temporalSampler->m_temporalOutput;
 			m_varianceEstimator->Run(commandList, filterStep, temporalOutput);
 		}
+		
 		
 	}
 	if (denoiserOn)
@@ -72,6 +73,11 @@ void Denoiser::Run(ID3D12GraphicsCommandList4* commandList, UINT filterStep, ID3
 		{
 			m_gaussianFilter->m_filterSize = m_filterSize;
 			m_gaussianFilter->Run(commandList, filterStep, descriptorHeap);
+			//CopyDenoiserOutputToInputForNextStage();
+			auto denoiserFilterOutput = resourceManager->GetDenoiserOutputResource();
+			src = denoiserFilterOutput;
+			dest = &m_temporalSampler->m_previousTemporalOutput;
+			g_theRenderer->CopyTextureResourceFromBuffer(src, dest);
 		}
 		else if (m_denoiserType == DenoiserType::AtrousBilateral)
 		{
@@ -79,15 +85,13 @@ void Denoiser::Run(ID3D12GraphicsCommandList4* commandList, UINT filterStep, ID3
 			/*for (int i = m_totalAtrousSteps - 1; i >= 0; i--)*/
 			{
 				GpuBuffer* denoiserOutput = resourceManager->GetDenoiserOutputResource();
-				if (m_varianceFilteringOn && i != 0.0f)
+				if (i != 0.0f)
 				{
 					m_varianceEstimator->Run(commandList, filterStep, denoiserOutput);
 				}
 				m_atrousWaveletFilter->m_filterSize = m_filterSize;
 				m_atrousWaveletFilter->m_atrousStepSize = i;
 				m_atrousWaveletFilter->Run(commandList, filterStep, descriptorHeap);
-				
-			
 				CopyDenoiserOutputToInputForNextStage();
 				if(i == 0)
 				/*if (i == m_totalAtrousSteps - 1)*/
@@ -100,7 +104,6 @@ void Denoiser::Run(ID3D12GraphicsCommandList4* commandList, UINT filterStep, ID3
 			}
 		}
 	}
-	
 
 	//Copy Previous Frame Resources to GPUBuffers 
 	src = &resourceManager->m_GpuresourceBuffers[(int)GBufferResources::VertexNormal];
@@ -158,7 +161,7 @@ void TemporalSampler::Initialize(ID3D12Device5* device, UINT frameCount, UINT nu
 	//----------------CREATE G BUFFER FOR TEMPORAL OUTPUT-------------------
 	auto resourceManager = g_theRenderer->GetResourceManager();
 	IntVec2 gbufferDimensions = g_theRenderer->m_dimensions;
-	D3D12_RESOURCE_STATES startingState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+	//D3D12_RESOURCE_STATES startingState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
 	resourceManager->CreateGBufferResource(DXGI_FORMAT_R8G8B8A8_UNORM, gbufferDimensions, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, (UINT)GBufferResources::OutputResource, L"Output Resource");
 	resourceManager->CreateGBufferResource(&m_temporalOutput, DXGI_FORMAT_R8G8B8A8_UNORM, gbufferDimensions, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, L"Temporal Output", true);
 
@@ -243,7 +246,8 @@ void TemporalSampler::Run(ID3D12GraphicsCommandList4* commandList, UINT filterSt
 	m_denoiserCB->textureDim = resourceDimensions;
 	m_denoiserCB->invTextureDim = Vec2(1.f / resourceDimensions.x, 1.f / resourceDimensions.y);
 	m_denoiserCB->kernelSize = (float)m_filterSize;
-	m_denoiserCB->temporalFade = g_theRenderer->m_temporalFade;
+	m_denoiserCB->temporalFadeVarianceEstimation.x = g_theRenderer->m_temporalFade;
+	m_denoiserCB->temporalFadeVarianceEstimation.y = g_theRenderer->m_denoiser->m_varianceFilteringOn;
 	m_instanceID = (m_instanceID + 1) % m_denoiserCB.NumInstances();
 	m_denoiserCB.CopyStagingToGpu(m_instanceID);
 
@@ -355,7 +359,8 @@ void VarianceEstimator::Run(ID3D12GraphicsCommandList4* commandList, UINT filter
 	m_denoiserCB->textureDim = resourceDimensions;
 	m_denoiserCB->invTextureDim = Vec2(1.f / resourceDimensions.x, 1.f / resourceDimensions.y);
 	m_denoiserCB->kernelSize = (float)m_filterSize;
-	m_denoiserCB->temporalFade = g_theRenderer->m_temporalFade;
+	m_denoiserCB->temporalFadeVarianceEstimation.x = g_theRenderer->m_temporalFade;
+	m_denoiserCB->temporalFadeVarianceEstimation.y = g_theRenderer->m_denoiser->m_varianceFilteringOn;
 	m_instanceID = (m_instanceID + 1) % m_denoiserCB.NumInstances();
 	m_denoiserCB.CopyStagingToGpu(m_instanceID);
 
@@ -427,7 +432,8 @@ void VarianceEstimator::RunPartialDerivatives(ID3D12GraphicsCommandList4* comman
 	m_denoiserCB->textureDim = resourceDimensions;
 	m_denoiserCB->invTextureDim = Vec2(1.f / g_theRenderer->m_dimensions.x, 1.f / g_theRenderer->m_dimensions.y);
 	m_denoiserCB->kernelSize = (float)m_filterSize;
-	m_denoiserCB->temporalFade = g_theRenderer->m_temporalFade;
+	m_denoiserCB->temporalFadeVarianceEstimation.x = g_theRenderer->m_temporalFade;
+	m_denoiserCB->temporalFadeVarianceEstimation.y = g_theRenderer->m_denoiser->m_varianceFilteringOn;
 	m_instanceID = (m_instanceID + 1) % m_denoiserCB.NumInstances();
 	m_denoiserCB.CopyStagingToGpu(m_instanceID);
 
@@ -502,28 +508,26 @@ ID3D12DescriptorHeap* descriptorHeap)
 	UNUSED((void)filterStep);
 	auto resourceManager = g_theRenderer->GetResourceManager();
 	auto outputResource = resourceManager->GetDenoiserOutputResource();
-	GpuBuffer GIInput;
-	if (g_theRenderer->m_denoiser->m_temporalSamplerOn)
-	{
-		GIInput = g_theRenderer->m_denoiser->m_temporalSampler->m_temporalOutput;
-	}
-	else
-	{
-		GIInput = resourceManager->m_GpuresourceBuffers[(int)GBufferResources::GI];
-	}
+	GpuBuffer* denoiserInput = &resourceManager->m_GpuresourceBuffers[(int)GBufferResources::DenoiserInput] ;
+	
 	Vec2 resourceDimensions = Vec2((float)g_theRenderer->m_dimensions.x, (float)g_theRenderer->m_dimensions.y);
 	m_denoiserCB->textureDim = resourceDimensions;
 	m_denoiserCB->invTextureDim = Vec2(1.f / resourceDimensions.x, 1.f / resourceDimensions.y);
 	m_denoiserCB->kernelSize = (float)m_filterSize;
-	m_denoiserCB->temporalFade = g_theRenderer->m_temporalFade;
+	m_denoiserCB->temporalFadeVarianceEstimation.x = g_theRenderer->m_temporalFade;
+	m_denoiserCB->temporalFadeVarianceEstimation.y = g_theRenderer->m_denoiser->m_varianceFilteringOn;
 	m_instanceID = (m_instanceID + 1) % m_denoiserCB.NumInstances();
 	m_denoiserCB.CopyStagingToGpu(m_instanceID);
+
+	{
+		resourceManager->TransitionResource(&resourceManager->m_GpuresourceBuffers[(int)GBufferResources::DenoiserInput], D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+	}
 
 	//Set all the resources for the Pipeline state object of Gaussian filter
 	commandList->SetDescriptorHeaps(1, &descriptorHeap);
 	commandList->SetComputeRootSignature(m_rootSignature.Get());
-	commandList->SetComputeRootDescriptorTable(0, outputResource->gpuReadDescriptorHandle);
-	commandList->SetComputeRootDescriptorTable(1, GIInput.gpuReadDescriptorHandle);
+	commandList->SetComputeRootDescriptorTable(0, outputResource->gpuWriteDescriptorHandle);
+	commandList->SetComputeRootDescriptorTable(1, denoiserInput->gpuReadDescriptorHandle);
 	commandList->SetComputeRootDescriptorTable(2, resourceManager->m_GpuresourceBuffers[(int)GBufferResources::DirectLight].gpuReadDescriptorHandle);
 	commandList->SetComputeRootDescriptorTable(3, resourceManager->m_GpuresourceBuffers[(int)GBufferResources::VertexAlbedo].gpuReadDescriptorHandle);
 	commandList->SetComputeRootDescriptorTable(4, resourceManager->m_GpuresourceBuffers[(int)GBufferResources::VertexNormal].gpuReadDescriptorHandle);
@@ -533,6 +537,7 @@ ID3D12DescriptorHeap* descriptorHeap)
 	int dispatchx = (int)(resourceDimensions.x + m_dispatchDim.x - 1 )/ m_dispatchDim.x;
 	int dispatchy = (int)(resourceDimensions.y + m_dispatchDim.y - 1) / m_dispatchDim.y;
 	commandList->Dispatch(dispatchx , dispatchy,1);
+
 }
 
 
@@ -592,7 +597,7 @@ void AtrouWaveletFilter::Run(ID3D12GraphicsCommandList4* commandList, UINT filte
 	auto resourceManager = g_theRenderer->GetResourceManager();
 	auto outputResource = resourceManager->GetDenoiserOutputResource();
 	auto varianceOutput = g_theRenderer->m_denoiser->m_varianceEstimator->m_varianceResource;
-	auto GetGBuffers = (resourceManager->m_GpuresourceBuffers);
+	//auto GetGBuffers = (resourceManager->m_GpuresourceBuffers);
 
 	GpuBuffer& denoiserInput  = resourceManager->m_GpuresourceBuffers[(int)GBufferResources::DenoiserInput]; 
 
@@ -603,7 +608,8 @@ void AtrouWaveletFilter::Run(ID3D12GraphicsCommandList4* commandList, UINT filte
 	m_denoiserCB->textureDim = resourceDimensions;
 	m_denoiserCB->invTextureDim = Vec2(1.f / resourceDimensions.x, 1.f / resourceDimensions.y);
 	m_denoiserCB->kernelSize = (float)m_filterSize;
-	m_denoiserCB->temporalFade = g_theRenderer->m_temporalFade;
+	m_denoiserCB->temporalFadeVarianceEstimation.x = g_theRenderer->m_temporalFade;
+	m_denoiserCB->temporalFadeVarianceEstimation.y = g_theRenderer->m_denoiser->m_varianceFilteringOn;
 	m_denoiserCB->atrousStepSize = m_atrousStepSize;
 	m_instanceID = (m_instanceID + 1) % m_denoiserCB.NumInstances();
 	m_denoiserCB.CopyStagingToGpu(m_instanceID);

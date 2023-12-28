@@ -4,11 +4,6 @@
 
 extern RendererD12* g_theRenderer;
 
-void ResourceManager::Bind(ID3D12GraphicsCommandList* commandList)
-{
-   // m_commandList = commandList;
-}
-
 void ResourceManager::Reset()
 {
     m_currentBarriers = 0;
@@ -179,18 +174,58 @@ void ResourceManager::CreateGBufferResource(DXGI_FORMAT format, IntVec2 resource
     }
 }
 
+void ResourceManager::CreateAndGetGPUBuffer(GpuBuffer* buffer, DXGI_FORMAT format, IntVec2 resourceDimensions, LPCWSTR name)
+{
+    auto device = g_theRenderer->GetDevice();
+    ID3D12DescriptorHeap* descriptorHeap = nullptr;
+    descriptorHeap = g_theRenderer->GetDescriptorHeap();
+
+    //-----------------------CREATING THE RESOURCE-----------------
+    auto resourceDesc = CD3DX12_RESOURCE_DESC::Tex2D(format, resourceDimensions.x,
+        resourceDimensions.y, 1, 1, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+
+    auto defaultHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+    g_theRenderer->ThrowIfFailed(device->CreateCommittedResource(
+        &defaultHeapProperties, D3D12_HEAP_FLAG_NONE, &resourceDesc, D3D12_RESOURCE_STATE_COMMON, nullptr, IID_PPV_ARGS(&buffer->resource)), "Failed While Getting Raytracing output");
+
+    //------------------------CREATING UAV-----------------------
+    D3D12_CPU_DESCRIPTOR_HANDLE& handleUAV = buffer->cpuDescriptorHandle;
+    buffer->uavHeapIndex = g_theRenderer->AllocateDescriptor(&handleUAV, UINT_MAX);
+
+    D3D12_UNORDERED_ACCESS_VIEW_DESC UAVDesc = {};
+    UAVDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
+    device->CreateUnorderedAccessView(buffer->GetResource(), nullptr, &UAVDesc, handleUAV);
+    buffer->gpuWriteDescriptorHandle = CD3DX12_GPU_DESCRIPTOR_HANDLE(descriptorHeap->GetGPUDescriptorHandleForHeapStart(), buffer->uavHeapIndex, g_theRenderer->m_descriptorSize);
+    buffer->m_UsageState = D3D12_RESOURCE_STATE_COMMON;
+
+
+    //------------------------CREATING SRV-----------------------
+    D3D12_CPU_DESCRIPTOR_HANDLE handleSRV;
+    buffer->srvHeapIndex = g_theRenderer->AllocateDescriptor(&handleSRV, UINT_MAX);
+
+    D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+    srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+    srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+    srvDesc.Format = buffer->resource->GetDesc().Format;
+    srvDesc.Texture2D.MipLevels = buffer->resource->GetDesc().MipLevels;
+    srvDesc.Texture2D.MostDetailedMip = 0;
+    srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
+
+    device->CreateShaderResourceView(buffer->resource.Get(), &srvDesc, handleSRV);
+    buffer->gpuReadDescriptorHandle = CD3DX12_GPU_DESCRIPTOR_HANDLE(descriptorHeap->GetGPUDescriptorHandleForHeapStart(),
+        buffer->srvHeapIndex, g_theRenderer->m_descriptorSize);
+    buffer->GetResource()->SetName(name);
+}
+
 void ResourceManager::CreateDenoiserGBufferResource(DXGI_FORMAT format, IntVec2 resourceDimensions, D3D12_RESOURCE_FLAGS flags, LPCWSTR name)
 {
     UNUSED((void) name);
 
-    auto device = g_theRenderer->GetDevice();
-    auto descriptorHeap = g_theRenderer->GetDescriptorHeap();
-
     CreateGBufferResource(&m_denoiserOutput, format, resourceDimensions, flags, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, name, true);
 }
-
 void ResourceManager::CreateGBufferResource(GpuBuffer* buffer, DXGI_FORMAT format, IntVec2 resourceDimensions, D3D12_RESOURCE_FLAGS flags, D3D12_RESOURCE_STATES state, LPCWSTR name, bool allowWrite)
 {
+    UNUSED((void) state);
     auto device = g_theRenderer->GetDevice();
     ID3D12DescriptorHeap* descriptorHeap = nullptr;
     descriptorHeap = g_theRenderer->GetDescriptorHeap();
@@ -221,10 +256,10 @@ void ResourceManager::CreateGBufferResource(GpuBuffer* buffer, DXGI_FORMAT forma
     //---------------UAV-------------------
     if (allowWrite)
     {
-        auto uavDesc = CD3DX12_RESOURCE_DESC::Tex2D(format, resourceDimensions.x,
+        uavDesc = CD3DX12_RESOURCE_DESC::Tex2D(format, resourceDimensions.x,
             resourceDimensions.y, 1, 1, 1, 0, flags);
 
-        auto defaultHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+        defaultHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
         g_theRenderer->ThrowIfFailed(device->CreateCommittedResource(
             &defaultHeapProperties, D3D12_HEAP_FLAG_NONE, &uavDesc, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, nullptr, IID_PPV_ARGS(&buffer->resource)), "Failed While Getting Raytracing output");
 

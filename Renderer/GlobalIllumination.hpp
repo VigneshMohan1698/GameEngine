@@ -27,9 +27,11 @@ enum class GIGlobalRSParams {
 	VertexAndIndexBuffers,
 	DiffuseTexture,
 	NormalMapTexture,
-	SpecularMapTexture,
+	MetalnessMapTexture,
+	RoughnessMapTexture,
 	LightBuffer,
 	GBufferAlbedoSlot,
+	GBufferEmissivitySlot,
 
 	//CBVS
 	SceneConstantBuffer,

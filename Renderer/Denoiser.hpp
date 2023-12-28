@@ -10,7 +10,7 @@ struct DenoiserData
 	Vec2    invTextureDim;
 	float	kernelSize = 0.0f;
 	int		atrousStepSize;
-	float	temporalFade;
+	Vec2 	temporalFadeVarianceEstimation;
 };
 
 enum DenoiserRootSignatures 

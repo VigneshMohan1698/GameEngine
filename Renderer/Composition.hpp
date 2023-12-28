@@ -32,6 +32,7 @@ enum CompositionRootSignatures
 	CompositorOuput,
 	VarianceEstimation,
 	IndirectAlbedo,
+	OcclusionTexture,
 	CountCompositor
 };
 
