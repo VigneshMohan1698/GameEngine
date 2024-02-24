@@ -7,12 +7,9 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		272B3A912B448F1F00D31065 /* Audio */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Audio; path = ../Audio; sourceTree = "<group>"; };
-		272B3A922B448F6E00D31065 /* Window */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Window; path = ../Window; sourceTree = "<group>"; };
-		272B3A932B448F6E00D31065 /* Renderer */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Renderer; path = ../Renderer; sourceTree = "<group>"; };
 		272B3A942B448F6E00D31065 /* Math */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Math; path = ../Math; sourceTree = "<group>"; };
-		272B3A952B448F6E00D31065 /* Networking */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Networking; path = ../Networking; sourceTree = "<group>"; };
 		2734F7F42B42743F005DC522 /* libAlbus.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libAlbus.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
+		274AD0B32B8A8DB5008DDF19 /* Core */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Core; path = ../Core; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -29,11 +26,8 @@
 		2734F7EB2B42743F005DC522 = {
 			isa = PBXGroup;
 			children = (
+				274AD0B32B8A8DB5008DDF19 /* Core */,
 				272B3A942B448F6E00D31065 /* Math */,
-				272B3A952B448F6E00D31065 /* Networking */,
-				272B3A932B448F6E00D31065 /* Renderer */,
-				272B3A922B448F6E00D31065 /* Window */,
-				272B3A912B448F1F00D31065 /* Audio */,
 				2734F7F52B42743F005DC522 /* Products */,
 			);
 			sourceTree = "<group>";
