@@ -4,14 +4,9 @@
 //
 //  Created by Vignesh Mohan on 2/24/24.
 //
-
+#pragma once
 #ifndef WindowMac_hpp
 #define WindowMac_hpp
-
-#include <cassert>
-#include <stdio.h>
-#include <iostream>
-#include "../Core/Rgba8.hpp"
 
 struct WindowConfig
 {

@@ -10,13 +10,10 @@
 		273EF4D02B8A919C003E79F4 /* RendererMetal.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 273EF4CF2B8A919C003E79F4 /* RendererMetal.hpp */; };
 		273EF4D12B8A919C003E79F4 /* RendererMetal.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 273EF4CE2B8A919C003E79F4 /* RendererMetal.cpp */; };
 		273EF4D72B8A940A003E79F4 /* WindowMac.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 273EF4D62B8A940A003E79F4 /* WindowMac.hpp */; };
-		273EF4D82B8A940A003E79F4 /* WindowMac.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 273EF4D52B8A940A003E79F4 /* WindowMac.cpp */; };
-		273EF4E32B8A94FE003E79F4 /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 273EF4E22B8A94FE003E79F4 /* MetalKit.framework */; };
-		273EF4E52B8A9505003E79F4 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 273EF4E42B8A9505003E79F4 /* Metal.framework */; };
-		273EF4E72B8A950A003E79F4 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 273EF4E62B8A950A003E79F4 /* QuartzCore.framework */; };
-		273EF4EC2B8A9F40003E79F4 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 273EF4EB2B8A9F40003E79F4 /* Foundation.framework */; };
-		273EF4EE2B8A9F5D003E79F4 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 273EF4ED2B8A9F5D003E79F4 /* AppKit.framework */; };
-		273EF56A2B8B20EC003E79F4 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 273EF4ED2B8A9F5D003E79F4 /* AppKit.framework */; };
+		277877B12B8C26BD00E958BC /* WindowMac.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 273EF4D52B8A940A003E79F4 /* WindowMac.cpp */; };
+		27C7D02E2B8C10D400039D59 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 273EF4EB2B8A9F40003E79F4 /* Foundation.framework */; };
+		27C7D0302B8C10D500039D59 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 273EF4E42B8A9505003E79F4 /* Metal.framework */; };
+		27C7D0322B8C10D600039D59 /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 273EF4E22B8A94FE003E79F4 /* MetalKit.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -29,7 +26,6 @@
 		273EF4D62B8A940A003E79F4 /* WindowMac.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = WindowMac.hpp; sourceTree = "<group>"; };
 		273EF4E22B8A94FE003E79F4 /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = System/Library/Frameworks/MetalKit.framework; sourceTree = SDKROOT; };
 		273EF4E42B8A9505003E79F4 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
-		273EF4E62B8A950A003E79F4 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		273EF4EB2B8A9F40003E79F4 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		273EF4ED2B8A9F5D003E79F4 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		273EF5662B8AA9CD003E79F4 /* ThirdPartyMac */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ThirdPartyMac; sourceTree = "<group>"; };
@@ -40,12 +36,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				273EF4EE2B8A9F5D003E79F4 /* AppKit.framework in Frameworks */,
-				273EF4EC2B8A9F40003E79F4 /* Foundation.framework in Frameworks */,
-				273EF4E72B8A950A003E79F4 /* QuartzCore.framework in Frameworks */,
-				273EF56A2B8B20EC003E79F4 /* AppKit.framework in Frameworks */,
-				273EF4E52B8A9505003E79F4 /* Metal.framework in Frameworks */,
-				273EF4E32B8A94FE003E79F4 /* MetalKit.framework in Frameworks */,
+				27C7D02E2B8C10D400039D59 /* Foundation.framework in Frameworks */,
+				27C7D0302B8C10D500039D59 /* Metal.framework in Frameworks */,
+				27C7D0322B8C10D600039D59 /* MetalKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -96,7 +89,6 @@
 			children = (
 				273EF4ED2B8A9F5D003E79F4 /* AppKit.framework */,
 				273EF4EB2B8A9F40003E79F4 /* Foundation.framework */,
-				273EF4E62B8A950A003E79F4 /* QuartzCore.framework */,
 				273EF4E42B8A9505003E79F4 /* Metal.framework */,
 				273EF4E22B8A94FE003E79F4 /* MetalKit.framework */,
 			);
@@ -172,8 +164,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				277877B12B8C26BD00E958BC /* WindowMac.cpp in Sources */,
 				273EF4D12B8A919C003E79F4 /* RendererMetal.cpp in Sources */,
-				273EF4D82B8A940A003E79F4 /* WindowMac.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -220,7 +212,7 @@
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_NO_COMMON_BLOCKS = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
@@ -280,7 +272,7 @@
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
-				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_NO_COMMON_BLOCKS = NO;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
@@ -300,10 +292,12 @@
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
 				CODE_SIGN_STYLE = Automatic;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = R7N6NB5LV8;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				EXECUTABLE_PREFIX = lib;
+				GCC_NO_COMMON_BLOCKS = NO;
 				HEADER_SEARCH_PATHS = (
 					"$(PROJECT_DIR)/ThirdPartyMac/MetalWrapper",
 					"$(PROJECT_DIR)/ThirdPartyMac/MetalExtensions",
@@ -318,10 +312,12 @@
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
 				CODE_SIGN_STYLE = Automatic;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = R7N6NB5LV8;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				EXECUTABLE_PREFIX = lib;
+				GCC_NO_COMMON_BLOCKS = NO;
 				HEADER_SEARCH_PATHS = (
 					"$(PROJECT_DIR)/ThirdPartyMac/MetalWrapper",
 					"$(PROJECT_DIR)/ThirdPartyMac/MetalExtensions",

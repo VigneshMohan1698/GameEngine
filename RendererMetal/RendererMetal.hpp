@@ -4,10 +4,7 @@
 //
 //  Created by Vignesh Mohan on 2/24/24.
 //
-
-#include <stdio.h>
-#include "../Core/Rgba8.hpp"
-
+#pragma once
 #ifndef RendererMetal_hpp
 #define RendererMetal_hpp
 
