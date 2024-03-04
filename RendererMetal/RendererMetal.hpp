@@ -8,6 +8,8 @@
 #ifndef RendererMetal_hpp
 #define RendererMetal_hpp
 
+
+
 class RendererMetal;
 
 struct RendererConfig
@@ -37,14 +39,24 @@ class RendererMetal
         void Shutdown();
         void Draw(MTK::View* view);
         void SetClearScreenColor(const Rgba8& color);
+    
+        void BuildBasicShader();
+        void BuildBasicBuffer();
         MTK::View* GetView();
         RendererConfig m_config;
     private:
-        MTL::Device*       m_device;
-        MTL::CommandQueue* m_commandQueue;
-        MTK::View*         m_view;
-        Rgba8              m_clearScreenColor = {} ;
-        MetalViewDelegate* m_viewDelegate = nullptr;
+        MTL::Device*              m_device;
+        MTL::CommandQueue*        m_commandQueue;
+        MTK::View*                m_view;
+        MetalViewDelegate*        m_viewDelegate = nullptr;
+        MTL::RenderPipelineState* m_PSO = nullptr;
+    
+        //--------------------BUFFERS------------------------
+        MTL::Buffer*              m_vertexPositions;
+        MTL::Buffer*              m_vertexColor;
+    
+        //--------------------OTHER DATA--------------------
+        Rgba8                     m_clearScreenColor = {} ;
 };
 
 

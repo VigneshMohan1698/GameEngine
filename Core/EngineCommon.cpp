@@ -10,22 +10,22 @@ NamedStrings g_gameConfigBlackboard;
 int g_numMemoryAllocated = 0;
 void PopulateGameConfigs(const char* XMLfilePath)
 {
-	tinyxml2::XMLDocument xml_doc;
-
-	tinyxml2::XMLError result = xml_doc.LoadFile(XMLfilePath);
-	if (result != tinyxml2::XML_SUCCESS)
-		return;
-
-	tinyxml2::XMLElement* element = xml_doc.FirstChildElement("GameConfig");
-
-	if (element == nullptr) 
-		return;
-
-	if (element != nullptr)
-	{
-		g_gameConfigBlackboard.PopulateFromXmlElementAttributes(*element);
-	}
-	return;
+//	tinyxml2::XMLDocument xml_doc;
+//
+//	tinyxml2::XMLError result = xml_doc.LoadFile(XMLfilePath);
+//	if (result != tinyxml2::XML_SUCCESS)
+//		return;
+//
+//	tinyxml2::XMLElement* element = xml_doc.FirstChildElement("GameConfig");
+//
+//	if (element == nullptr) 
+//		return;
+//
+//	if (element != nullptr)
+//	{
+//		g_gameConfigBlackboard.PopulateFromXmlElementAttributes(*element);
+//	}
+//	return;
 
 }
 
@@ -51,6 +51,6 @@ std::wstring ConvertToWString(const char* c)
 void EngineShutdown()
 {
 	std::string text = "Memory leaks : " + g_numMemoryAllocated;
- 	DebuggerPrintf(text.c_str());
+ 	//DebuggerPrintf(text.c_str());
 }
 

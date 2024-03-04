@@ -1,3 +1,4 @@
+
 #include "Engine/Core/StringUtils.hpp"
 #include <stdarg.h>
 
@@ -12,7 +13,7 @@ const std::string Stringf( char const* format, ... )
 	char textLiteral[ STRINGF_STACK_LOCAL_TEMP_LENGTH ];
 	va_list variableArgumentList;
 	va_start( variableArgumentList, format );
-	vsnprintf_s( textLiteral, STRINGF_STACK_LOCAL_TEMP_LENGTH, _TRUNCATE, format, variableArgumentList );	
+	//vsnprintf_s( textLiteral, STRINGF_STACK_LOCAL_TEMP_LENGTH, _TRUNCATE, format, variableArgumentList );
 	va_end( variableArgumentList );
 	textLiteral[ STRINGF_STACK_LOCAL_TEMP_LENGTH - 1 ] = '\0'; // In case vsnprintf overran (doesn't auto-terminate)
 
@@ -30,7 +31,7 @@ const std::string Stringf( int maxLength, char const* format, ... )
 
 	va_list variableArgumentList;
 	va_start( variableArgumentList, format );
-	vsnprintf_s( textLiteral, maxLength, _TRUNCATE, format, variableArgumentList );	
+	//vsnprintf_s( textLiteral, maxLength, _TRUNCATE, format, variableArgumentList );	
 	va_end( variableArgumentList );
 	textLiteral[ maxLength - 1 ] = '\0'; // In case vsnprintf overran (doesn't auto-terminate)
 

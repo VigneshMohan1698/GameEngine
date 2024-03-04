@@ -1,3 +1,4 @@
+#ifndef __APPLE__
 #include "DevConsole.hpp"
 #include "Engine/Renderer/Renderer.hpp"
 #include "Engine/Math/VertexUtils.hpp"
@@ -569,3 +570,4 @@ void DevConsole::ExecuteXmlCommandScriptFile(std::string& filePath)
 	}
 
 }
+#endif

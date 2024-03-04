@@ -1,3 +1,4 @@
+
 #include "XmlUtils.hpp"
 
 int ParseXmlAttribute(tinyxml2::XMLElement const& element, char const* attributeName, int defaultValue)

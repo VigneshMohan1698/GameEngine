@@ -63,7 +63,7 @@ inline T NamedProperties::GetValue(std::string keyName, T const& defaultvalue) c
 	{
 		return sameTypeProperty->m_value;
 	}
-	ERROR_AND_DIE("Named Properties looking for wrong type");
+	//ERROR_AND_DIE("Named Properties looking for wrong type");
 
 }
 
@@ -111,7 +111,11 @@ class HashedCaseInsensitiveString
 		}
 		else
 		{
+            #ifndef __APPLE__
 			return _stricmp(m_textCaseIntact.c_str(), compare.m_textCaseIntact.c_str()) == 0;
+            #else
+            return strcmp(m_textCaseIntact.c_str(), compare.m_textCaseIntact.c_str()) == 0;
+            #endif
 		}
 	}
 	bool operator!=(HashedCaseInsensitiveString const& compare)
@@ -122,7 +126,11 @@ class HashedCaseInsensitiveString
 		}
 		else
 		{
-			return !_stricmp(m_textCaseIntact.c_str(), compare.m_textCaseIntact.c_str()) == 0;
+            #ifndef __APPLE__
+            return !_stricmp(m_textCaseIntact.c_str(), compare.m_textCaseIntact.c_str()) == 0;
+            #else
+            return strcmp(m_textCaseIntact.c_str(), compare.m_textCaseIntact.c_str()) == 0;
+            #endif
 		}
 	}
 
@@ -135,7 +143,11 @@ class HashedCaseInsensitiveString
 		}
 		else
 		{
-			return _stricmp(m_textCaseIntact.c_str(), compare.m_textCaseIntact.c_str()) < 0;
+            #ifndef __APPLE__
+            return _stricmp(m_textCaseIntact.c_str(), compare.m_textCaseIntact.c_str()) < 0;
+            #else
+            return strcmp(m_textCaseIntact.c_str(), compare.m_textCaseIntact.c_str()) < 0;
+            #endif
 		}
 	}
 
@@ -148,7 +160,12 @@ class HashedCaseInsensitiveString
 		}
 		else
 		{
-			return !(_stricmp(m_textCaseIntact.c_str(), compare.m_textCaseIntact.c_str()) == 0);
+            #ifndef __APPLE__
+            return !(_stricmp(m_textCaseIntact.c_str(), compare.m_textCaseIntact.c_str()) == 0);
+            #else
+            return strcmp(m_textCaseIntact.c_str(), compare.m_textCaseIntact.c_str()) == 0;
+            #endif
+			
 		}
 	}
 

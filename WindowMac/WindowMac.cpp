@@ -5,6 +5,12 @@
 //  Created by Vignesh Mohan on 2/24/24.
 //
 
+#define NS_PRIVATE_IMPLEMENTATION
+#define MTL_PRIVATE_IMPLEMENTATION
+#define MTK_PRIVATE_IMPLEMENTATION
+#define CA_PRIVATE_IMPLEMENTATION
+
+
 #include "../Core/EngineIncludeHeaders.hpp"
 #include "WindowMac.hpp"
 

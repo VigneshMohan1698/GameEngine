@@ -2,7 +2,7 @@
 #include "Engine/Math/Vec3.hpp"
 #include "Engine/Math/MathUtils.hpp"
 #include <math.h>
-#include <Game/GameCommon.hpp>
+//#include <Game/GameCommon.hpp>
 #include "Engine/Core/StringUtils.hpp"
 
 //#include "Engine/Math/MathUtils.hpp"

@@ -1,7 +1,7 @@
 #include "VertexUtils.hpp"
 #include "Engine/Math/VertexUtils.hpp"
 #include "Engine/Math/MathUtils.hpp"
-#include "Game/GameCommon.hpp"
+//#include "Game/GameCommon.hpp"
 #include "Engine/Core/EngineCommon.hpp"
 #include <Engine/Core/Vertex_PNCUTB.hpp>
 
