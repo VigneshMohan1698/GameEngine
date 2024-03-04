@@ -58,7 +58,11 @@ void Clock::Tick()
 {
 	if (this != nullptr)
 	{
+        #ifndef __APPLE__
 		double timeNow = GetCurrentTimeSeconds();
+        #else
+        double timeNow = 0;
+        #endif
 		double deltaTime = timeNow - m_lastUpdateTime;
 		m_lastUpdateTime = timeNow;
 		Advance(deltaTime);

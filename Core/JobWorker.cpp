@@ -1,7 +1,7 @@
-﻿#include "Engine/Core/JobWorker.hpp"
+#include "Engine/Core/JobWorker.hpp"
 #include <chrono>
 #include "Engine/Core/JobSystem.hpp"
-#include "Game/GameCommon.hpp"
+//#include "Game/GameCommon.hpp"
 
 
 Job::Job(int jobType)
@@ -26,7 +26,7 @@ JobWorker::~JobWorker()
 
 void JobWorker::JobWorkerMain(int id)
 {
-	UNUSED((void)id);
+	//UNUSED((void)id);
 	while (!m_isQuitting)
 	{
 		Job* jobToExecute = m_JobSystem->RetrieveJobToExecute();

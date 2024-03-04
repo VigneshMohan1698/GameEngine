@@ -1,3 +1,4 @@
+#ifndef __APPLE__
 #include "FileUtils.hpp"
 #include <Engine/Core/ErrorWarningAssert.hpp>
 #include <Engine/Core/EngineCommon.hpp>
@@ -135,3 +136,4 @@ int FileSize(FILE* fileStream)
 	fseek(fileStream, prev, SEEK_SET); 
 	return sz;
 }
+#endif

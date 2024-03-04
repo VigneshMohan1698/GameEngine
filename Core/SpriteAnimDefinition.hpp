@@ -1,3 +1,4 @@
+#ifndef __APPLE__
 #pragma once
 #include "Engine/Renderer/SpriteDefinition.hpp"
 #include "Engine/Renderer/SpriteSheet.hpp"
@@ -51,3 +52,4 @@ private:
 };
 
 
+#endif

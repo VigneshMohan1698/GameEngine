@@ -1,3 +1,5 @@
+
+#ifndef __APPLE__
 #include "SpriteAnimDefinition.hpp"
 #include "Engine/Math/MathUtils.hpp"
 #include "Engine/Core/XmlUtils.hpp"
@@ -106,3 +108,5 @@ void SpriteAnimDefinition::SetFramesPerSecond(float fps)
 {
     UNUSED((void)fps);
 }
+
+#endif
