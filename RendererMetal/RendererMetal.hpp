@@ -34,13 +34,19 @@ class RendererMetal
     public:
         RendererMetal(const RendererConfig& config);
         ~RendererMetal();
-    
+        
+        //---------------------STARTUP AND MAIN----------------
         void Startup();
         void Shutdown();
         void Draw(MTK::View* view);
         void SetClearScreenColor(const Rgba8& color);
     
+        //----------------------SHADERS-------------------------
         void BuildBasicShader();
+        void BuildShader(const std::string& shaderFileName);
+    
+    
+        //----------------------BUFFERS---------------------
         void BuildBasicBuffer();
         MTK::View* GetView();
         RendererConfig m_config;

@@ -9,7 +9,10 @@
 #include "RendererMetal.hpp"
 #include "../Core/Rgba8.hpp"
 #include <simd/simd.h>
-
+#include "Core/FileUtils.hpp"
+#include "fstream"
+#include "sstream"
+#include "iostream"
 //---------------------------MAIN FUNCTIONS---------------------------------------
 
 RendererMetal::RendererMetal(const RendererConfig& config)
@@ -114,6 +117,56 @@ void RendererMetal::BuildBasicShader()
             return half4( in.color, 1.0 );
         }
     )";
+    
+    NS::Error* pError = nullptr;
+    MTL::Library* libraryMetal = m_device->newLibrary( NS::String::string(shaderSrc, UTF8StringEncoding), nullptr, &pError );
+    if ( !libraryMetal )
+    {
+        __builtin_printf( "%s", pError->localizedDescription()->utf8String() );
+        assert( false );
+    }
+    
+    MTL::Function* vertexFunction = libraryMetal->newFunction( NS::String::string("vertexMain", UTF8StringEncoding) );
+    MTL::Function* fragmentFunction = libraryMetal->newFunction( NS::String::string("fragmentMain", UTF8StringEncoding) );
+
+    MTL::RenderPipelineDescriptor* psoDesc = MTL::RenderPipelineDescriptor::alloc()->init();
+    psoDesc->setVertexFunction( vertexFunction );
+    psoDesc->setFragmentFunction( fragmentFunction );
+    psoDesc->colorAttachments()->object(0)->setPixelFormat( MTL::PixelFormat::PixelFormatBGRA8Unorm_sRGB );
+
+    m_PSO = m_device->newRenderPipelineState( psoDesc, &pError );
+    if ( !m_PSO )
+    {
+        __builtin_printf( "%s", pError->localizedDescription()->utf8String() );
+        assert( false );
+    }
+
+    vertexFunction->release();
+    fragmentFunction->release();
+    psoDesc->release();
+    libraryMetal->release();
+}
+
+
+std::string ReadFile(const std::string& shaderFileName) {
+    std::ifstream file;
+    file.open("Shaders/Basic2D.metal");
+    if (!file.is_open()){
+//        std::cout << "Failed to open file :" + shaderFileName;
+    }
+        
+    std::stringstream reader;
+    reader << file.rdbuf();
+    std::string rawString = reader.str();
+    return rawString.c_str();
+}
+
+void RendererMetal::BuildShader(const std::string& shaderFileName)
+{
+    using NS::StringEncoding::UTF8StringEncoding;
+
+    //std::string shaderString = ReadFile(shaderFileName);
+    const char* shaderSrc = shaderFileName.c_str();
     
     NS::Error* pError = nullptr;
     MTL::Library* libraryMetal = m_device->newLibrary( NS::String::string(shaderSrc, UTF8StringEncoding), nullptr, &pError );
