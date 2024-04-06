@@ -51,8 +51,9 @@ class RendererMetal
         RendererConfig m_config;
     public:
         MTL::Device*              m_device;
-    
-    private:
+        MTL::Library *m_shaderLibrary;
+
+      private:
         MTL::CommandQueue*        m_commandQueue;
         MTK::View*                m_view;
         MetalViewDelegate*        m_viewDelegate = nullptr;
@@ -61,7 +62,8 @@ class RendererMetal
         //--------------------BUFFERS------------------------
         MetalBuffer               m_VPositionsBuffer = {};
         MetalBuffer               m_VColorBuffer = {};
-    
+        MetalBuffer m_argumentBuffer = {};
+
         //--------------------OTHER DATA--------------------
         Rgba8                     m_clearScreenColor = {} ;
 };

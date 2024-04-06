@@ -36,10 +36,10 @@ public:
     
     
 private:
-    MTL::Buffer*        m_buffer;
-    RendererMetal*      g_renderer;
-    size_t              m_size;
-    BufferType          m_type;
+  MTL::Buffer *m_buffer;
+  RendererMetal *g_renderer;
+  size_t m_size;
+  BufferType m_type;
 };
 
 #endif

@@ -4,15 +4,15 @@
 //
 //  Created by Vignesh Mohan on 2/24/24.
 
-
-#include "../Core/EngineIncludeHeaders.hpp"
 #include "RendererMetal.hpp"
+#include "../Core/EngineIncludeHeaders.hpp"
 #include "../Core/Rgba8.hpp"
-#include <simd/simd.h>
 #include "Core/FileUtils.hpp"
 #include "fstream"
-#include "sstream"
 #include "iostream"
+#include "sstream"
+#include <cassert>
+#include <simd/simd.h>
 
 //---------------------------MAIN FUNCTIONS---------------------------------------
 
@@ -42,8 +42,10 @@ void RendererMetal::Draw(MTK::View* view)
     MTL::RenderCommandEncoder* pEnc = m_commandBuffer->renderCommandEncoder( pRpd );
     
     pEnc->setRenderPipelineState(m_PSO);
-    pEnc->setVertexBuffer(m_VPositionsBuffer.GetBufferObject(), 0, 0);
-    pEnc->setVertexBuffer(m_VColorBuffer.GetBufferObject(), 0, 1);
+    pEnc->setVertexBuffer(m_argumentBuffer.GetBufferObject(), 0, 0);
+    pEnc->useResource(m_VPositionsBuffer.GetBufferObject(),
+                      MTL::ResourceUsageRead);
+    pEnc->useResource(m_VColorBuffer.GetBufferObject(), MTL::ResourceUsageRead);
     pEnc->drawPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(3));
     pEnc->endEncoding();
     
@@ -59,6 +61,8 @@ void RendererMetal::Shutdown()
     m_view->release();
     m_VPositionsBuffer.ReleaseBuffer();
     m_VColorBuffer.ReleaseBuffer();
+    m_argumentBuffer.ReleaseBuffer();
+    m_shaderLibrary->release();
 }
 
 //---------------------------NOT SO MAIN FUNCTIONS---------------------------------------
@@ -98,15 +102,17 @@ void RendererMetal::BuildShader(const std::string& shaderFileName)
     const char* shaderSrc = shaderFile.c_str();
     
     NS::Error* pError = nullptr;
-    MTL::Library* libraryMetal = m_device->newLibrary( NS::String::string(shaderSrc, UTF8StringEncoding), nullptr, &pError );
-    if ( !libraryMetal )
-    {
-        __builtin_printf( "%s", pError->localizedDescription()->utf8String() );
-        assert( false );
+    m_shaderLibrary = m_device->newLibrary(
+        NS::String::string(shaderSrc, UTF8StringEncoding), nullptr, &pError);
+    if (!m_shaderLibrary) {
+      __builtin_printf("%s", pError->localizedDescription()->utf8String());
+      assert(false);
     }
-    
-    MTL::Function* vertexFunction = libraryMetal->newFunction( NS::String::string("vertexMain", UTF8StringEncoding) );
-    MTL::Function* fragmentFunction = libraryMetal->newFunction( NS::String::string("fragmentMain", UTF8StringEncoding) );
+
+    MTL::Function *vertexFunction = m_shaderLibrary->newFunction(
+        NS::String::string("vertexMain", UTF8StringEncoding));
+    MTL::Function *fragmentFunction = m_shaderLibrary->newFunction(
+        NS::String::string("fragmentMain", UTF8StringEncoding));
 
     if(!vertexFunction) 
     {
@@ -132,7 +138,6 @@ void RendererMetal::BuildShader(const std::string& shaderFileName)
     vertexFunction->release();
     fragmentFunction->release();
     psoDesc->release();
-    libraryMetal->release();
 }
 
 void RendererMetal::BuildBasicBuffer()
@@ -158,7 +163,25 @@ void RendererMetal::BuildBasicBuffer()
 
     m_VPositionsBuffer = MetalBuffer(this, positionsDataSize, BufferType::VertexBuffer);
     m_VColorBuffer     = MetalBuffer(this, colorDataSize, BufferType::VertexBuffer);
-    
+
+    assert(m_shaderLibrary);
+
+    MTL::Function *vertexFunction = m_shaderLibrary->newFunction(
+        NS::String::string("vertexMain", NS::UTF8StringEncoding));
+    MTL::ArgumentEncoder *argEncoder = vertexFunction->newArgumentEncoder(0);
+
+    m_argumentBuffer = MetalBuffer(this, argEncoder->encodedLength(),
+                                   BufferType::ArgumentBuffer);
+    argEncoder->setArgumentBuffer(m_argumentBuffer.GetBufferObject(), 0);
+
     m_VPositionsBuffer.UpdateBuffer(positions);
     m_VColorBuffer.UpdateBuffer(colors);
+
+    argEncoder->setBuffer(m_VPositionsBuffer.GetBufferObject(), 0, 0);
+    argEncoder->setBuffer(m_VColorBuffer.GetBufferObject(), 0, 1);
+    m_argumentBuffer.GetBufferObject()->didModifyRange(
+        NS::Range::Make(0, m_argumentBuffer.GetBufferObject()->length()));
+
+    vertexFunction->release();
+    argEncoder->release();
 }
