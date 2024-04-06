@@ -7,8 +7,7 @@
 #pragma once
 #ifndef RendererMetal_hpp
 #define RendererMetal_hpp
-
-
+#include "MetalBuffer.hpp"
 
 class RendererMetal;
 
@@ -42,24 +41,26 @@ class RendererMetal
         void SetClearScreenColor(const Rgba8& color);
     
         //----------------------SHADERS-------------------------
-        void BuildBasicShader();
         void BuildShader(const std::string& shaderFileName);
     
     
         //----------------------BUFFERS---------------------
         void BuildBasicBuffer();
+    
         MTK::View* GetView();
         RendererConfig m_config;
-    private:
+    public:
         MTL::Device*              m_device;
+    
+    private:
         MTL::CommandQueue*        m_commandQueue;
         MTK::View*                m_view;
         MetalViewDelegate*        m_viewDelegate = nullptr;
         MTL::RenderPipelineState* m_PSO = nullptr;
     
         //--------------------BUFFERS------------------------
-        MTL::Buffer*              m_vertexPositions;
-        MTL::Buffer*              m_vertexColor;
+        MetalBuffer               m_VPositionsBuffer = {};
+        MetalBuffer               m_VColorBuffer = {};
     
         //--------------------OTHER DATA--------------------
         Rgba8                     m_clearScreenColor = {} ;

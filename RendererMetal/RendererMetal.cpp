@@ -13,6 +13,7 @@
 #include "fstream"
 #include "sstream"
 #include "iostream"
+
 //---------------------------MAIN FUNCTIONS---------------------------------------
 
 RendererMetal::RendererMetal(const RendererConfig& config)
@@ -41,8 +42,8 @@ void RendererMetal::Draw(MTK::View* view)
     MTL::RenderCommandEncoder* pEnc = m_commandBuffer->renderCommandEncoder( pRpd );
     
     pEnc->setRenderPipelineState(m_PSO);
-    pEnc->setVertexBuffer(m_vertexPositions, 0, 0);
-    pEnc->setVertexBuffer(m_vertexColor, 0, 1);
+    pEnc->setVertexBuffer(m_VPositionsBuffer.GetBufferObject(), 0, 0);
+    pEnc->setVertexBuffer(m_VColorBuffer.GetBufferObject(), 0, 1);
     pEnc->drawPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(3));
     pEnc->endEncoding();
     
@@ -56,6 +57,8 @@ void RendererMetal::Shutdown()
     m_commandQueue->release();
     m_device->release();
     m_view->release();
+    m_VPositionsBuffer.ReleaseBuffer();
+    m_VColorBuffer.ReleaseBuffer();
 }
 
 //---------------------------NOT SO MAIN FUNCTIONS---------------------------------------
@@ -85,80 +88,6 @@ void MetalViewDelegate::drawInMTKView(MTK::View* view )
 
 MetalViewDelegate::~MetalViewDelegate()
 {
-    
-}
-
-void RendererMetal::BuildBasicShader()
-{
-    using NS::StringEncoding::UTF8StringEncoding;
-
-    const char* shaderSrc = R"(
-        #include <metal_stdlib>
-        using namespace metal;
-
-        struct v2f
-        {
-            float4 position [[position]];
-            half3 color;
-        };
-
-        v2f vertex vertexMain( uint vertexId [[vertex_id]],
-                               device const float3* positions [[buffer(0)]],
-                               device const float3* colors [[buffer(1)]] )
-        {
-            v2f o;
-            o.position = float4( positions[ vertexId ], 1.0 );
-            o.color = half3 ( colors[ vertexId ] );
-            return o;
-        }
-
-        half4 fragment fragmentMain( v2f in [[stage_in]] )
-        {
-            return half4( in.color, 1.0 );
-        }
-    )";
-    
-    NS::Error* pError = nullptr;
-    MTL::Library* libraryMetal = m_device->newLibrary( NS::String::string(shaderSrc, UTF8StringEncoding), nullptr, &pError );
-    if ( !libraryMetal )
-    {
-        __builtin_printf( "%s", pError->localizedDescription()->utf8String() );
-        assert( false );
-    }
-    
-    MTL::Function* vertexFunction = libraryMetal->newFunction( NS::String::string("vertexMain", UTF8StringEncoding) );
-    MTL::Function* fragmentFunction = libraryMetal->newFunction( NS::String::string("fragmentMain", UTF8StringEncoding) );
-
-    MTL::RenderPipelineDescriptor* psoDesc = MTL::RenderPipelineDescriptor::alloc()->init();
-    psoDesc->setVertexFunction( vertexFunction );
-    psoDesc->setFragmentFunction( fragmentFunction );
-    psoDesc->colorAttachments()->object(0)->setPixelFormat( MTL::PixelFormat::PixelFormatBGRA8Unorm_sRGB );
-
-    m_PSO = m_device->newRenderPipelineState( psoDesc, &pError );
-    if ( !m_PSO )
-    {
-        __builtin_printf( "%s", pError->localizedDescription()->utf8String() );
-        assert( false );
-    }
-
-    vertexFunction->release();
-    fragmentFunction->release();
-    psoDesc->release();
-    libraryMetal->release();
-}
-
-
-std::string ReadFile(const std::string& shaderFileName) {
-    std::ifstream file;
-    file.open("Shaders/Basic2D.metal");
-    if (!file.is_open()){
-//        std::cout << "Failed to open file :" + shaderFileName;
-    }
-        
-    std::stringstream reader;
-    reader << file.rdbuf();
-    std::string rawString = reader.str();
-    return rawString.c_str();
 }
 
 void RendererMetal::BuildShader(const std::string& shaderFileName)
@@ -178,8 +107,7 @@ void RendererMetal::BuildShader(const std::string& shaderFileName)
     
     MTL::Function* vertexFunction = libraryMetal->newFunction( NS::String::string("vertexMain", UTF8StringEncoding) );
     MTL::Function* fragmentFunction = libraryMetal->newFunction( NS::String::string("fragmentMain", UTF8StringEncoding) );
-    
-    
+
     if(!vertexFunction) 
     {
         std::cout << "Error building vertex function\n";
@@ -228,15 +156,9 @@ void RendererMetal::BuildBasicBuffer()
     const size_t positionsDataSize = NumVertices * sizeof( simd::float3 );
     const size_t colorDataSize = NumVertices * sizeof( simd::float3 );
 
-    MTL::Buffer* pVertexPositionsBuffer = m_device->newBuffer( positionsDataSize, MTL::ResourceStorageModeManaged );
-    MTL::Buffer* pVertexColorsBuffer = m_device->newBuffer( colorDataSize, MTL::ResourceStorageModeManaged );
-
-    m_vertexPositions = pVertexPositionsBuffer;
-    m_vertexColor = pVertexColorsBuffer;
-
-    memcpy( m_vertexPositions->contents(), positions, positionsDataSize );
-    memcpy( m_vertexColor->contents(), colors, colorDataSize );
-
-    m_vertexPositions->didModifyRange( NS::Range::Make( 0, m_vertexPositions->length() ) );
-    m_vertexColor->didModifyRange( NS::Range::Make( 0, m_vertexColor->length() ) );
+    m_VPositionsBuffer = MetalBuffer(this, positionsDataSize, BufferType::VertexBuffer);
+    m_VColorBuffer     = MetalBuffer(this, colorDataSize, BufferType::VertexBuffer);
+    
+    m_VPositionsBuffer.UpdateBuffer(positions);
+    m_VColorBuffer.UpdateBuffer(colors);
 }
