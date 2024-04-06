@@ -164,9 +164,9 @@ std::string ReadFile(const std::string& shaderFileName) {
 void RendererMetal::BuildShader(const std::string& shaderFileName)
 {
     using NS::StringEncoding::UTF8StringEncoding;
-
-    //std::string shaderString = ReadFile(shaderFileName);
-    const char* shaderSrc = shaderFileName.c_str();
+    
+    std::string shaderFile = ReadMetalFile(shaderFileName);
+    const char* shaderSrc = shaderFile.c_str();
     
     NS::Error* pError = nullptr;
     MTL::Library* libraryMetal = m_device->newLibrary( NS::String::string(shaderSrc, UTF8StringEncoding), nullptr, &pError );
@@ -178,7 +178,17 @@ void RendererMetal::BuildShader(const std::string& shaderFileName)
     
     MTL::Function* vertexFunction = libraryMetal->newFunction( NS::String::string("vertexMain", UTF8StringEncoding) );
     MTL::Function* fragmentFunction = libraryMetal->newFunction( NS::String::string("fragmentMain", UTF8StringEncoding) );
-
+    
+    
+    if(!vertexFunction) 
+    {
+        std::cout << "Error building vertex function\n";
+    }
+    if(!fragmentFunction)
+    {
+        std::cout << "Error building fragment function\n";
+    }
+    
     MTL::RenderPipelineDescriptor* psoDesc = MTL::RenderPipelineDescriptor::alloc()->init();
     psoDesc->setVertexFunction( vertexFunction );
     psoDesc->setFragmentFunction( fragmentFunction );

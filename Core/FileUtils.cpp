@@ -147,10 +147,13 @@ int FileSize(FILE* fileStream)
 std::string ReadMetalFile(const std::string& shaderFileName) {
     std::ifstream file;
     file.open(shaderFileName);
+    if (!file.is_open()){
+        std::cerr << "Error opening file: " +  shaderFileName + " " << strerror(errno);
+    }
     std::stringstream reader;
     reader << file.rdbuf();
     std::string rawString = reader.str();
-    return rawString.c_str();
+    return rawString;
 }
 
 #endif
