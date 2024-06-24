@@ -7,15 +7,14 @@
 #pragma once
 #ifndef RendererMetal_hpp
 #define RendererMetal_hpp
-
-
+#include "MetalBuffer.hpp"
+#include "WindowMac/WindowMac.hpp"
 
 class RendererMetal;
 
 struct RendererConfig
 {
     CGRect renderFrameDimensions;
-    
 };
 
 class MetalViewDelegate : public MTK::ViewDelegate
@@ -32,29 +31,40 @@ class RendererMetal
 {
 
     public:
-        RendererMetal(const RendererConfig& config);
+        RendererMetal(const RendererConfig& config, WindowMac* windowToRender);
         ~RendererMetal();
-    
+        
+        //---------------------STARTUP AND MAIN----------------
         void Startup();
         void Shutdown();
         void Draw(MTK::View* view);
         void SetClearScreenColor(const Rgba8& color);
     
-        void BuildBasicShader();
+        //----------------------SHADERS-------------------------
+        void BuildShader(const std::string& shaderFileName);
+    
+    
+        //----------------------BUFFERS---------------------
         void BuildBasicBuffer();
+    
         MTK::View* GetView();
         RendererConfig m_config;
-    private:
+    public:
         MTL::Device*              m_device;
+        MTL::Library *m_shaderLibrary;
+
+      private:
+        WindowMac*                m_window = nullptr;
         MTL::CommandQueue*        m_commandQueue;
         MTK::View*                m_view;
         MetalViewDelegate*        m_viewDelegate = nullptr;
         MTL::RenderPipelineState* m_PSO = nullptr;
     
         //--------------------BUFFERS------------------------
-        MTL::Buffer*              m_vertexPositions;
-        MTL::Buffer*              m_vertexColor;
-    
+        MetalBuffer               m_VPositionsBuffer = {};
+        MetalBuffer               m_VColorBuffer = {};
+        MetalBuffer m_argumentBuffer = {};
+
         //--------------------OTHER DATA--------------------
         Rgba8                     m_clearScreenColor = {} ;
 };

@@ -136,4 +136,24 @@ int FileSize(FILE* fileStream)
 	fseek(fileStream, prev, SEEK_SET); 
 	return sz;
 }
+#else
+
+#include "fstream"
+#include "iostream"
+#include "sstream"
+#include "EngineIncludeHeaders.hpp"
+
+
+std::string ReadMetalFile(const std::string& shaderFileName) {
+    std::ifstream file;
+    file.open(shaderFileName);
+    if (!file.is_open()){
+        std::cerr << "Error opening file: " +  shaderFileName + " " << strerror(errno);
+    }
+    std::stringstream reader;
+    reader << file.rdbuf();
+    std::string rawString = reader.str();
+    return rawString;
+}
+
 #endif

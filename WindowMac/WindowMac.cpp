@@ -13,6 +13,11 @@
 
 #include "../Core/EngineIncludeHeaders.hpp"
 #include "WindowMac.hpp"
+#include "iostream"
+#include "stdio.h"
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_syswm.h>
+
 
 WindowMac::WindowMac(WindowConfig config)
 {
@@ -22,6 +27,64 @@ WindowMac::WindowMac(WindowConfig config)
 void WindowMac::Startup()
 {
     CreateWindow();
+}
+
+void WindowMac::CreateWindow()
+{
+    if(SDL_Init(SDL_INIT_EVERYTHING) < 0){
+        std::cout << "SDL could not be initialized: " <<
+                  SDL_GetError();
+    } else {
+        std::cout << "SDL video system is ready to go\n";
+    }
+    m_sdlWindow = SDL_CreateWindow(m_config.windowName,
+                                                SDL_WINDOWPOS_CENTERED,
+                                                SDL_WINDOWPOS_CENTERED,
+                                   m_config.windowDimensions.CGRect::size.width, m_config.windowDimensions.CGRect::size.height, SDL_WINDOW_SHOWN);
+
+    SDL_SysWMinfo info;
+    SDL_VERSION(&info.version);
+    if (SDL_GetWindowWMInfo(m_sdlWindow, &info) && info.subsystem == SDL_SYSWM_COCOA)
+    {
+        m_window = (NS::Window*)info.info.cocoa.window;
+    }
+   
+    m_window->setTitle(NS::String::string( m_config.windowName, NS::StringEncoding::UTF8StringEncoding ) );
+    m_window->makeKeyAndOrderFront( nullptr );
+}
+
+void WindowMac::Update()
+{
+    SDL_Event event;
+    const Uint8 *keyState = SDL_GetKeyboardState(NULL);
+    if (keyState[SDL_SCANCODE_X])
+    {
+        std::cout << "Key pressed: X";
+    }
+    while (SDL_PollEvent(&event)) {
+        SDL_KeyboardEvent key = event.key;
+        
+        std::cout << key.type;
+        if (event.type == SDL_QUIT) {
+            SDL_Quit();
+        }
+        
+        else if(event.type == SDL_KEYDOWN)
+        {
+            std::cout << "Hit key: " << event.key.keysym.sym;
+            switch (event.key.keysym.sym) {
+                case SDLK_ESCAPE:
+                    SDL_Quit();
+                    break;
+                case SDLK_UP:
+                    std::cout << "UP key pressed." << std::endl;
+                    break;
+                default:
+                    break;
+            }
+        }
+        
+    }
 }
 
 void WindowMac::CreateMenuBar()
@@ -66,23 +129,12 @@ void WindowMac::CreateMenuBar()
     m_menu = m_menu->autorelease();
 }
 
-
-void WindowMac::CreateWindow()
-{
-    m_window = NS::Window::alloc()->init(
-                                         m_config.windowDimensions,
-                                         NS::WindowStyleMaskClosable|NS::WindowStyleMaskTitled,
-                                         NS::BackingStoreBuffered,
-                                         false );
-    
-    m_window->setTitle(NS::String::string( m_config.windowName, NS::StringEncoding::UTF8StringEncoding ) );
-    m_window->makeKeyAndOrderFront( nullptr );
-}
-
 void WindowMac::Shutdown()
 {
     m_window->release();
     m_menu->release();
+    SDL_DestroyWindow(m_sdlWindow);
+    SDL_Quit();
 }
 
 NS::Menu *WindowMac::GetMenuBar() 
