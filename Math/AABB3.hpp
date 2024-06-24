@@ -19,15 +19,5 @@ public:
 	Vec3			GetCenterOfAABB3() const;
 	Vec3			GetDimensions() const;
 	Vec3			GetCenter() const;
-	void			operator+=(const float& value)
-	{
-		m_mins += value;
-		m_maxs += value;
-	}
-	void			operator+=(const Vec3& value)
-	{
-		m_mins += value;
-		m_maxs += value;
-	}
 };
 	

@@ -1,4 +1,3 @@
-#ifndef __APPLE__
 #pragma once
 #include <string>
 #include <vector>
@@ -13,8 +12,3 @@ int FileReadToBuffer(std::vector<Vertex_PNCU>& outBuffer, const std::string& fil
 int FileReadToBuffer(std::vector<float>& outBuffer, const std::string& filename);
 int FileReadToString(std::string& outString, const std::string& filename);
 int FileSize(FILE* fileStream);
-
-#else
-std::string ReadMetalFile(const std::string& shaderFileName);
-
-#endif

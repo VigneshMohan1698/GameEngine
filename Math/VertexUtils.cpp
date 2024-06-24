@@ -1,7 +1,7 @@
 #include "VertexUtils.hpp"
 #include "Engine/Math/VertexUtils.hpp"
 #include "Engine/Math/MathUtils.hpp"
-//#include "Game/GameCommon.hpp"
+#include "Game/GameCommon.hpp"
 #include "Engine/Core/EngineCommon.hpp"
 #include <Engine/Core/Vertex_PNCUTB.hpp>
 
@@ -42,7 +42,7 @@ void TransformPNCUTBArrayUsingMatrix3D(int vertices, std::vector<Vertex_PNCUTB>&
 	for (int i = 0; i < vertices; i++)
 	{
 		positionVertexArrays[i].m_position = transformMatrix.TransformVectorQuantity3D(positionVertexArrays[i].m_position);
-		positionVertexArrays[i].m_position = transformMatrix.TransformPosition3D(positionVertexArrays[i].m_position);
+		//positionVertexArrays[i].m_position = transformMatrix.TransformPosition3D(positionVertexArrays[i].m_position);
 	}
 
 }
@@ -59,9 +59,7 @@ void TransformVertexArrayUsingMatrix3D(int vertices, std::vector<Vertex_PNCUTB>&
 {
 	for (int i = 0; i < vertices; i++)
 	{
-		//positionVertexArrays[i].m_position = transformMatrix.TransformVectorQuantity3D(positionVertexArrays[i].m_position);
-		positionVertexArrays[i].m_position = transformMatrix.TransformPosition3D(positionVertexArrays[i].m_position);
-		positionVertexArrays[i].m_normal = transformMatrix.TransformVectorQuantity3D(positionVertexArrays[i].m_normal);
+		positionVertexArrays[i].m_position = transformMatrix.TransformVectorQuantity3D(positionVertexArrays[i].m_position);
 	}
 
 }
@@ -941,184 +939,20 @@ const Vec3& topLeft, const Vec3& bottomLeft, const Vec3& bottomRight, const Vec3
 }
 
 void AddVertsForIndexedPNCUQuadtangent3D(std::vector<Vertex_PNCUTB>& verts, std::vector<unsigned int>& indexedVerts, Vec3& normal, int indexCount,
-	AABB3 bounds, const Vec4& color, const AABB2& UVs)
-{
-	float minx = bounds.m_mins.x;
-	float miny = bounds.m_mins.y;
-	float minz = bounds.m_mins.z;
-	float maxx = bounds.m_maxs.x;
-	float maxy = bounds.m_maxs.y;
-	float maxz = bounds.m_maxs.z;
-
-	Vec3 bottomLeft = Vec3(maxx, miny, minz);
-	Vec3 bottomRight = Vec3(maxx, maxy, minz);
-	Vec3 topLeft = Vec3(minx, miny, maxz);
-	Vec3 topRight = Vec3(minx, maxy, maxz);
-
-
-	std::vector<Vec3> positions;
-	std::vector<Vec3> normals;
-	std::vector<Vec2> uvs;
-	std::vector<Vec3> tangents(6, Vec3());
-	std::vector<Vec3> bitangents(6, Vec3());
-
-	//------------------Adding 6 verts. 2 triangles. Each vert inside a triangle will have same tangent and bitangent ----------------
-	//tangents.reserve(6);
-	//bitangents.reserve(6);
-	//MikktSpace tangentSpace;
-	Vertex_PNCUTB tempVertexArrays[4];
-	tempVertexArrays[0].m_position = topLeft;
-	tempVertexArrays[1].m_position = bottomLeft;
-	tempVertexArrays[2].m_position = bottomRight;
-	tempVertexArrays[3].m_position = topRight;
-
-	tempVertexArrays[0].m_color = color;
-	tempVertexArrays[1].m_color = color;
-	tempVertexArrays[2].m_color = color;
-	tempVertexArrays[3].m_color = color;
-
-	tempVertexArrays[0].m_normal = normal;
-	tempVertexArrays[1].m_normal = normal;
-	tempVertexArrays[2].m_normal = normal;
-	tempVertexArrays[3].m_normal = normal;
-
-	tempVertexArrays[0].m_uvTexCoords = Vec2(UVs.m_mins.x, UVs.m_maxs.y);
-	tempVertexArrays[1].m_uvTexCoords = Vec2(UVs.m_mins.x, UVs.m_mins.y);
-	tempVertexArrays[2].m_uvTexCoords = Vec2(UVs.m_maxs.x, UVs.m_mins.y);
-	tempVertexArrays[3].m_uvTexCoords = Vec2(UVs.m_maxs.x, UVs.m_maxs.y);
-
-	positions.push_back(tempVertexArrays[0].m_position);
-	positions.push_back(tempVertexArrays[1].m_position);
-	positions.push_back(tempVertexArrays[2].m_position);
-	positions.push_back(tempVertexArrays[0].m_position);
-	positions.push_back(tempVertexArrays[2].m_position);
-	positions.push_back(tempVertexArrays[3].m_position);
-
-	normals.push_back(tempVertexArrays[0].m_normal);
-	normals.push_back(tempVertexArrays[1].m_normal);
-	normals.push_back(tempVertexArrays[2].m_normal);
-	normals.push_back(tempVertexArrays[0].m_normal);
-	normals.push_back(tempVertexArrays[2].m_normal);
-	normals.push_back(tempVertexArrays[3].m_normal);
-
-	uvs.push_back(tempVertexArrays[0].m_uvTexCoords);
-	uvs.push_back(tempVertexArrays[1].m_uvTexCoords);
-	uvs.push_back(tempVertexArrays[2].m_uvTexCoords);
-	uvs.push_back(tempVertexArrays[0].m_uvTexCoords);
-	uvs.push_back(tempVertexArrays[2].m_uvTexCoords);
-	uvs.push_back(tempVertexArrays[3].m_uvTexCoords);
-
-	//tangents.push_back(tempVertexArrays[0].m_tangent);
-	//tangents.push_back(tempVertexArrays[1].m_tangent);
-	//tangents.push_back(tempVertexArrays[2].m_tangent);
-	//tangents.push_back(tempVertexArrays[0].m_tangent);
-	//tangents.push_back(tempVertexArrays[2].m_tangent);
-	//tangents.push_back(tempVertexArrays[3].m_tangent);
-
-	//------------------Old Method--------------------
-	/*Vec3 deltaPos1 = tempVertexArrays[1].m_position - tempVertexArrays[0].m_position;
-	Vec3 deltaPos2 = tempVertexArrays[2].m_position - tempVertexArrays[0].m_position;
-
-	Vec2 deltaUV1 = tempVertexArrays[1].m_uvTexCoords - tempVertexArrays[0].m_uvTexCoords;
-	Vec2 deltaUV2 = tempVertexArrays[2].m_uvTexCoords - tempVertexArrays[0].m_uvTexCoords;
-
-	float division = deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x;
-	float r = 1.0f;
-	if (division != 0.0f)
-	{
-		r = 1.0f/ division;
-	}
-
-	Vec3 tangent = (deltaPos1 * deltaUV2.x - deltaPos2 * deltaUV1.x) * r;
-	Vec3 bitangent = (deltaPos2 * deltaUV1.y - deltaPos1 * deltaUV2.y) * r;
-
-	for (int i = 0; i < 4; i++)
-	{
-		tempVertexArrays[i].m_tangent = tangent.GetNormalized();
-		tempVertexArrays[i].m_bitangent = bitangent.GetNormalized();
-		verts.push_back(tempVertexArrays[i]);
-
-	}*/
-
-	//------------------Proper Method--------------------
-	int vertexCount = (int)positions.size();
-	int totalTriangles = vertexCount / 3;
-
-	for (int i = 0; i < totalTriangles; i++)
-	{
-		int triangleCount = i * 3;
-		Vec3 v1 = positions[triangleCount];
-		Vec3 v2 = positions[triangleCount + 1];
-		Vec3 v3 = positions[triangleCount + 2];
-
-		Vec2 w1 = uvs[triangleCount];
-		Vec2 w2 = uvs[triangleCount + 1];
-		Vec2 w3 = uvs[triangleCount + 2];
-
-		float x1 = v2.x - v1.x;
-		float x2 = v3.x - v1.x;
-		float y1 = v2.y - v1.y;
-		float y2 = v3.y - v1.y;
-		float z1 = v2.z - v1.z;
-		float z2 = v3.z - v1.z;
-
-		float s1 = w2.x - w1.x;
-		float s2 = w3.x - w1.x;
-		float t1 = w2.y - w1.y;
-		float t2 = w3.y - w1.y;
-
-		float r = 1.0F / (s1 * t2 - s2 * t1);
-		Vec3 tang = Vec3((t2 * x1 - t1 * x2) * r, (t2 * y1 - t1 * y2) * r,
-			(t2 * z1 - t1 * z2) * r);
-		Vec3 bitang = Vec3((s1 * x2 - s2 * x1) * r, (s1 * y2 - s2 * y1) * r,
-			(s1 * z2 - s2 * z1) * r);
-
-		tangents[triangleCount] = tang.GetNormalized();
-		tangents[triangleCount + 1] = tang.GetNormalized();
-		tangents[triangleCount + 2] = tang.GetNormalized();
-
-		bitangents[triangleCount] = bitang.GetNormalized();
-		bitangents[triangleCount + 1] = bitang.GetNormalized();
-		bitangents[triangleCount + 2] = bitang.GetNormalized();
-	}
-	//----------Since triangles are index it goes 0,1,2,3. Which means the tangent of the 4th index is actually the 5th one in the array-----------
-	//----------This is a hack--------------
-	tangents[3] = tangents[5];
-	bitangents[3] = bitangents[5];
-	for (int i = 0; i < 4; i++)
-	{
-		tempVertexArrays[i].m_tangent = tangents[i].GetNormalized();
-		tempVertexArrays[i].m_bitangent = bitangents[i].GetNormalized();
-		verts.push_back(tempVertexArrays[i]);
-	}
-
-	indexedVerts.push_back(indexCount);
-	indexedVerts.push_back(indexCount + 1);
-	indexedVerts.push_back(indexCount + 2);
-	indexedVerts.push_back(indexCount);
-	indexedVerts.push_back(indexCount + 2);
-	indexedVerts.push_back(indexCount + 3);
-
-}
-
-void AddVertsForIndexedPNCUQuadtangent3D(std::vector<Vertex_PNCUTB>& verts, std::vector<unsigned int>& indexedVerts, Vec3& normal, int indexCount,
 	const Vec3& topLeft, const Vec3& bottomLeft, const Vec3& bottomRight, const Vec3& topRight, const Vec4& color, const AABB2& UVs)
 {
 	std::vector<Vec3> positions;
 	std::vector<Vec3> normals;
 	std::vector<Vec2> uvs;
-	std::vector<Vec3> tangents(6,Vec3());
-	std::vector<Vec3> bitangents(6, Vec3());
+	std::vector<Vec4> tangents;
 
-	//------------------Adding 6 verts. 2 triangles. Each vert inside a triangle will have same tangent and bitangent ----------------
-	//tangents.reserve(6);
-	//bitangents.reserve(6);
 	//MikktSpace tangentSpace;
 	Vertex_PNCUTB tempVertexArrays[4];
 	tempVertexArrays[0].m_position = topLeft;
 	tempVertexArrays[1].m_position = bottomLeft;
 	tempVertexArrays[2].m_position = bottomRight;
 	tempVertexArrays[3].m_position = topRight;
+
 
 	tempVertexArrays[0].m_color = color;
 	tempVertexArrays[1].m_color = color;
@@ -1156,27 +990,21 @@ void AddVertsForIndexedPNCUQuadtangent3D(std::vector<Vertex_PNCUTB>& verts, std:
 	uvs.push_back(tempVertexArrays[2].m_uvTexCoords);
 	uvs.push_back(tempVertexArrays[3].m_uvTexCoords);
 
-	//tangents.push_back(tempVertexArrays[0].m_tangent);
-	//tangents.push_back(tempVertexArrays[1].m_tangent);
-	//tangents.push_back(tempVertexArrays[2].m_tangent);
-	//tangents.push_back(tempVertexArrays[0].m_tangent);
-	//tangents.push_back(tempVertexArrays[2].m_tangent);
-	//tangents.push_back(tempVertexArrays[3].m_tangent);
+	tangents.push_back(tempVertexArrays[0].m_tangent);
+	tangents.push_back(tempVertexArrays[1].m_tangent);
+	tangents.push_back(tempVertexArrays[2].m_tangent);
+	tangents.push_back(tempVertexArrays[0].m_tangent);
+	tangents.push_back(tempVertexArrays[2].m_tangent);
+	tangents.push_back(tempVertexArrays[3].m_tangent);
 
-	//------------------Old Method--------------------
-	/*Vec3 deltaPos1 = tempVertexArrays[1].m_position - tempVertexArrays[0].m_position;
+
+	Vec3 deltaPos1 = tempVertexArrays[1].m_position - tempVertexArrays[0].m_position;
 	Vec3 deltaPos2 = tempVertexArrays[2].m_position - tempVertexArrays[0].m_position;
 
 	Vec2 deltaUV1 = tempVertexArrays[1].m_uvTexCoords - tempVertexArrays[0].m_uvTexCoords;
 	Vec2 deltaUV2 = tempVertexArrays[2].m_uvTexCoords - tempVertexArrays[0].m_uvTexCoords;
 
-	float division = deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x;
-	float r = 1.0f;
-	if (division != 0.0f)
-	{
-		r = 1.0f/ division;
-	}
-
+	float r = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x);
 	Vec3 tangent = (deltaPos1 * deltaUV2.x - deltaPos2 * deltaUV1.x) * r;
 	Vec3 bitangent = (deltaPos2 * deltaUV1.y - deltaPos1 * deltaUV2.y) * r;
 
@@ -1186,58 +1014,6 @@ void AddVertsForIndexedPNCUQuadtangent3D(std::vector<Vertex_PNCUTB>& verts, std:
 		tempVertexArrays[i].m_bitangent = bitangent.GetNormalized();
 		verts.push_back(tempVertexArrays[i]);
 
-	}*/
-
-	//------------------Proper Method--------------------
-	int vertexCount = (int)positions.size();
-	int totalTriangles = vertexCount / 3;
-
-	for (int i = 0; i < totalTriangles; i++)
-	{
-		int triangleCount = i * 3;
-		Vec3 v1 = positions[triangleCount];
-		Vec3 v2 = positions[triangleCount + 1];
-		Vec3 v3 = positions[triangleCount + 2];
-
-		Vec2 w1 = uvs[triangleCount];
-		Vec2 w2 = uvs[triangleCount + 1];
-		Vec2 w3 = uvs[triangleCount + 2];
-
-		float x1 = v2.x - v1.x;
-		float x2 = v3.x - v1.x;
-		float y1 = v2.y - v1.y;
-		float y2 = v3.y - v1.y;
-		float z1 = v2.z - v1.z;
-		float z2 = v3.z - v1.z;
-
-		float s1 = w2.x - w1.x;
-		float s2 = w3.x - w1.x;
-		float t1 = w2.y - w1.y;
-		float t2 = w3.y - w1.y;
-
-		float r = 1.0F / (s1 * t2 - s2 * t1);
-		Vec3 tang = Vec3((t2 * x1 - t1 * x2) * r, (t2 * y1 - t1 * y2) * r,
-			(t2 * z1 - t1 * z2) * r);
-		Vec3 bitang = Vec3((s1 * x2 - s2 * x1) * r, (s1 * y2 - s2 * y1) * r,
-			(s1 * z2 - s2 * z1) * r);
-
-		tangents[triangleCount] = tang.GetNormalized();
-		tangents[triangleCount + 1] = tang.GetNormalized();
-		tangents[triangleCount + 2] = tang.GetNormalized();
-
-		bitangents[triangleCount] = bitang.GetNormalized();
-		bitangents[triangleCount + 1] = bitang.GetNormalized();
-		bitangents[triangleCount + 2] = bitang.GetNormalized();
-	}
-	//----------Since triangles are index it goes 0,1,2,3. Which means the tangent of the 4th index is actually the 5th one in the array-----------
-	//----------This is a hack--------------
-	tangents[3] = tangents[5];
-	bitangents[3] = bitangents[5];
-	for (int i = 0; i < 4; i++)
-	{
-		tempVertexArrays[i].m_tangent = tangents[i].GetNormalized();
-		tempVertexArrays[i].m_bitangent = bitangents[i].GetNormalized();
-		verts.push_back(tempVertexArrays[i]);
 	}
 
 	indexedVerts.push_back(indexCount);
@@ -1246,6 +1022,19 @@ void AddVertsForIndexedPNCUQuadtangent3D(std::vector<Vertex_PNCUTB>& verts, std:
 	indexedVerts.push_back(indexCount);
 	indexedVerts.push_back(indexCount + 2);
 	indexedVerts.push_back(indexCount + 3);
+
+	//mikkt_data_t tangentData;
+	//tangentData.pos = positions.data();
+	//tangentData.normal = normals.data();
+	//tangentData.uv = uvs.data();
+	//tangentData.tangent = tangents.data();
+
+	//tangentData.pos_stride = sizeof(Vec3);
+	//tangentData.normal_stride = sizeof(Vec3);
+	//tangentData.tangent_stride = sizeof(Vec4);
+	//tangentData.uv_stride = sizeof(Vec2);
+
+
 
 }
 
@@ -1268,7 +1057,7 @@ void AddVertsForIndexedAABB3Tangent(std::vector<Vertex_PNCUTB>& vertices, std::v
 	topRight = Vec3(minx, miny, minz);
 	
 	Vec3 quadNormal;
-	quadNormal = Vec3(0.0f,0.0f,-1.0f);
+	quadNormal = Vec3(-1.0f,0.0f,0.0f);
 
 	//------------------------------------FLOOR WALL ---------------------------------------
 	AddVertsForIndexedPNCUQuadtangent3D(vertices, indexes, quadNormal, indexCount, topLeft, bottomLeft, bottomRight, topRight, color,
@@ -1432,7 +1221,6 @@ void AddVertsForIndexedQuad3D(std::vector<Vertex_PNCU>& vertexes, std::vector<un
 	indexedVerts.push_back(indexCount + 2);
 	indexedVerts.push_back(indexCount + 3);
 }
-
 
 void AddVertsForAABB3D(std::vector<Vertex_PCU>& verts, const AABB3& bounds, const Rgba8& color, const AABB2& UVs)
 {
@@ -1684,96 +1472,7 @@ void AddVertsForNormalSphere3D(std::vector<Vertex_PNCU>& verts, const float& rad
 
 void AddVertsForIndexedNormalSphere3D(std::vector<Vertex_PNCUTB>& verts, std::vector<unsigned int>& indices, const float& radius, const Vec3& center, const AABB2& UVs, Vec4 const& color, int& indexCount)
 {	
-	UNUSED((void )indexCount);
-	//int longitudeSlices = 16;
-	//int latitudeSlices = 8;
-	//float yawIncrements = 360.0f / longitudeSlices;
-	//float pitchIncrements = 180.0f / latitudeSlices;
-	//Vec3 vertexPosition;
-	//Vertex_PCU vertex;
-	//for (float y = 0.0f; y < 360.0f; y += yawIncrements)
-	//{
-	//	float yaw1Degrees = y;
-	//	float yaw2Degrees = yaw1Degrees + yawIncrements;
-	//	float cy1 = CosDegrees(yaw1Degrees);
-	//	float sy1 = SinDegrees(yaw1Degrees);
-	//	float cy2 = CosDegrees(yaw2Degrees);
-	//	float sy2 = SinDegrees(yaw2Degrees);
-	//	float u;
-	//	float v;
-	//	for (float p = -90.0f; p < 90.0f; p += pitchIncrements)
-	//	{
-	//		float pitch1Degrees = p;
-	//		float pitch2Degrees = pitch1Degrees + pitchIncrements;
-
-	//		float cp1 = CosDegrees(pitch1Degrees);
-	//		float sp1 = SinDegrees(pitch1Degrees);
-	//		float cp2 = CosDegrees(pitch2Degrees);
-	//		float sp2 = SinDegrees(pitch2Degrees);
-
-	//		Vertex_PNCUTB BottomLeft;
-	//		Vertex_PNCUTB BottomRight;
-	//		Vertex_PNCUTB TopLeft;
-	//		Vertex_PNCUTB TopRight;
-
-	//		BottomLeft.m_position = center;
-	//		BottomRight.m_position = center;
-	//		TopLeft.m_position = center;
-	//		TopRight.m_position = center;
-
-	//		BottomLeft.m_position += Vec3(cy1 * cp2, cp2 * sy1, -sp2) * radius;
-	//		u = yaw1Degrees / 360.0f;
-	//		v = RangeMap(pitch2Degrees, 90.0f, -90.0f, 0.0f, 1.0f);
-	//		BottomLeft.m_uvTexCoords = Vec2(u, v);
-	//		BottomLeft.m_uvTexCoords = Vec2();
-	//		BottomLeft.m_color = color;
-
-
-	//		BottomRight.m_position += Vec3(cp2 * cy2, cp2 * sy2, -sp2) * radius;
-	//		u = yaw2Degrees / 360.0f;
-	//		v = RangeMap(pitch2Degrees, 90.0f, -90.0f, 0.0f, 1.0f);
-	//		BottomRight.m_uvTexCoords = Vec2(u, v);
-	//		BottomRight.m_uvTexCoords = Vec2();
-	//		BottomRight.m_color = color;
-
-
-	//		TopLeft.m_position += Vec3(cp1 * cy1, cp1 * sy1, -sp1) * radius;
-	//		u = yaw1Degrees / 360.0f;
-	//		v = RangeMap(pitch1Degrees, 90.0f, -90.0f, 0.0f, 1.0f);
-	//		TopLeft.m_uvTexCoords = Vec2(u, v);
-	//		TopLeft.m_uvTexCoords = Vec2();
-	//		TopLeft.m_color = color;
-
-	//		TopRight.m_position += Vec3(cp1 * cy2, cp1 * sy2, -sp1) * radius;
-	//		u = yaw2Degrees / 360.0f;
-	//		v = RangeMap(pitch1Degrees, 90.0f, -90.0f, 0.0f, 1.0f);
-	//		TopRight.m_uvTexCoords = Vec2(u, v);
-	//		TopRight.m_uvTexCoords = Vec2();
-	//		TopRight.m_color = color;
-
-	//		BottomLeft.m_normal = (center - BottomLeft.m_position).GetNormalized();
-	//		TopLeft.m_normal = (center - TopLeft.m_position).GetNormalized();
-	//		TopRight.m_normal = (center - TopRight.m_position).GetNormalized();
-	//		BottomRight.m_normal = (center - BottomRight.m_position).GetNormalized();
-
-	//		verts.push_back(BottomLeft);
-	//		verts.push_back(BottomRight);
-	//		verts.push_back(TopLeft);
-	//		//verts.push_back(TopLeft);
-	//		//verts.push_back(BottomRight);
-	//		verts.push_back(TopRight);
-
-	//		indices.push_back(indexCount);
-	//		indices.push_back(indexCount + 1);
-	//		indices.push_back(indexCount + 2);
-	//		indices.push_back(indexCount + 2);
-	//		indices.push_back(indexCount + 1);
-	//		indices.push_back(indexCount + 3);
-	//		indexCount = indexCount + 4;
-	//	}
-	//}
-
-	UNUSED((void)UVs);
+	UNUSED((void )UVs);
 	int longitudeSlices = 16;
 	int latitudeSlices = 8;
 	float yawIncrements = 360.0f / longitudeSlices;
@@ -1805,31 +1504,39 @@ void AddVertsForIndexedNormalSphere3D(std::vector<Vertex_PNCUTB>& verts, std::ve
 			Vertex_PNCUTB TopLeft;
 			Vertex_PNCUTB TopRight;
 
+			BottomLeft.m_position = center;
+			BottomRight.m_position = center;
+			TopLeft.m_position = center;
+			TopRight.m_position = center;
 
-			BottomLeft.m_position = center + Vec3(cy1 * cp2, cp2 * sy1, -sp2) * radius;
+			BottomLeft.m_position += Vec3(cy1 * cp2, cp2 * sy1, -sp2) * radius;
 			u = yaw1Degrees / 360.0f;
 			v = RangeMap(pitch2Degrees, 90.0f, -90.0f, 0.0f, 1.0f);
 			BottomLeft.m_uvTexCoords = Vec2(u, v);
+			BottomLeft.m_uvTexCoords = Vec2();
 			BottomLeft.m_color = color;
 
 
-			BottomRight.m_position = center + Vec3(cp2 * cy2, cp2 * sy2, -sp2) * radius;
+			BottomRight.m_position += Vec3(cp2 * cy2, cp2 * sy2, -sp2) * radius;
 			u = yaw2Degrees / 360.0f;
 			v = RangeMap(pitch2Degrees, 90.0f, -90.0f, 0.0f, 1.0f);
 			BottomRight.m_uvTexCoords = Vec2(u, v);
+			BottomRight.m_uvTexCoords = Vec2();
 			BottomRight.m_color = color;
 
 
-			TopLeft.m_position = center + Vec3(cp1 * cy1, cp1 * sy1, -sp1) * radius;
+			TopLeft.m_position += Vec3(cp1 * cy1, cp1 * sy1, -sp1) * radius;
 			u = yaw1Degrees / 360.0f;
 			v = RangeMap(pitch1Degrees, 90.0f, -90.0f, 0.0f, 1.0f);
 			TopLeft.m_uvTexCoords = Vec2(u, v);
+			TopLeft.m_uvTexCoords = Vec2();
 			TopLeft.m_color = color;
 
-			TopRight.m_position = center + Vec3(cp1 * cy2, cp1 * sy2, -sp1) * radius;
+			TopRight.m_position += Vec3(cp1 * cy2, cp1 * sy2, -sp1) * radius;
 			u = yaw2Degrees / 360.0f;
 			v = RangeMap(pitch1Degrees, 90.0f, -90.0f, 0.0f, 1.0f);
 			TopRight.m_uvTexCoords = Vec2(u, v);
+			TopRight.m_uvTexCoords = Vec2();
 			TopRight.m_color = color;
 
 			BottomLeft.m_normal = (center - BottomLeft.m_position).GetNormalized();
@@ -1837,25 +1544,21 @@ void AddVertsForIndexedNormalSphere3D(std::vector<Vertex_PNCUTB>& verts, std::ve
 			TopRight.m_normal = (center - TopRight.m_position).GetNormalized();
 			BottomRight.m_normal = (center - BottomRight.m_position).GetNormalized();
 
-			//BottomLeft.m_uvTexCoords.y = 1 - BottomLeft.m_uvTexCoords.y;
-			//TopLeft.m_uvTexCoords.y = 1 - TopLeft.m_uvTexCoords.y;
-			//TopRight.m_uvTexCoords.y = 1 - TopRight.m_uvTexCoords.y;
-			//BottomRight.m_uvTexCoords.y = 1 - BottomRight.m_uvTexCoords.y;
-
-
 			verts.push_back(BottomLeft);
 			verts.push_back(BottomRight);
 			verts.push_back(TopLeft);
-			verts.push_back(TopLeft);
-			verts.push_back(BottomRight);
+			//verts.push_back(TopLeft);
+			//verts.push_back(BottomRight);
 			verts.push_back(TopRight);
+
+			indices.push_back(indexCount);
+			indices.push_back(indexCount + 1);
+			indices.push_back(indexCount + 2);
+			indices.push_back(indexCount + 2);
+			indices.push_back(indexCount + 1);
+			indices.push_back(indexCount + 3);
+			indexCount = indexCount + 4;
 		}
-
-	}
-
-	for (int i = 0; i < verts.size(); i++)
-	{
-		indices.push_back(i);
 	}
 }
 void AddVertsForZCylinder(std::vector<Vertex_PCU>&verts,const float& height, const float& radius, const AABB2 & UVs, const Rgba8 & color)

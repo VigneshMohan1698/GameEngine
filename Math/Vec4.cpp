@@ -77,21 +77,13 @@ bool Vec4::operator==(Vec4 const& value) const
 //	return Vec4();
 //}
 //
-void Vec4::operator+=(const Vec4& vecToAdd)
-{
-	x += vecToAdd.x;
-	y += vecToAdd.y;
-	z += vecToAdd.z;
-	w += vecToAdd.w;
-}
+//void Vec4::operator+=(const Vec4& vecToAdd)
+//{
+//}
 //
-void Vec4::operator-=(const Vec4& vecToSubtract)
-{
-	x -= vecToSubtract.x;
-	y -= vecToSubtract.y;
-	z -= vecToSubtract.z;
-	w -= vecToSubtract.w;
-}
+//void Vec4::operator-=(const Vec4& vecToSubtract)
+//{
+//}
 
 void Vec4::operator*=(const float uniformScale)
 {

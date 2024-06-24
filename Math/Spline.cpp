@@ -1,6 +1,6 @@
 #include "Spline.hpp"
 #include "Engine/Math/MathUtils.hpp"
-
+#include <Game/GameCommon.hpp>
 //-------------------------CUBIC BEZIER------------------------
 CubicBezierCurve2D::CubicBezierCurve2D()
 {
@@ -8,7 +8,7 @@ CubicBezierCurve2D::CubicBezierCurve2D()
 }
 CubicBezierCurve2D::CubicBezierCurve2D(Vec2 a, Vec2 b, Vec2 c, float t, float parameticeZeroToOne)
 {
-	//UNUSED((void)parameticeZeroToOne);
+	UNUSED((void)parameticeZeroToOne);
 	m_a = a;
 	m_b = b;
 	m_c = c;
@@ -103,14 +103,14 @@ CubicHermiteCurve2D::CubicHermiteCurve2D(const CubicBezierCurve2D& bezierCurve)
 
 float CubicHermiteCurve2D::GetApproximateLength(int numSubdivisions)
 {
-	//UNUSED((void)numSubdivisions);
+	UNUSED((void)numSubdivisions);
 	return 0.0f;
 }
 
 Vec2 CubicHermiteCurve2D::EvaluateAtApproximateDistance(float distanceAlongCurve, int numSubdivisions)
 {
-//	UNUSED((void)numSubdivisions);
-//	UNUSED((void)distanceAlongCurve);
+	UNUSED((void)numSubdivisions);
+	UNUSED((void)distanceAlongCurve);
 	return Vec2();
 }
 

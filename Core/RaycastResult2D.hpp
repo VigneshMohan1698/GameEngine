@@ -9,7 +9,6 @@ public:
 	Vec2 impactSurfaceNormal;
 	bool startPosInside = false;
 };
-
 struct PlaneRaycastResult2D : RaycastResult2D
 {
 public:

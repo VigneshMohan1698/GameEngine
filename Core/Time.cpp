@@ -1,4 +1,3 @@
-#ifndef __APPLE__
 //-----------------------------------------------------------------------------------------------
 // Time.cpp
 //	
@@ -32,6 +31,6 @@ double GetCurrentTimeSeconds()
 	return currentSeconds;
 }
 
-#endif
+
 
 

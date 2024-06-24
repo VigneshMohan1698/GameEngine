@@ -122,14 +122,6 @@ const Vec3 Vec3::ZERO = Vec3(0.0f,0.0f,0.0f);
 		return Vec3(x * scale, y * scale, z* scale);
 	}
 
-	Vec3 Vec3::GetReflected(Vec3& surfaceNormal) const
-	{
-		Vec3 vector = Vec3(x,y,z);
-
-		Vec3 dotWithSurfaceNormal = surfaceNormal * DotProduct3D(vector, surfaceNormal);
-		return vector - 2 * dotWithSurfaceNormal;
-	}
-
 	bool Vec3::operator==(Vec3 const& compare) const
 	{
 		if (x == compare.x && y == compare.y && z == compare.z)

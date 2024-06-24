@@ -169,7 +169,7 @@ Mat44::Mat44(std::string basisString)
 	{
 		ibasis = Vec3(0, 1, 0);
 	}
-	else
+	else if (basisString[0] == '-j')
 	{
 		ibasis = Vec3(0, -1, 0);
 	}
@@ -177,7 +177,7 @@ Mat44::Mat44(std::string basisString)
 	{
 		jbasis = Vec3(0, 0, 1);
 	}
-	else 
+	else if (basisString[2] == '-k')
 	{
 		jbasis = Vec3(0, 0, -1);
 	}
@@ -185,7 +185,7 @@ Mat44::Mat44(std::string basisString)
 	{
 		kbasis = Vec3(1, 0, 0);
 	}
-	else
+	else if (basisString[4] == '-i')
 	{
 		kbasis = Vec3(-1, 0, 0);
 	}
