@@ -8,13 +8,13 @@
 #ifndef RendererMetal_hpp
 #define RendererMetal_hpp
 #include "MetalBuffer.hpp"
+#include "WindowMac/WindowMac.hpp"
 
 class RendererMetal;
 
 struct RendererConfig
 {
     CGRect renderFrameDimensions;
-    
 };
 
 class MetalViewDelegate : public MTK::ViewDelegate
@@ -31,7 +31,7 @@ class RendererMetal
 {
 
     public:
-        RendererMetal(const RendererConfig& config);
+        RendererMetal(const RendererConfig& config, WindowMac* windowToRender);
         ~RendererMetal();
         
         //---------------------STARTUP AND MAIN----------------
@@ -54,6 +54,7 @@ class RendererMetal
         MTL::Library *m_shaderLibrary;
 
       private:
+        WindowMac*                m_window = nullptr;
         MTL::CommandQueue*        m_commandQueue;
         MTK::View*                m_view;
         MetalViewDelegate*        m_viewDelegate = nullptr;

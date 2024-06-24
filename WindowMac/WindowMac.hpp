@@ -8,6 +8,7 @@
 #ifndef WindowMac_hpp
 #define WindowMac_hpp
 
+class SDL_Window;
 struct WindowConfig
 {
     const char* windowName = nullptr;
@@ -22,7 +23,7 @@ public:
     
     void Startup();
     void Shutdown();
-    
+    void Update();
     void CreateMenuBar();
     void CreateWindow();
     
@@ -32,6 +33,7 @@ public:
 private:
     NS::Window* m_window = nullptr;
     NS::Menu*   m_menu = nullptr;
+    SDL_Window* m_sdlWindow = nullptr;
     WindowConfig m_config;
 };
 #endif /* WindowMac_hpp */

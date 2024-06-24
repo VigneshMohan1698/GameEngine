@@ -9,9 +9,13 @@
 /* Begin PBXBuildFile section */
 		273EF4D02B8A919C003E79F4 /* RendererMetal.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 273EF4CF2B8A919C003E79F4 /* RendererMetal.hpp */; };
 		273EF4D72B8A940A003E79F4 /* WindowMac.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 273EF4D62B8A940A003E79F4 /* WindowMac.hpp */; };
+		277719F12C24A931007A3B2B /* SDL2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 277719F02C24A931007A3B2B /* SDL2.framework */; };
+		277719F22C24A931007A3B2B /* SDL2.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 277719F02C24A931007A3B2B /* SDL2.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		277877B12B8C26BD00E958BC /* WindowMac.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 273EF4D52B8A940A003E79F4 /* WindowMac.cpp */; };
 		278637642BC1EB970034AE43 /* MetalBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 278637622BC1EB970034AE43 /* MetalBuffer.cpp */; };
 		278637652BC1EB970034AE43 /* MetalBuffer.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 278637632BC1EB970034AE43 /* MetalBuffer.hpp */; };
+		27A3C5D22BC3319A00CA85F7 /* KeyButtonState.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 27A3C5D02BC3319A00CA85F7 /* KeyButtonState.hpp */; };
+		27A3C5D32BC3319A00CA85F7 /* KeyButtonState.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27A3C5D12BC3319A00CA85F7 /* KeyButtonState.cpp */; };
 		27D3F2742B951D2300E7FB73 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 273EF4EB2B8A9F40003E79F4 /* Foundation.framework */; };
 		27D3F2752B951D2300E7FB73 /* Foundation.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 273EF4EB2B8A9F40003E79F4 /* Foundation.framework */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		27D3F2772B951D2400E7FB73 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 273EF4E42B8A9505003E79F4 /* Metal.framework */; };
@@ -117,6 +121,8 @@
 		27D3F42A2B95352E00E7FB73 /* Vec3.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 27D3F4002B95352E00E7FB73 /* Vec3.hpp */; };
 		27D3F42E2B953B6E00E7FB73 /* tinyxml2.h in Headers */ = {isa = PBXBuildFile; fileRef = 27D3F42C2B953B6E00E7FB73 /* tinyxml2.h */; };
 		27D3F42F2B953B6E00E7FB73 /* tinyxml2.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27D3F42D2B953B6E00E7FB73 /* tinyxml2.cpp */; };
+		27D949B32BC26D5A005E9049 /* InputSystemMac.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 27D949B22BC26D5A005E9049 /* InputSystemMac.hpp */; };
+		27D949B42BC26D5A005E9049 /* InputSystemMac.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27D949B12BC26D5A005E9049 /* InputSystemMac.cpp */; };
 		27F4C6082B9D22FF007B3025 /* Basic2D.metal in Sources */ = {isa = PBXBuildFile; fileRef = 27F4C6072B9D22FF007B3025 /* Basic2D.metal */; };
 /* End PBXBuildFile section */
 
@@ -130,6 +136,7 @@
 				27D3F2862B951EE800E7FB73 /* MetalKit.framework in Embed Frameworks */,
 				27D3F2782B951D2400E7FB73 /* Metal.framework in Embed Frameworks */,
 				27D3F2752B951D2300E7FB73 /* Foundation.framework in Embed Frameworks */,
+				277719F22C24A931007A3B2B /* SDL2.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -147,8 +154,11 @@
 		273EF4EB2B8A9F40003E79F4 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		273EF4ED2B8A9F5D003E79F4 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		273EF5662B8AA9CD003E79F4 /* ThirdPartyMac */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ThirdPartyMac; sourceTree = "<group>"; };
+		277719F02C24A931007A3B2B /* SDL2.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL2.framework; path = ../../../../Library/Frameworks/SDL2.framework; sourceTree = "<group>"; };
 		278637622BC1EB970034AE43 /* MetalBuffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MetalBuffer.cpp; sourceTree = "<group>"; };
 		278637632BC1EB970034AE43 /* MetalBuffer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = MetalBuffer.hpp; sourceTree = "<group>"; };
+		27A3C5D02BC3319A00CA85F7 /* KeyButtonState.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = KeyButtonState.hpp; path = Input/KeyButtonState.hpp; sourceTree = SOURCE_ROOT; };
+		27A3C5D12BC3319A00CA85F7 /* KeyButtonState.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = KeyButtonState.cpp; path = Input/KeyButtonState.cpp; sourceTree = SOURCE_ROOT; };
 		27D3F36A2B9534C100E7FB73 /* DevConsole.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = DevConsole.hpp; sourceTree = "<group>"; };
 		27D3F36B2B9534C100E7FB73 /* RaycastResult2D.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RaycastResult2D.cpp; sourceTree = "<group>"; };
 		27D3F36C2B9534C100E7FB73 /* TileHeatMap.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = TileHeatMap.hpp; sourceTree = "<group>"; };
@@ -247,6 +257,8 @@
 		27D3F4002B95352E00E7FB73 /* Vec3.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Vec3.hpp; sourceTree = "<group>"; };
 		27D3F42C2B953B6E00E7FB73 /* tinyxml2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = tinyxml2.h; path = ThirdParty/TinyXML2/tinyxml2.h; sourceTree = "<group>"; };
 		27D3F42D2B953B6E00E7FB73 /* tinyxml2.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tinyxml2.cpp; path = ThirdParty/TinyXML2/tinyxml2.cpp; sourceTree = "<group>"; };
+		27D949B12BC26D5A005E9049 /* InputSystemMac.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = InputSystemMac.cpp; sourceTree = "<group>"; };
+		27D949B22BC26D5A005E9049 /* InputSystemMac.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = InputSystemMac.hpp; sourceTree = "<group>"; };
 		27F4C6072B9D22FF007B3025 /* Basic2D.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Basic2D.metal; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -258,6 +270,7 @@
 				27D3F2852B951EE800E7FB73 /* MetalKit.framework in Frameworks */,
 				27D3F2742B951D2300E7FB73 /* Foundation.framework in Frameworks */,
 				27D3F2772B951D2400E7FB73 /* Metal.framework in Frameworks */,
+				277719F12C24A931007A3B2B /* SDL2.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -267,6 +280,7 @@
 		2734F7EB2B42743F005DC522 = {
 			isa = PBXGroup;
 			children = (
+				27D949B02BC26D3E005E9049 /* InputMac */,
 				27F4C6062B9D22E7007B3025 /* Shaders */,
 				27D3F42D2B953B6E00E7FB73 /* tinyxml2.cpp */,
 				27D3F42C2B953B6E00E7FB73 /* tinyxml2.h */,
@@ -311,6 +325,7 @@
 		273EF4E12B8A94FE003E79F4 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				277719F02C24A931007A3B2B /* SDL2.framework */,
 				273EF4ED2B8A9F5D003E79F4 /* AppKit.framework */,
 				273EF4EB2B8A9F40003E79F4 /* Foundation.framework */,
 				273EF4E42B8A9505003E79F4 /* Metal.framework */,
@@ -429,6 +444,17 @@
 			path = Math;
 			sourceTree = "<group>";
 		};
+		27D949B02BC26D3E005E9049 /* InputMac */ = {
+			isa = PBXGroup;
+			children = (
+				27A3C5D12BC3319A00CA85F7 /* KeyButtonState.cpp */,
+				27A3C5D02BC3319A00CA85F7 /* KeyButtonState.hpp */,
+				27D949B12BC26D5A005E9049 /* InputSystemMac.cpp */,
+				27D949B22BC26D5A005E9049 /* InputSystemMac.hpp */,
+			);
+			path = InputMac;
+			sourceTree = "<group>";
+		};
 		27F4C6062B9D22E7007B3025 /* Shaders */ = {
 			isa = PBXGroup;
 			children = (
@@ -445,7 +471,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				27D3F3BC2B9534C700E7FB73 /* Stopwatch.hpp in Headers */,
+				27A3C5D22BC3319A00CA85F7 /* KeyButtonState.hpp in Headers */,
 				27D3F3D22B9534C700E7FB73 /* RaycastResult2D.hpp in Headers */,
+				27D949B32BC26D5A005E9049 /* InputSystemMac.hpp in Headers */,
 				27D3F3B62B9534C700E7FB73 /* EventSystem.hpp in Headers */,
 				27D3F40D2B95352E00E7FB73 /* Spline.hpp in Headers */,
 				27D3F3B12B9534C700E7FB73 /* JobWorker.hpp in Headers */,
@@ -563,6 +591,7 @@
 				27D3F4102B95352E00E7FB73 /* IntVec3.cpp in Sources */,
 				27D3F3AE2B9534C700E7FB73 /* Time.cpp in Sources */,
 				27D3F3C52B9534C700E7FB73 /* NamedProperties.cpp in Sources */,
+				27A3C5D32BC3319A00CA85F7 /* KeyButtonState.cpp in Sources */,
 				27D3F4052B95352E00E7FB73 /* Ray.cpp in Sources */,
 				27D3F3CE2B9534C700E7FB73 /* Model.cpp in Sources */,
 				27D3F4042B95352E00E7FB73 /* MathUtils.cpp in Sources */,
@@ -609,6 +638,7 @@
 				27D3F3CC2B9534C700E7FB73 /* NamedStrings.cpp in Sources */,
 				27D3F3A92B9534C700E7FB73 /* TileHeatMap.cpp in Sources */,
 				27F4C6082B9D22FF007B3025 /* Basic2D.metal in Sources */,
+				27D949B42BC26D5A005E9049 /* InputSystemMac.cpp in Sources */,
 				27D3F4222B95352E00E7FB73 /* OBB2.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -745,13 +775,19 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				EXECUTABLE_PREFIX = lib;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(LOCAL_LIBRARY_DIR)/Frameworks",
+				);
 				GCC_NO_COMMON_BLOCKS = NO;
 				HEADER_SEARCH_PATHS = (
 					"$(PROJECT_DIR)/ThirdPartyMac/MetalWrapper",
 					"$(PROJECT_DIR)/ThirdPartyMac/MetalExtensions",
 					"$(PROJECT_DIR)/..",
 					"$(PROJECT_DIR)/../Engine",
+					/Library/Frameworks/SDL2.framework/Headers,
 				);
+				OTHER_CFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 			};
@@ -771,13 +807,19 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				EXECUTABLE_PREFIX = lib;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(LOCAL_LIBRARY_DIR)/Frameworks",
+				);
 				GCC_NO_COMMON_BLOCKS = NO;
 				HEADER_SEARCH_PATHS = (
 					"$(PROJECT_DIR)/ThirdPartyMac/MetalWrapper",
 					"$(PROJECT_DIR)/ThirdPartyMac/MetalExtensions",
 					"$(PROJECT_DIR)/..",
 					"$(PROJECT_DIR)/../Engine",
+					/Library/Frameworks/SDL2.framework/Headers,
 				);
+				OTHER_CFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 			};

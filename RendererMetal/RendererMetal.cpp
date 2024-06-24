@@ -14,11 +14,13 @@
 #include <cassert>
 #include <simd/simd.h>
 
+
 //---------------------------MAIN FUNCTIONS---------------------------------------
 
-RendererMetal::RendererMetal(const RendererConfig& config)
+RendererMetal::RendererMetal(const RendererConfig& config, WindowMac* windowToRender)
 {
     m_config = config;
+    m_window = windowToRender;
 }
 
 void RendererMetal::Startup()
@@ -35,6 +37,7 @@ void RendererMetal::Startup()
 
 void RendererMetal::Draw(MTK::View* view)
 {
+    m_window->Update();
     NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
 
     MTL::CommandBuffer* m_commandBuffer = m_commandQueue->commandBuffer();
