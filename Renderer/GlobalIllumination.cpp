@@ -41,6 +41,7 @@ void GlobalIllumination::Run(ID3D12GraphicsCommandList* commandList, int frameIn
 	commandList->SetComputeRootDescriptorTable((UINT)GIGlobalRSParams::GBufferDirectIllumination, GetGBuffers[(UINT)GBufferResources::DirectLight].gpuReadDescriptorHandle);
 	commandList->SetComputeRootDescriptorTable((UINT)GIGlobalRSParams::GBufferIndirectAlbedo, GetGBuffers[(UINT)GBufferResources::VertexIndirectAlbedo].gpuWriteDescriptorHandle);
 	commandList->SetComputeRootDescriptorTable((UINT)GIGlobalRSParams::GBufferAlbedoSlot, GetGBuffers[(UINT)GBufferResources::VertexAlbedo].gpuReadDescriptorHandle);
+	commandList->SetComputeRootDescriptorTable((UINT)GIGlobalRSParams::GBufferEmissivitySlot, GetGBuffers[(UINT)GBufferResources::GBufferEmissivity].gpuReadDescriptorHandle);
 
 	if (g_theRenderer->m_currentScene == Scenes::Minecraft)
 	{
@@ -57,7 +58,8 @@ void GlobalIllumination::Run(ID3D12GraphicsCommandList* commandList, int frameIn
 
 	commandList->SetComputeRootDescriptorTable((UINT)GIGlobalRSParams::DiffuseTexture, g_theRenderer->m_loadedTextures[0]->m_gpuDescriptorHandle);
 	commandList->SetComputeRootDescriptorTable((UINT)GIGlobalRSParams::NormalMapTexture, g_theRenderer->m_loadedTextures[1]->m_gpuDescriptorHandle);
-	commandList->SetComputeRootDescriptorTable((UINT)GIGlobalRSParams::SpecularMapTexture, g_theRenderer->m_loadedTextures[2]->m_gpuDescriptorHandle);
+	commandList->SetComputeRootDescriptorTable((UINT)GIGlobalRSParams::MetalnessMapTexture, g_theRenderer->m_loadedTextures[2]->m_gpuDescriptorHandle);
+	commandList->SetComputeRootDescriptorTable((UINT)GIGlobalRSParams::RoughnessMapTexture, g_theRenderer->m_loadedTextures[3]->m_gpuDescriptorHandle);
 	//commandList->SetComputeRootShaderResourceView((UINT)GIGlobalRSParams::HemisphereSamples, g_theRenderer->m_hemisphereSamplesGPUBuffer.GpuVirtualAddress(frameIndex));
 	
 	D3D12_DISPATCH_RAYS_DESC dispatchDesc = {};
@@ -91,11 +93,13 @@ void GlobalIllumination::CreateRootSignatures()
 	ranges[(int)GIGlobalRSParams::VertexAndIndexBuffers].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 2, 1);  // 1 texture buffer.
 	ranges[(int)GIGlobalRSParams::DiffuseTexture].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 4);  // 1 texture buffer.
 	ranges[(int)GIGlobalRSParams::NormalMapTexture].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 5);  // 1 texture buffer.
-	ranges[(int)GIGlobalRSParams::SpecularMapTexture].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 6);  // 1 texture buffer.
-	ranges[(int)GIGlobalRSParams::GBufferVertexPositionSlot].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 7);  // 1 output texture
-	ranges[(int)GIGlobalRSParams::GBufferVertexNormalSlot].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 8);  // 1 texture buffer.
-	ranges[(int)GIGlobalRSParams::GBufferDirectIllumination].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1,9);  // 1 texture buffer.
-	ranges[(int)GIGlobalRSParams::GBufferAlbedoSlot].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 10);  // 1 texture buffer.
+	ranges[(int)GIGlobalRSParams::MetalnessMapTexture].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 6);  // 1 texture buffer.
+	ranges[(int)GIGlobalRSParams::RoughnessMapTexture].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 7);  // 1 texture buffer.
+	ranges[(int)GIGlobalRSParams::GBufferVertexPositionSlot].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 8);  // 1 output texture
+	ranges[(int)GIGlobalRSParams::GBufferVertexNormalSlot].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 9);  // 1 texture buffer.
+	ranges[(int)GIGlobalRSParams::GBufferDirectIllumination].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1,10);  // 1 texture buffer.
+	ranges[(int)GIGlobalRSParams::GBufferAlbedoSlot].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 11);  // 1 texture buffer.
+	ranges[(int)GIGlobalRSParams::GBufferEmissivitySlot].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 12);  // 1 texture buffer.
 
 	CD3DX12_ROOT_PARAMETER rootParameters[(UINT)GIGlobalRSParams::Count] = {};
 
@@ -109,8 +113,10 @@ void GlobalIllumination::CreateRootSignatures()
 	rootParameters[(UINT)GIGlobalRSParams::VertexAndIndexBuffers].InitAsDescriptorTable(1, &ranges[(UINT)GIGlobalRSParams::VertexAndIndexBuffers]);
 	rootParameters[(UINT)GIGlobalRSParams::DiffuseTexture].InitAsDescriptorTable(1, &ranges[(UINT)GIGlobalRSParams::DiffuseTexture]);
 	rootParameters[(UINT)GIGlobalRSParams::NormalMapTexture].InitAsDescriptorTable(1, &ranges[(UINT)GIGlobalRSParams::NormalMapTexture]);
-	rootParameters[(UINT)GIGlobalRSParams::SpecularMapTexture].InitAsDescriptorTable(1, &ranges[(UINT)GIGlobalRSParams::SpecularMapTexture]);
+	rootParameters[(UINT)GIGlobalRSParams::MetalnessMapTexture].InitAsDescriptorTable(1, &ranges[(UINT)GIGlobalRSParams::MetalnessMapTexture]);
+	rootParameters[(UINT)GIGlobalRSParams::RoughnessMapTexture].InitAsDescriptorTable(1, &ranges[(UINT)GIGlobalRSParams::RoughnessMapTexture]);
 	rootParameters[(UINT)GIGlobalRSParams::GBufferAlbedoSlot].InitAsDescriptorTable(1, &ranges[(UINT)GIGlobalRSParams::GBufferAlbedoSlot]);
+	rootParameters[(UINT)GIGlobalRSParams::GBufferEmissivitySlot].InitAsDescriptorTable(1, &ranges[(UINT)GIGlobalRSParams::GBufferEmissivitySlot]);
 	rootParameters[(int)GIGlobalRSParams::SceneConstantBuffer].InitAsConstantBufferView(0);
 	rootParameters[(int)GIGlobalRSParams::LightBuffer].InitAsConstantBufferView(1);
 

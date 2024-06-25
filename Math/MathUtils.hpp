@@ -206,7 +206,7 @@ float				RangeMapZeroToOne(float inputValue, float inputStart, float inputEnd);
 EulerAngles			RangeMapEuler(float inputValue, float inputStart, float inputEnd, EulerAngles outputStart, EulerAngles outputEnd);
 float				RangeMapClamped(float inputValue, float inputStart, float inputEnd, float outputStart, float outputEnd);
 int					RoundDownToInt(float value);
-
+bool				OverlapAABB2DVsAABB2D(const AABB3& a, const AABB3& b);
 
 //------------------ IS POINT INSIDE FUNCTIONS -----------------------------------
 bool				IsPointInsideDisc(const Vec2& centerA, const Vec2& point, float radius);
@@ -238,6 +238,7 @@ RaycastResult2D		RaycastVsDisc2D(Vec2 startingPoint,Vec2 endingPoint, Vec2 discC
 RaycastResult2D     RaycastVsDisc2D(Vec2 startPos, Vec2 fwdNormal, float maxDist, Vec2 discCenter, float discRadius);
 RaycastResult2D     RaycasVsConvexHull2D(Vec2 startPos, Vec2 fwdNormal, float maxDist, ConvexHull2D hull);
 PlaneRaycastResult2D     RaycasVsPlane2D(const Vec2& startPos, const Vec2& fwdNormal, const float& maxDist, Plane2D plane);
+PlaneRaycastResult3D RaycastVsPlane3D(const Vec3& startPos, const Vec3& fwdNormal, const float& maxDist, Plane3D plane);
 RaycastResult2D     RaycastVsAABB2(Vec2 startPos, Vec2 fwdNormal, float maxDist,AABB2 aabbBounds);
 RaycastResult2D		RaycasVsOBB2(Vec2 startPos, Vec2 fwdNormal, float maxDist, OBB2 obbBounds);
 RaycastResult2D		RaycastVsLineSegment2D(Vec2 startPos, Vec2 fwdNormal, float maxDist, LineSegment2 line);

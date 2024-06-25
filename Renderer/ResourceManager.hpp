@@ -25,9 +25,10 @@ public:
         FlushResourceBarriers();
         m_denoiserOutput.resource.Reset();
     }
-    void Bind(ID3D12GraphicsCommandList* commandList) ;
+    //void Bind(ID3D12GraphicsCommandList* commandList) ;
     void Reset();
     void CreateGBufferResource(DXGI_FORMAT format, IntVec2 resourceDimensions, D3D12_RESOURCE_STATES startingResource, D3D12_RESOURCE_FLAGS flags, UINT handleIndex, LPCWSTR name = L"",bool isPreviousFrameResource = false);
+    void CreateAndGetGPUBuffer(GpuBuffer* buffer, DXGI_FORMAT format, IntVec2 resourceDimensions, LPCWSTR name = L"Write Texture" );
     void CreateDenoiserGBufferResource(DXGI_FORMAT format, IntVec2 resourceDimensions, D3D12_RESOURCE_FLAGS flags,LPCWSTR name = L"Denoiser Buffer");
     void CreateGBufferResource(GpuBuffer* buffer,DXGI_FORMAT format, IntVec2 resourceDimensions, D3D12_RESOURCE_FLAGS flags, D3D12_RESOURCE_STATES state,  LPCWSTR name = L"", bool allowWrite = false);
     void TransitionResource(GpuBuffer* Resource, D3D12_RESOURCE_STATES NewState, bool FlushImmediate = true);

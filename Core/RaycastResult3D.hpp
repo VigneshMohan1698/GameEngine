@@ -1,3 +1,23 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #pragma once
 #include "Engine/Math/Vec3.hpp"
 
@@ -14,3 +34,9 @@ struct RaycastResult3D
 	Vec3 m_impactSurfaceNormal = Vec3::ZERO;
 };
 
+
+struct PlaneRaycastResult3D : RaycastResult3D
+{
+public:
+	bool isRayIntersectingFromFrontOfPlane = false;
+};

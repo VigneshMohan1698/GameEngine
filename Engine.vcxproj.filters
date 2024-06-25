@@ -59,6 +59,9 @@
     <Filter Include="RenderPasses">
       <UniqueIdentifier>{0e598861-9e2c-46f4-8019-060b0a4803cb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ECS">
+      <UniqueIdentifier>{20e4db0f-ed84-48fe-b2f8-b9565b805d35}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Math\Vec2.cpp">
@@ -345,6 +348,9 @@
     </ClCompile>
     <ClCompile Include="Core\NamedProperties.cpp">
       <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="ECS\ECS.cpp">
+      <Filter>ECS</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -686,6 +692,12 @@
     </ClInclude>
     <ClInclude Include="Core\NamedProperties.hpp">
       <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="ECS\ECSComponents.hpp">
+      <Filter>ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="ECS\ECS.hpp">
+      <Filter>ECS</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

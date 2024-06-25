@@ -67,8 +67,7 @@ public:
     uint8_t* MapCpuWriteOnly()
     {
         uint8_t* mappedData;
-        // We don't unmap this until the app closes. Keeping buffer mapped for the lifetime of the resource is okay.
-        CD3DX12_RANGE readRange(0, 0);        // We do not intend to read from this resource on the CPU.
+        CD3DX12_RANGE readRange(0, 0);       
         if (FAILED(m_resource->Map(0, &readRange, reinterpret_cast<void**>(&mappedData))))
         {
             ERROR_AND_DIE("Failed while creating committed resource");

@@ -27,6 +27,7 @@ struct RaytracingThesisVariables
 	float		m_samplingMode = 1.0f;
 	int			m_varianceEstimationLevel;
 	Vec4		m_textureMappings;
+	float		m_dayNight = 0;		
 };
 
 class D3D12ImGui

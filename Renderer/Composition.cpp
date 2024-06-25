@@ -37,6 +37,7 @@ void Composition::Initialize(ID3D12Device5* device, UINT frameCount, UINT numCal
 	ranges[(int)CompositionRootSignatures::PartialDerivatesBuffer].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 11);
 	ranges[(int)CompositionRootSignatures::VarianceEstimation].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 12);
 	ranges[(int)CompositionRootSignatures::IndirectAlbedo].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 13);
+	ranges[(int)CompositionRootSignatures::OcclusionTexture].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 14);
 
 	CD3DX12_ROOT_PARAMETER rootParameters[CompositionRootSignatures::CountCompositor] = {};
 	rootParameters[(UINT)CompositionRootSignatures::FinalOutput].InitAsDescriptorTable(1, &ranges[(int)CompositionRootSignatures::FinalOutput]);
@@ -55,6 +56,7 @@ void Composition::Initialize(ID3D12Device5* device, UINT frameCount, UINT numCal
 	rootParameters[(UINT)CompositionRootSignatures::PartialDerivatesBuffer].InitAsDescriptorTable(1, &ranges[(int)CompositionRootSignatures::PartialDerivatesBuffer]);
 	rootParameters[(UINT)CompositionRootSignatures::VarianceEstimation].InitAsDescriptorTable(1, &ranges[(int)CompositionRootSignatures::VarianceEstimation]);
 	rootParameters[(UINT)CompositionRootSignatures::IndirectAlbedo].InitAsDescriptorTable(1, &ranges[(int)CompositionRootSignatures::IndirectAlbedo]);
+	rootParameters[(UINT)CompositionRootSignatures::OcclusionTexture].InitAsDescriptorTable(1, &ranges[(int)CompositionRootSignatures::OcclusionTexture]);
 	rootParameters[(UINT)CompositionRootSignatures::ConstantBuffer].InitAsConstantBufferView(0);
 
 	//CD3DX12_STATIC_SAMPLER_DESC staticSampler(0, D3D12_FILTER_MIN_MAG_LINEAR_MIP_POINT, D3D12_TEXTURE_ADDRESS_MODE_MIRROR, D3D12_TEXTURE_ADDRESS_MODE_MIRROR);
@@ -82,7 +84,7 @@ void Composition::Run(ID3D12GraphicsCommandList4* commandList,ID3D12DescriptorHe
 	m_compositionCB->textureDim = resourceDimensions;
 	m_compositionCB->invTextureDim = Vec2(1.f / resourceDimensions.x, 1.f / resourceDimensions.y);
 	m_compositionCB->denoiserOn = denoiserOn;
-	m_compositionCB->renderOutput = m_renderOutput;
+	m_compositionCB->renderOutput = (float)m_renderOutput;
 	m_instanceID = (m_instanceID + 1) % m_compositionCB.NumInstances();
 	m_compositionCB.CopyStagingToGpu(m_instanceID);
 
@@ -105,6 +107,7 @@ void Composition::Run(ID3D12GraphicsCommandList4* commandList,ID3D12DescriptorHe
 	commandList->SetComputeRootDescriptorTable((int)CompositionRootSignatures::PartialDerivatesBuffer, resourceManager->m_GpuresourceBuffers[(int)GBufferResources::PartialDerivates].gpuReadDescriptorHandle);
 	commandList->SetComputeRootDescriptorTable((int)CompositionRootSignatures::VarianceEstimation, g_theRenderer->m_denoiser->m_varianceEstimator->m_varianceResource.gpuReadDescriptorHandle);
 	commandList->SetComputeRootDescriptorTable((int)CompositionRootSignatures::IndirectAlbedo, resourceManager->m_GpuresourceBuffers[(int)GBufferResources::VertexIndirectAlbedo].gpuReadDescriptorHandle);
+	commandList->SetComputeRootDescriptorTable((int)CompositionRootSignatures::OcclusionTexture, resourceManager->m_GpuresourceBuffers[(int)GBufferResources::OcclusionTexture].gpuReadDescriptorHandle);
 	commandList->SetComputeRootConstantBufferView((int)CompositionRootSignatures::ConstantBuffer, m_compositionCB.GpuVirtualAddress(m_instanceID));
 	commandList->SetPipelineState(m_pipelineStateObject.Get());
 

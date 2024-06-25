@@ -17,10 +17,11 @@ void D3D12ImGui::InitializeImGui()
 	ImGui_ImplWin32_Init(g_theRenderer->GetRenderConfig().m_window->GetHwnd());
 	D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle = imguiHeap->GetCPUDescriptorHandleForHeapStart();
 	D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = imguiHeap->GetGPUDescriptorHandleForHeapStart();
-	m_color = new ImColor(255, 255, 255);
 	ImGui_ImplDX12_Init(device, 3, DXGI_FORMAT_R8G8B8A8_UNORM, imguiHeap,
 		cpuHandle, gpuHandle);
 	ImGui_ImplDX12_CreateDeviceObjects();
+
+	m_color = new ImColor(255, 255, 255);
 	m_windowdim = g_theRenderer->GetRenderConfig().m_window->GetClientDimensions();
 	ImGui::GetIO().ImeWindowHandle = g_theRenderer->GetRenderConfig().m_window->GetHwnd();
 
@@ -36,15 +37,9 @@ void D3D12ImGui::InitializeImGui()
 
 void D3D12ImGui::RenderImGui()
 {
-
 	//ImGui::GetStyle().ScaleAllSizes(m_relativeScale);
 	//ImGui::GetIO().DisplaySize = ImVec2(m_windowdim.x, m_windowdim.y);
-
-
-	ImGui_ImplDX12_NewFrame();
-	ImGui_ImplWin32_NewFrame();
-	
-	//for (int i = 0; i < m_context->Windows.Size; i++)
+		//for (int i = 0; i < m_context->Windows.Size; i++)
 	//{
 	//	ImGuiWindow* window = m_context->Windows[i];
 	//	//ImGui::SetWindowPos(window, window.Pos * m_relativeScale);
@@ -52,142 +47,185 @@ void D3D12ImGui::RenderImGui()
 	//	windowSize *= m_relativeScale;
 	//	ImGui::SetWindowSize(window, ImVec2(windowSize.x, windowSize.y));
 	//}
+
+	ImGui_ImplDX12_NewFrame();
+	ImGui_ImplWin32_NewFrame();
+	
+
 	ImGui::NewFrame();
 	ImGui::Begin("Raytraced Global Illumination ");
 	//ImGui::SetWindowFontScale(m_relativeScale);
-	ImGui::TextColored(*m_headingColor, "Player Info : ");
-	ImGui::SameLine();
-	ImGui::Text(m_playerInfoText.c_str());
-
-	ImGui::TextColored(*m_headingColor, "Game Info : ");
-	ImGui::SameLine();
-	ImGui::Text(m_gameInfoText.c_str());
-	ImGui::Text("F1-F7 Different Scenarios");
-	ImGui::TextColored(*m_headingColor, "Controls : ");
-	ImGui::SameLine();
-	ImGui::Text("(SPACE) for Activate IMGUI (WASD) To Move Camera (IJKL, MN) to move Light");
-	ImGui::InputFloat("Reflection Count", &m_thesisVariables.m_samplingData.x, 1.0f,0.0f, "%.0f");
-	ImGui::InputFloat("Samples Count", &m_thesisVariables.m_samplingData.y, 1.0f,0.0f, "%.0f");
-	float lightFalloff = m_thesisVariables.m_lightFallof;
-	float ambientIntensity = m_thesisVariables.m_ambientIntensity;
-	ImGui::SliderFloat("Light Falloff", &lightFalloff, 0.0f, 1.0, "%.2f", 0);
-	m_thesisVariables.m_lightFallof = lightFalloff;
-	ImGui::SliderFloat("Ambient Intensity", &ambientIntensity, 0.0f, 1.0, "%.2f", 0);
-	m_thesisVariables.m_ambientIntensity = ambientIntensity;
-	//ImGui::InputFloat("Sun Radius", &m_thesisVariables.m_sunRadius, 0.0f,0.0f, "%.0f");
-	ImGui::TextColored(*m_headingColor, "Render Target G Buffer");
-	ImGui::Text("0-Final Render 1-Depth, 2-Albedo, 3-DI , 4-GI");
-	ImGui::Text("5-Motion Vector, 6-History Buffer, 7-Temporal output, 8-Variance, 9-Partial Depth,10-Normals");
-	ImGui::InputFloat("Render Target", &m_thesisVariables.m_renderOutput, 0.0f,0.0f, "%.0f");
-
-	if (m_thesisVariables.m_renderOutput > 11)
+	if (ImGui::CollapsingHeader("Player Info"))
 	{
-		m_thesisVariables.m_renderOutput = 11;
-	}
-	if (m_thesisVariables.m_renderOutput < 0)
-	{
-		m_thesisVariables.m_renderOutput = 0;
-	}
-	bool Shadows = (m_thesisVariables.m_lightBools.x == 1);
-	bool indirect = (m_thesisVariables.m_lightBools.y == 1);
-	bool skyLight = (m_thesisVariables.m_lightBools.z == 1);
-	bool directLight = (m_thesisVariables.m_lightBools.w == 1);
-	bool colorBleeding = (m_thesisVariables.m_samplingData.z == 1);
-	bool denoising = m_thesisVariables.m_denoiserOn;
-	bool temporalSampler = m_thesisVariables.m_temporalSamplerOn;
-	bool godRays = m_thesisVariables.m_godRaysOn;
-	bool varianceFiltering = m_thesisVariables.m_varianceFiltering;
-	float temporalFade = m_thesisVariables.m_temporalFade;
-	
-
-	bool normalMaps = m_thesisVariables.m_textureMappings.x;
-	bool specularMaps = m_thesisVariables.m_textureMappings.y;
-
-	bool waterReflections = m_thesisVariables.m_textureMappings.z;
-	bool waterRefractions = m_thesisVariables.m_textureMappings.w;
-
-	static int samplingMode = m_thesisVariables.m_samplingMode;
-	ImGui::RadioButton("Random Sampling", &samplingMode, 0);
-	ImGui::SameLine();
-	ImGui::RadioButton("Cosine Weighted Sampling", &samplingMode, 1);
-
-	m_thesisVariables.m_samplingMode = (float)samplingMode;
-
-	ImGui::Checkbox("Direct Light", &directLight);	ImGui::SameLine();
-	ImGui::Checkbox("GlobalIllumination", &indirect);	ImGui::SameLine();
-	ImGui::Checkbox("Shadows", &Shadows);	ImGui::SameLine();
-	ImGui::Checkbox("SkyLight", &skyLight);
-	ImGui::Checkbox("Color Bleeding", &colorBleeding);	ImGui::SameLine();
-	ImGui::Checkbox("TemporalSampler", &temporalSampler);	ImGui::SameLine();
-	ImGui::Checkbox("GodRays", &godRays);	
-	ImGui::SliderFloat("Temporal Fade", &temporalFade, 0.0f,0.2f, "%.3f",0);
-	m_thesisVariables.m_temporalFade = temporalFade;
-
-	ImGui::Checkbox("Normal Maps", &normalMaps); ImGui::SameLine();
-	ImGui::Checkbox("Specular Maps", &specularMaps);
-	ImGui::Checkbox("Water Reflections", &waterReflections); ImGui::SameLine();
-	ImGui::Checkbox("Water Refractions", &waterRefractions);
-	ImGui::Checkbox("Denoiser", &denoising); ImGui::SameLine();
-	ImGui::Checkbox("Variance filtering", &varianceFiltering);
-
-	m_thesisVariables.m_lightBools.x = Shadows && directLight;
-	m_thesisVariables.m_lightBools.y = indirect;
-	m_thesisVariables.m_lightBools.w = directLight;
-	m_thesisVariables.m_lightBools.z = skyLight;
-	m_thesisVariables.m_samplingData.z = colorBleeding;
-	m_thesisVariables.m_denoiserOn = denoising;
-	m_thesisVariables.m_godRaysOn = godRays;
-	m_thesisVariables.m_temporalSamplerOn = temporalSampler;
-	m_thesisVariables.m_varianceFiltering = varianceFiltering;
-	m_thesisVariables.m_textureMappings =Vec4(normalMaps, specularMaps , waterReflections, waterRefractions);
-
-	static int denoiser = m_thesisVariables.m_denoiserType;
-	static int scene = m_thesisVariables.m_currentScene;
-	ImGui::Text("Denoiser Type");
-	ImGui::SameLine();
-	ImGui::RadioButton("Gaussian", &denoiser, 0); ImGui::SameLine();
-	ImGui::RadioButton("Atrous", &denoiser, 1);
-	//ImGui::RadioButton("Minecraft", &scene, 0); 
-	//ImGui::SameLine();ImGui::RadioButton("Bunny", &scene, 1);
-	m_thesisVariables.m_denoiserType = denoiser;
-	m_thesisVariables.m_currentScene = scene;
-
-	static int kernel = 3;
-	if (denoiser == 0)
-	{
-		ImGui::Text("Denoiser Kernel Size");
+		ImGui::TextColored(*m_headingColor, "Player Info : ");
+		ImGui::Text(m_playerInfoText.c_str());
+		ImGui::TextColored(*m_headingColor, "Game Info : ");
+		ImGui::Text(m_gameInfoText.c_str());
+		ImGui::Text("F1-F7 Different Scenarios");
+		ImGui::TextColored(*m_headingColor, "Controls : ");
 		ImGui::SameLine();
-		ImGui::RadioButton("3X3", &kernel, 3); ImGui::SameLine();
-		ImGui::RadioButton("7X7", &kernel, 7);
+		ImGui::Text("(SPACE) for Activate IMGUI (WASD) To Move Camera (IJKL, MN) to move Light");
+	}
+	if (ImGui::CollapsingHeader("GBuffer Outputs", ImGuiTreeNodeFlags_CollapsingHeader))
+	{
+		ImGui::TextColored(*m_headingColor, "Render Target G Buffer");
+		ImGui::Text("0-Final Render 1-Depth, 2-Albedo, 3-DI , 4-GI");
+		ImGui::Text("5-Motion Vector, 6-Temporal Output, 7-Variance");
+		ImGui::Text("8 - History, 9 - Reflective output, 10 - Normals, 12 - GI + DI");
+		ImGui::InputFloat("Render Target", &m_thesisVariables.m_renderOutput, 0.0f, 0.0f, "%.0f");
+
+		if (m_thesisVariables.m_renderOutput > 12)
+		{
+			m_thesisVariables.m_renderOutput = 12;
+		}
+		if (m_thesisVariables.m_renderOutput < 0)
+		{
+			m_thesisVariables.m_renderOutput = 0;
+		}
+	}
+
+
+	if (ImGui::CollapsingHeader("GI Options", ImGuiTreeNodeFlags_CollapsingHeader))
+	{
+		bool Shadows = (m_thesisVariables.m_lightBools.x == 1);
+		bool indirect = (m_thesisVariables.m_lightBools.y == 1);
+		float temporalFade = m_thesisVariables.m_temporalFade;
+		bool directLight = (m_thesisVariables.m_lightBools.w == 1);
+		bool colorBleeding = (m_thesisVariables.m_samplingData.z == 1);
+		bool skyLight = (m_thesisVariables.m_lightBools.z == 1);
+		ImGui::Checkbox("Direct Light", &directLight);	ImGui::SameLine();
+		ImGui::Checkbox("GlobalIllumination", &indirect);	ImGui::SameLine();
+		ImGui::Checkbox("Shadows", &Shadows);
+		ImGui::Checkbox("Color Bleeding", &colorBleeding); ImGui::SameLine();
+		ImGui::Checkbox("SkyLight", &skyLight);
+
+		ImGui::SliderFloat("Temporal Fade", &temporalFade, 0.0f, 0.2f, "%.3f", 0);
+		m_thesisVariables.m_lightBools.x = Shadows && directLight;
+		m_thesisVariables.m_lightBools.y = indirect;
+		m_thesisVariables.m_lightBools.w = directLight;
+		m_thesisVariables.m_lightBools.z = skyLight;
+		m_thesisVariables.m_temporalFade = temporalFade;
+		m_thesisVariables.m_samplingData.z = colorBleeding;
+	}
+
+	//ImGui::InputFloat("Sun Radius", &m_thesisVariables.m_sunRadius, 0.0f,0.0f, "%.0f");
+	if (ImGui::CollapsingHeader("Light Options"))
+	{
+		ImGui::InputFloat("Light Bounces", &m_thesisVariables.m_samplingData.x, 1.0f, 0.0f, "%.0f");
+		//ImGui::InputFloat("Samples Count", &m_thesisVariables.m_samplingData.y, 1.0f, 0.0f, "%.0f");
+		float lightFalloff = m_thesisVariables.m_lightFallof;
+		float ambientIntensity = m_thesisVariables.m_ambientIntensity;
+		ImGui::SliderFloat("Light Falloff", &lightFalloff, 0.0f, 1.0, "%.2f", 0);
+		m_thesisVariables.m_lightFallof = lightFalloff;
+		ImGui::SliderFloat("Ambient Intensity", &ambientIntensity, 0.0f, 1.0, "%.2f", 0);
+		m_thesisVariables.m_ambientIntensity = ambientIntensity;
+	}
+
+	if (ImGui::CollapsingHeader("SVGF Options", ImGuiTreeNodeFlags_CollapsingHeader))
+	{
+		bool denoising = m_thesisVariables.m_denoiserOn;
+
+		bool temporalSampler = m_thesisVariables.m_temporalSamplerOn;
+		bool varianceFiltering = m_thesisVariables.m_varianceFiltering;
+		static int samplingMode = (int)m_thesisVariables.m_samplingMode;
+
+		ImGui::Checkbox("Denoiser", &denoising);
+
+		ImGui::RadioButton("Random Sampling", &samplingMode, 0);
+		ImGui::SameLine();
+		ImGui::RadioButton("Cosine Weighted Sampling", &samplingMode, 1);
+		ImGui::Checkbox("Temporal Reprojection", &temporalSampler);
+		//ImGui::Checkbox("Variance filtering", &varianceFiltering);
+		m_thesisVariables.m_samplingMode = (float)samplingMode;
+
+		static int denoiser = m_thesisVariables.m_denoiserType;
+		static int scene = m_thesisVariables.m_currentScene;
+		ImGui::Text("Denoiser Type");
+		ImGui::SameLine();
+		ImGui::RadioButton("Gaussian", &denoiser, 0); ImGui::SameLine();
+		ImGui::RadioButton("A-Trous", &denoiser, 1);
+		//ImGui::RadioButton("Minecraft", &scene, 0); 
+		//ImGui::SameLine();ImGui::RadioButton("Bunny", &scene, 1);
+
+		m_thesisVariables.m_denoiserType = denoiser;
+		m_thesisVariables.m_currentScene = scene;
+
+		static int kernel = 3;
+		if (denoiser == 0)
+		{
+			ImGui::Text("Denoiser Kernel Size");
+			ImGui::SameLine();
+			ImGui::RadioButton("3X3", &kernel, 3); ImGui::SameLine();
+			ImGui::RadioButton("7X7", &kernel, 7);
+		}
+		else
+		{
+			ImGui::Text("Atrous Step Count");
+			ImGui::SameLine();
+			if (ImGui::Button("-"))
+				m_thesisVariables.m_atrousStepSize -= 1;
+
+			ImGui::SameLine();
+			if (ImGui::Button("+"))
+				m_thesisVariables.m_atrousStepSize += 1;
+
+			int stepSize = m_thesisVariables.m_atrousStepSize;
+			ImGui::SameLine();
+			ImGui::Text(std::to_string(stepSize).c_str());
+
+		}
+		m_thesisVariables.m_atrousStepSize > 4 ? m_thesisVariables.m_atrousStepSize = 4 : m_thesisVariables.m_atrousStepSize;
+		m_thesisVariables.m_denoiserKernelSize = kernel;
+
+		m_thesisVariables.m_denoiserOn = denoising;
+		m_thesisVariables.m_temporalSamplerOn = temporalSampler;
+		m_thesisVariables.m_varianceFiltering = varianceFiltering;
+	}
+
+	if (ImGui::CollapsingHeader("Additional Options", ImGuiTreeNodeFlags_CollapsingHeader))
+	{
+		bool godRays = m_thesisVariables.m_godRaysOn;
+		bool pointLights = m_thesisVariables.m_textureMappings.x;
+		bool specularMaps = m_thesisVariables.m_textureMappings.y;
+
+		bool waterReflections = m_thesisVariables.m_textureMappings.z;
+		bool waterRefractions = m_thesisVariables.m_textureMappings.w;
+		ImGui::Checkbox("GodRays", &godRays);
+		//ImGui::Checkbox("Point Lights", &pointLights); ImGui::SameLine();
+		ImGui::Checkbox("Specular Maps", &specularMaps); ImGui::SameLine();
+		ImGui::Checkbox("Water Reflections", &waterReflections); ImGui::SameLine();
+		ImGui::Checkbox("Water Refractions", &waterRefractions);
+		m_thesisVariables.m_godRaysOn = godRays;
+		m_thesisVariables.m_textureMappings = Vec4(pointLights, specularMaps, waterReflections, waterRefractions);
+	}
+
+	//float color[4] = { m_thesisVariables.m_color.x , m_thesisVariables.m_color.y, m_thesisVariables.m_color.z, m_thesisVariables.m_color.w };
+	//ImGui::ColorEdit4("Light Color   ", color);
+	//m_thesisVariables.m_color.x = color[0];
+	//m_thesisVariables.m_color.y = color[1];
+	//m_thesisVariables.m_color.z = color[2];
+	//m_thesisVariables.m_color.w = color[3];
+	static int dayNight = (int)m_thesisVariables.m_dayNight;
+	ImGui::RadioButton("Day", &dayNight, 0);
+	ImGui::SameLine();
+	ImGui::RadioButton("Night", &dayNight, 1);
+	
+	if (dayNight == 1)
+	{
+		m_thesisVariables.m_color.x = 0.15f;
+		m_thesisVariables.m_color.y = 0.25f;
+		m_thesisVariables.m_color.z = 0.55f;
+		m_thesisVariables.m_color.w = 1.0f;
+
 	}
 	else
 	{
-		ImGui::Text("Atrous Step Count");
-		ImGui::SameLine();
-		if (ImGui::Button("-"))
-			m_thesisVariables.m_atrousStepSize -= 1;
-
-		ImGui::SameLine();
-		if (ImGui::Button("+"))
-			m_thesisVariables.m_atrousStepSize += 1;
-
-		int stepSize = m_thesisVariables.m_atrousStepSize;
-		ImGui::SameLine();
-		ImGui::Text(std::to_string(stepSize).c_str());
-
+		m_thesisVariables.m_color.x = 1.0f;
+		m_thesisVariables.m_color.y = 1.0f;
+		m_thesisVariables.m_color.z = 1.0f;
+		m_thesisVariables.m_color.w = 1.0f;
 	}
-	m_thesisVariables.m_atrousStepSize > 5 ? m_thesisVariables.m_atrousStepSize = 5 : m_thesisVariables.m_atrousStepSize;
-	m_thesisVariables.m_denoiserKernelSize = kernel;
-
-
-
-	float color[4] = { m_thesisVariables.m_color.x , m_thesisVariables.m_color.y, m_thesisVariables.m_color.z, m_thesisVariables.m_color.w};
-	ImGui::ColorEdit4("Light Color   ", color);
-	m_thesisVariables.m_color.x = color[0];
-	m_thesisVariables.m_color.y = color[1];
-	m_thesisVariables.m_color.z = color[2];
-	m_thesisVariables.m_color.w = color[3];
-
+	m_thesisVariables.m_dayNight = (float)dayNight;
 	ImGui::End();
 	ImGui::Render();
 	auto heap = g_theRenderer->GetIMGUIDescriptorHeap();

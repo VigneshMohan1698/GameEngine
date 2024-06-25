@@ -5,6 +5,7 @@
 #include "Engine/Core/Vertex_PNCUTB.hpp"
 #include "Engine/Renderer/VertexBuffer.hpp"
 #include "Engine/Renderer/IndexBuffer.hpp"
+#include <Engine/Core/StringUtils.hpp>
 #include "Engine/Math/Mat44.hpp"
 #include <string>
 struct ID3D11InputLayout;
@@ -25,7 +26,7 @@ class CPUMesh
 		~CPUMesh();
 
 		CPUMesh(std::vector<Vertex_PCU> vertices, std::vector<int> indices);
-		CPUMesh(std::vector<Vertex_PNCU> vertices, std::vector<int> indices);
+		CPUMesh(std::vector<Vertex_PNCU>& vertices, std::vector<int>& indices);
 
 	public:
 		std::vector<Vertex_PNCU> m_vertices;
@@ -62,6 +63,7 @@ class MeshBuilder
 	~MeshBuilder();
 	public:
 		bool		ImportFromOBJFile(char const* m_fileName, MeshImportOptions& importOptions);
+		std::string MakeValuesStringFromTokens(const Strings& tokens);
 		bool		Save();
 		bool		Load();
 		bool		Load(std::string name);
@@ -71,6 +73,7 @@ class MeshBuilder
 		void		ReverseWindingOrder();
 		bool		UpdateFromBuilder(MeshBuilder const& builder);
 
+		void GetTransformedVertices(Vec3& position, std::vector<Vertex_PNCUTB>& vertices);
 		std::string GetFilePath();
 	public:
 	 std::string		m_filePath = "";

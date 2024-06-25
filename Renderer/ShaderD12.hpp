@@ -5,7 +5,10 @@ enum class ShaderDetails
 {
 	Shader2D,
 	Shader3D,
+	PBRShader3D,
+	DFS2,
 	Raytracing,
+	Compute,
 	ShaderTypeCount
 };
 
@@ -44,12 +47,22 @@ public:
 	ShaderD12(const ShaderConfigD12& config, RendererD12* renderer);
 	ShaderD12(const ShaderD12& copy) = delete;
 	~ShaderD12();
+	void CreateShaderObjects();
+
+	void CreateComputeShaderObjects();
+
+	void Create3DRootSignature();
 	void Create3DPipelineStateObject();
 
-	void CreateShaderObjects();
-	void Create3DRootSignature();
+	void CreatePBRRootSignature();
+	void CreatePBRPipelineStateObject();
+
+	void CreateDFSRootSignature();
+	void CreateDFSPipelineStateObject();
+
 	void CreateRootSignature();
 	void CreatePipelineStateObject();
+
 	const std::string& GetName() const;
 	ShaderDetails GetShaderType() {return m_config.m_shaderType;}
 public:
@@ -61,5 +74,6 @@ public:
 	ShaderConfigD12										m_config;
 	Microsoft::WRL::ComPtr<ID3D12RootSignature>         m_rootSignature;
 	Microsoft::WRL::ComPtr<ID3D12PipelineState>         m_pipelineStateObject;
+	Microsoft::WRL::ComPtr<ID3D12PipelineState>         m_shadowMapPSO;
 
 };

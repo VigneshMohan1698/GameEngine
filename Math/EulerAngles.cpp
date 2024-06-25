@@ -56,6 +56,7 @@ void EulerAngles::GetAsVectors_XRight_YUp_ZForward(Vec3& out_forwardIBasis, Vec3
 	out_leftJbasis = yaw.GetJBasis3D();
 	out_upKbasis = yaw.GetKBasis3D();
 }
+
 Mat44 EulerAngles::GetAsMatrix_XFwd_YLeft_ZUp() const
 {
 	float cy = CosDegrees(m_yawDegrees);
