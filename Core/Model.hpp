@@ -56,11 +56,11 @@ class GPUMesh
 		int			  m_materialCount = 0;
 };
 
-class MeshBuilder
+class Mesh
 {
 	//---------------DESTRUCTOR-----------------------
 	public:
-	~MeshBuilder();
+	~Mesh();
 	public:
 		bool		ImportFromOBJFile(char const* m_fileName, MeshImportOptions& importOptions);
 		std::string MakeValuesStringFromTokens(const Strings& tokens);
@@ -71,7 +71,7 @@ class MeshBuilder
 		void		ApplyInvertVTexture();
 		void		ApplyTransform(Mat44 const& transform);
 		void		ReverseWindingOrder();
-		bool		UpdateFromBuilder(MeshBuilder const& builder);
+		bool		UpdateFromBuilder(Mesh const& builder);
 
 		void GetTransformedVertices(Vec3& position, std::vector<Vertex_PNCUTB>& vertices);
 		std::string GetFilePath();

@@ -3303,7 +3303,7 @@ void RendererD12::SetupImGuiRenderTarget()
 }
 
 //-------------------------------MESH FUNCTIONS----------------------
-MeshBuilder* RendererD12::GetMesh(const char* filePath)
+Mesh* RendererD12::GetMesh(const char* filePath)
 {
 	for (int i = 0; i < m_loadedMeshes.size(); i++)
 	{
@@ -3314,15 +3314,15 @@ MeshBuilder* RendererD12::GetMesh(const char* filePath)
 	}
 	return nullptr;
 }
-MeshBuilder* RendererD12::CreateMesh(const char* filePath)
+Mesh* RendererD12::CreateMesh(const char* filePath)
 {
-	MeshBuilder* mesh = new MeshBuilder();
+	Mesh* mesh = new Mesh();
 	MeshImportOptions options;
 	mesh->ImportFromOBJFile(filePath, options);
 	m_loadedMeshes.push_back(mesh);
 	return mesh;
 }
-MeshBuilder* RendererD12::CreateOrGetMesh(const char* filePath)
+Mesh* RendererD12::CreateOrGetMesh(const char* filePath)
 {
 	for (int i = 0; i < m_loadedMeshes.size(); i++)
 	{
@@ -3337,11 +3337,11 @@ MeshBuilder* RendererD12::CreateOrGetMesh(const char* filePath)
 		ERROR_AND_DIE("Mesh File Does not exist");
 	}
 
-	MeshBuilder* mesh = CreateMesh(filePath);
+	Mesh* mesh = CreateMesh(filePath);
 	return mesh;
 }
 
-MeshBuilder* RendererD12::GetMeshForName(const char* name)
+Mesh* RendererD12::GetMeshForName(const char* name)
 {
 	for (int i = 0; i < m_loadedMeshes.size(); i++)
 	{
@@ -3354,13 +3354,13 @@ MeshBuilder* RendererD12::GetMeshForName(const char* name)
 	return nullptr;
 }
 
-MeshBuilder* RendererD12::GetMeshAtIndex(int index)
+Mesh* RendererD12::GetMeshAtIndex(int index)
 {
 	return m_loadedMeshes[index];
 }
 
 
-MeshBuilder* RendererD12::CreateMeshFromSavedFile(const char* filePath)
+Mesh* RendererD12::CreateMeshFromSavedFile(const char* filePath)
 {
 	for (int i = 0; i < m_loadedMeshes.size(); i++)
 	{
@@ -3376,7 +3376,7 @@ MeshBuilder* RendererD12::CreateMeshFromSavedFile(const char* filePath)
 		ERROR_AND_DIE("Mesh File Does not exist");
 	}
 
-	MeshBuilder* mesh = new MeshBuilder();
+	Mesh* mesh = new Mesh();
 	mesh->Load(filePath);
 	mesh->m_filePath = filePath;
 	m_loadedMeshes.push_back(mesh);

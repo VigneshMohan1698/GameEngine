@@ -580,7 +580,7 @@ Shader* Renderer::GetDefaultShader()
 	return nullptr;
 }
 
-MeshBuilder* Renderer::CreateOrGetMesh(const char* filePath)
+Mesh* Renderer::CreateOrGetMesh(const char* filePath)
 {
 	for (int i = 0; i < m_loadedMeshes.size(); i++)
 	{
@@ -595,10 +595,10 @@ MeshBuilder* Renderer::CreateOrGetMesh(const char* filePath)
 		ERROR_AND_DIE("Mesh File Does not exist");
 	}
 
-	MeshBuilder* mesh = CreateMesh(filePath);
+	Mesh* mesh = CreateMesh(filePath);
 	return mesh;
 }
-MeshBuilder* Renderer::CreateMeshFromSavedFile(const char* filePath)
+Mesh* Renderer::CreateMeshFromSavedFile(const char* filePath)
 {
 	for (int i = 0; i < m_loadedMeshes.size(); i++)
 	{
@@ -614,13 +614,13 @@ MeshBuilder* Renderer::CreateMeshFromSavedFile(const char* filePath)
 		ERROR_AND_DIE("Mesh File Does not exist");
 	}
 
-	MeshBuilder* mesh = new MeshBuilder();
+	Mesh* mesh = new Mesh();
 	mesh->Load(filePath);
 	mesh->m_filePath = filePath;
 	m_loadedMeshes.push_back(mesh);
 	return mesh;
 }
-MeshBuilder* Renderer::GetMeshByName(const char* Name)
+Mesh* Renderer::GetMeshByName(const char* Name)
 {
 	UNUSED((void) Name);
 	//for (int i = 0; i < m_loadedMeshes.size(); i++)
@@ -632,7 +632,7 @@ MeshBuilder* Renderer::GetMeshByName(const char* Name)
 	//}
 	return nullptr;
 }
-MeshBuilder* Renderer::GetMesh(const char* filePath)
+Mesh* Renderer::GetMesh(const char* filePath)
 {
 	for (int i = 0; i < m_loadedMeshes.size(); i++)
 	{
@@ -644,19 +644,19 @@ MeshBuilder* Renderer::GetMesh(const char* filePath)
 	return nullptr;
 }
 
-MeshBuilder* Renderer::CreateMesh(const char* filePath)
+Mesh* Renderer::CreateMesh(const char* filePath)
 {
-	MeshBuilder* mesh = new MeshBuilder();
+	Mesh* mesh = new Mesh();
 	MeshImportOptions options;
 	mesh->ImportFromOBJFile(filePath, options);
 	m_loadedMeshes.push_back(mesh);
 	return mesh;
 }
 
-MeshBuilder* Renderer::CreateMesh(const char* filePath, const char* name)
+Mesh* Renderer::CreateMesh(const char* filePath, const char* name)
 {
 	UNUSED((void) name);
-	MeshBuilder* mesh = new MeshBuilder();
+	Mesh* mesh = new Mesh();
 	MeshImportOptions options;
 	mesh->ImportFromOBJFile(filePath, options);
 	//mesh->m_modelName = name;
@@ -664,9 +664,9 @@ MeshBuilder* Renderer::CreateMesh(const char* filePath, const char* name)
 
 	return mesh;
 }
-MeshBuilder* Renderer::BuildMesh(const char* filePath)
+Mesh* Renderer::BuildMesh(const char* filePath)
 {
-	MeshBuilder* mesh = GetMesh(filePath);
+	Mesh* mesh = GetMesh(filePath);
 	mesh->m_gpuMesh = new GPUMesh();
 	size_t size = sizeof(Vertex_PNCU) * mesh->m_cpuMesh->m_vertices.size();
 	if (size != 0)

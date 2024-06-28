@@ -412,12 +412,12 @@ class RendererD12
 		 void			SetupImGuiRenderTarget();
 
 		 //----------------------------MESH FUNCTIONS--------------------------
-		 MeshBuilder*   GetMesh(const char* filePath);
-		 MeshBuilder*   GetMeshForName(const char* name);
-		 MeshBuilder*	GetMeshAtIndex(int index);
-		 MeshBuilder*   CreateMesh(const char* filePath);
-		 MeshBuilder*	CreateOrGetMesh(const char* filePath);
-		 MeshBuilder*	CreateMeshFromSavedFile(const char* filePath);
+		 Mesh*   GetMesh(const char* filePath);
+		 Mesh*   GetMeshForName(const char* name);
+		 Mesh*	GetMeshAtIndex(int index);
+		 Mesh*   CreateMesh(const char* filePath);
+		 Mesh*	CreateOrGetMesh(const char* filePath);
+		 Mesh*	CreateMeshFromSavedFile(const char* filePath);
 
 		 void			BuildBunny();
 		 void			PopulateCommandList();
@@ -567,7 +567,7 @@ class RendererD12
 	public:
 		//------------------VARIABLES SPECIFIC TO DX12 DXR---------------------------
 		std::vector<TextureD12*>		 m_loadedTextures;
-		std::vector<MeshBuilder*>		 m_loadedMeshes;
+		std::vector<Mesh*>		 m_loadedMeshes;
 		std::vector<ShaderD12*>		     m_loadedShaders;
 		ShaderD12*						 m_currentShader;
 		ShaderCompiler*					 m_shaderCompiler = nullptr;

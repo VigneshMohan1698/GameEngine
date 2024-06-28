@@ -1,10 +1,16 @@
 #pragma once
 #include <Engine\Math\Vec3.hpp>
+#include <Engine\Math\EulerAngles.hpp>
+#include <Engine\Core\Model.hpp>
 
 struct TransformComponent
 {
 	Vec3 m_position;
-	float m_oritentationDegrees;
+	EulerAngles m_oritentationDegrees;
 	float m_scale;
 };
 
+struct MeshComponent
+{
+	Mesh m_mesh;
+};

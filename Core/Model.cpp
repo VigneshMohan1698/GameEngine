@@ -8,7 +8,7 @@
 #include <d3d11.h>
 #include <Engine/Math/VertexUtils.hpp>
 
-MeshBuilder::~MeshBuilder()
+Mesh::~Mesh()
 {	
 	m_cpuMesh->m_vertices.clear();
 	m_cpuMesh->m_indices.clear();
@@ -22,7 +22,7 @@ MeshBuilder::~MeshBuilder()
 	}
 }
 
-bool MeshBuilder::ImportFromOBJFile(char const* m_fileName, MeshImportOptions& importOptions)
+bool Mesh::ImportFromOBJFile(char const* m_fileName, MeshImportOptions& importOptions)
 {
 	m_filePath = m_fileName;
 	std::string modelSubstring = m_filePath.substr(12);
@@ -326,7 +326,7 @@ for (int i = 0; i < entries.size(); i++)
 }
 
 
-std::string MeshBuilder::MakeValuesStringFromTokens(const Strings& tokens)
+std::string Mesh::MakeValuesStringFromTokens(const Strings& tokens)
 {
 	std::string valueString;
 	//always ignore the first token, since it's the value type identifier token
@@ -344,14 +344,14 @@ std::string MeshBuilder::MakeValuesStringFromTokens(const Strings& tokens)
 	return valueString;
 }
 
-bool MeshBuilder::Save()
+bool Mesh::Save()
 {
 	std::string saveFile = "Data/Models/" + m_modelName + "/" + m_modelName + ".AlbusSave";
 	FileWriteFromBuffer(m_cpuMesh->m_vertices, saveFile);
 	return false;
 }
 
-bool MeshBuilder::Load()
+bool Mesh::Load()
 {
 	std::string saveFile = "Data/Models/" + m_modelName + ".AlbusSave";
 	std::vector<Vertex_PNCU> outData;
@@ -367,7 +367,7 @@ bool MeshBuilder::Load()
 	return false;
 }
 
-bool MeshBuilder::Load(std::string fileName)
+bool Mesh::Load(std::string fileName)
 {
 	std::vector<Vertex_PNCU> outData;
 	if (!FileExists(fileName))
@@ -391,7 +391,7 @@ bool MeshBuilder::Load(std::string fileName)
 
 	return false;
 }
-void MeshBuilder::ApplyMeshOptions()
+void Mesh::ApplyMeshOptions()
 {
 	Mat44 scaleMatrix = Mat44::CreateUniformScale3D(m_importOptions.m_scale);
 	m_importOptions.m_transform.Append(scaleMatrix);
@@ -400,25 +400,25 @@ void MeshBuilder::ApplyMeshOptions()
 
 }
 
-void MeshBuilder::ApplyInvertVTexture()
+void Mesh::ApplyInvertVTexture()
 {
 	for (int i = 0; i < (int)m_cpuMesh->m_vertices.size(); i++)
 	{
 		m_cpuMesh->m_vertices[i].m_uvTexCoords.y = 1 - m_cpuMesh->m_vertices[i].m_uvTexCoords.y;
 	}
 }
-void MeshBuilder::ApplyTransform(Mat44 const& transform)
+void Mesh::ApplyTransform(Mat44 const& transform)
 {
 	m_importOptions.m_transform = transform;
 }
 
 
-void MeshBuilder::ReverseWindingOrder()
+void Mesh::ReverseWindingOrder()
 {
 	
 }
 
-void MeshBuilder::GetTransformedVertices(Vec3& position, std::vector<Vertex_PNCUTB>& vertices)
+void Mesh::GetTransformedVertices(Vec3& position, std::vector<Vertex_PNCUTB>& vertices)
 {
 	vertices.clear();
 	Mat44 transformMatrix = Mat44::CreateTranslation3D(position);
@@ -430,13 +430,13 @@ void MeshBuilder::GetTransformedVertices(Vec3& position, std::vector<Vertex_PNCU
 	TransformVertexArrayUsingMatrix3D((int)vertices.size(), vertices, transformMatrix);
 }
 
-bool MeshBuilder::UpdateFromBuilder(MeshBuilder const& builder)
+bool Mesh::UpdateFromBuilder(Mesh const& builder)
 {
 	UNUSED((void) builder);
 	return false;
 }
 
-std::string MeshBuilder::GetFilePath()
+std::string Mesh::GetFilePath()
 {
 	return m_filePath;
 }

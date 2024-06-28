@@ -256,16 +256,16 @@ public:
 	Shader*					GetDefaultShader();
 
 
-	//-----------------MESHBUILDER------------------------
-	MeshBuilder*			CreateOrGetMesh(const char* filePath);
-	MeshBuilder*			CreateMeshFromSavedFile(const char* filePath);
-	MeshBuilder*			CreateOrGetMesh(const char* filePath, const char* fileName);
-	MeshBuilder*			Create(const char* filePath, const char* fileName);
-	MeshBuilder*			GetMeshByName(const char* Name);
-	MeshBuilder*			CreateMesh(const char* filePath);
-	MeshBuilder*			GetMesh(const char* filePath);
-	MeshBuilder*			CreateMesh(const char* filePath, const char* name);
-	MeshBuilder*			BuildMesh(const char* filePath);
+	//-----------------Mesh------------------------
+	Mesh*			CreateOrGetMesh(const char* filePath);
+	Mesh*			CreateMeshFromSavedFile(const char* filePath);
+	Mesh*			CreateOrGetMesh(const char* filePath, const char* fileName);
+	Mesh*			Create(const char* filePath, const char* fileName);
+	Mesh*			GetMeshByName(const char* Name);
+	Mesh*			CreateMesh(const char* filePath);
+	Mesh*			GetMesh(const char* filePath);
+	Mesh*			CreateMesh(const char* filePath, const char* name);
+	Mesh*			BuildMesh(const char* filePath);
 
 	//------------------VERTEX BUFFER--------------
 	VertexBuffer*			CreateVertexBuffer(const size_t size);
@@ -399,7 +399,7 @@ private:
 	std::vector<Texture*>				m_loadedTextures;
 	std::vector<BitmapFont*>			m_loadedFonts;
 	std::vector<Shader*>				m_loadedShaders;
-	std::vector<MeshBuilder*>			m_loadedMeshes;
+	std::vector<Mesh*>			m_loadedMeshes;
 	Shader const*						m_currentShader = nullptr;
 	VertexBuffer*						m_immediateVBO = nullptr;
 	VertexBuffer*						m_immediateVBO_PNCU = nullptr;

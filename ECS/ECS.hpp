@@ -12,17 +12,20 @@ class ECS
 		void Startup();
 		void Shutdown();
 
-		void CreateEntity();
+		EntityID CreateEntity();
 		void DestroyEntity(const EntityID entityID);
 
 		template<typename T>
 		T* GetComponentOfType(const EntityID entityID);
 
 		template<typename T>
-		void AddComponents(EntityID entityID,const T& component);
+		void AddComponentToEntity(EntityID entityID);
+
+		void DebugPrintEntityInformation();
 
 	private:
 		EntityID m_nextEntityID = 0;
 		std::unordered_set<EntityID> m_activeEntities;
 		std::unordered_map<EntityID, TransformComponent> m_transformComponents;
+		std::unordered_map<EntityID, MeshComponent> m_meshComponents;
 };
