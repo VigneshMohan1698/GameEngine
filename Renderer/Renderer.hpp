@@ -265,7 +265,7 @@ public:
 	Mesh*			CreateMesh(const char* filePath);
 	Mesh*			GetMesh(const char* filePath);
 	Mesh*			CreateMesh(const char* filePath, const char* name);
-	Mesh*			BuildMesh(const char* filePath);
+	//Mesh*			BuildMesh(const char* filePath);
 
 	//------------------VERTEX BUFFER--------------
 	VertexBuffer*			CreateVertexBuffer(const size_t size);

@@ -1682,7 +1682,7 @@ void AddVertsForNormalSphere3D(std::vector<Vertex_PNCU>& verts, const float& rad
 	}
 }
 
-void AddVertsForIndexedNormalSphere3D(std::vector<Vertex_PNCUTB>& verts, std::vector<unsigned int>& indices, const float& radius, const Vec3& center, const AABB2& UVs, Vec4 const& color, int& indexCount)
+void AddVertsForIndexedNormalSphere3D(std::vector<Vertex_PNCUTB>& verts, std::vector<unsigned int>& indices, const float& radius, const Vec3& center, const AABB2& UVs, Vec4 const& color, int indexCount)
 {	
 	UNUSED((void )indexCount);
 	//int longitudeSlices = 16;

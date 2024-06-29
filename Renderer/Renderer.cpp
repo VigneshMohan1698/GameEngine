@@ -664,25 +664,25 @@ Mesh* Renderer::CreateMesh(const char* filePath, const char* name)
 
 	return mesh;
 }
-Mesh* Renderer::BuildMesh(const char* filePath)
-{
-	Mesh* mesh = GetMesh(filePath);
-	mesh->m_gpuMesh = new GPUMesh();
-	size_t size = sizeof(Vertex_PNCU) * mesh->m_cpuMesh->m_vertices.size();
-	if (size != 0)
-	{
-		mesh->m_gpuMesh->m_vertexBuffer = new VertexBuffer(size, sizeof(Vertex_PNCU));
-		mesh->m_gpuMesh->m_vertexBuffer = CreateVertexBuffer(size, mesh->m_gpuMesh->m_vertexBuffer);
-		CopyCPUToGPU(mesh->m_cpuMesh->m_vertices.data(), size, mesh->m_gpuMesh->m_vertexBuffer);
-
-		/*size = sizeof(unsigned int) * mesh->m_cpuMesh->m_indices.size();
-		mesh->m_gpuMesh->m_indexBuffer = new IndexBuffer(size);
-		mesh->m_gpuMesh->m_indexBuffer = CreateIndexBuffer(size, mesh->m_gpuMesh->m_indexBuffer);
-		CopyCPUToGPU(mesh->m_cpuMesh->m_indices.data(), size, mesh->m_gpuMesh->m_indexBuffer);*/
-	}
-
-	return mesh;
-}
+//Mesh* Renderer::BuildMesh(const char* filePath)
+//{
+//	Mesh* mesh = GetMesh(filePath);
+//	mesh->m_gpuMesh = new GPUMesh();
+//	size_t size = sizeof(Vertex_PNCU) * mesh->m_cpuMesh->m_vertices.size();
+//	if (size != 0)
+//	{
+//		mesh->m_gpuMesh->m_vertexBuffer = new VertexBuffer(size, sizeof(Vertex_PNCU));
+//		mesh->m_gpuMesh->m_vertexBuffer = CreateVertexBuffer(size, mesh->m_gpuMesh->m_vertexBuffer);
+//		CopyCPUToGPU(mesh->m_cpuMesh->m_vertices.data(), size, mesh->m_gpuMesh->m_vertexBuffer);
+//
+//		/*size = sizeof(unsigned int) * mesh->m_cpuMesh->m_indices.size();
+//		mesh->m_gpuMesh->m_indexBuffer = new IndexBuffer(size);
+//		mesh->m_gpuMesh->m_indexBuffer = CreateIndexBuffer(size, mesh->m_gpuMesh->m_indexBuffer);
+//		CopyCPUToGPU(mesh->m_cpuMesh->m_indices.data(), size, mesh->m_gpuMesh->m_indexBuffer);*/
+//	}
+//
+//	return mesh;
+//}
 //------------------------------VERTEX BUFFER FUNCTIONS ------------------------
 VertexBuffer* Renderer::CreateVertexBuffer(const size_t size)
 {

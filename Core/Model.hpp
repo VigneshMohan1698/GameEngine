@@ -8,6 +8,7 @@
 #include <Engine/Core/StringUtils.hpp>
 #include "Engine/Math/Mat44.hpp"
 #include <string>
+#include <Engine\Math\Basic3DShapes.hpp>
 struct ID3D11InputLayout;
 
 struct MeshImportOptions
@@ -31,7 +32,7 @@ class CPUMesh
 	public:
 		std::vector<Vertex_PNCU> m_vertices;
 		std::vector<unsigned int> m_indices;
-		std::vector<Vertex_PNCUTB> m_verticesWithTangent;
+		VertexNormalTangentArray m_verticesWithTangent;
 };
 
 class GPUMesh
@@ -72,15 +73,16 @@ class Mesh
 		void		ApplyTransform(Mat44 const& transform);
 		void		ReverseWindingOrder();
 		bool		UpdateFromBuilder(Mesh const& builder);
-
-		void GetTransformedVertices(Vec3& position, std::vector<Vertex_PNCUTB>& vertices);
+		void		AddSphereMesh(const Sphere3D& sphere);
+		void		AddCubeMesh(const Cube& cube);
+		void		GetTransformedVertices(Vec3& position, std::vector<Vertex_PNCUTB>& vertices);
 		std::string GetFilePath();
+
 	public:
 	 std::string		m_filePath = "";
 	 std::string		m_texturePath = "";
 	 std::string		m_modelName = "";
 	 MeshImportOptions  m_importOptions;
 	 CPUMesh*		    m_cpuMesh    = nullptr;
-	 GPUMesh*			m_gpuMesh    = nullptr;
-
+	 //GPUMesh*			m_gpuMesh    = nullptr;
 };

@@ -62,6 +62,9 @@
     <Filter Include="ECS">
       <UniqueIdentifier>{20e4db0f-ed84-48fe-b2f8-b9565b805d35}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Material">
+      <UniqueIdentifier>{8e333bff-4e5e-4397-af61-05efee89de58}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Math\Vec2.cpp">
@@ -271,9 +274,6 @@
     <ClCompile Include="Core\Model.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="Renderer\Material.cpp">
-      <Filter>Renderer</Filter>
-    </ClCompile>
     <ClCompile Include="Networking\Net.cpp">
       <Filter>Networking</Filter>
     </ClCompile>
@@ -351,6 +351,9 @@
     </ClCompile>
     <ClCompile Include="ECS\ECS.cpp">
       <Filter>ECS</Filter>
+    </ClCompile>
+    <ClCompile Include="Material\Material.cpp">
+      <Filter>Material</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -600,9 +603,6 @@
     <ClInclude Include="Core\Model.hpp">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="Renderer\Material.hpp">
-      <Filter>Renderer</Filter>
-    </ClInclude>
     <ClInclude Include="..\ThirdParty\D3D12DXR\dxcapiV3.h">
       <Filter>ThirdParty\D3D12DXR</Filter>
     </ClInclude>
@@ -698,6 +698,12 @@
     </ClInclude>
     <ClInclude Include="ECS\ECS.hpp">
       <Filter>ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="Material\Material.hpp">
+      <Filter>Material</Filter>
+    </ClInclude>
+    <ClInclude Include="Material\MaterialIncludes.hpp">
+      <Filter>Material</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
