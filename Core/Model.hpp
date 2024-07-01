@@ -8,6 +8,7 @@
 #include <Engine/Core/StringUtils.hpp>
 #include "Engine/Math/Mat44.hpp"
 #include <string>
+#include <Engine/Core/EngineCommon.hpp>
 #include <Engine\Math\Basic3DShapes.hpp>
 struct ID3D11InputLayout;
 
@@ -61,6 +62,7 @@ class Mesh
 {
 	//---------------DESTRUCTOR-----------------------
 	public:
+	Mesh() {};
 	~Mesh();
 	public:
 		bool		ImportFromOBJFile(char const* m_fileName, MeshImportOptions& importOptions);
@@ -73,8 +75,8 @@ class Mesh
 		void		ApplyTransform(Mat44 const& transform);
 		void		ReverseWindingOrder();
 		bool		UpdateFromBuilder(Mesh const& builder);
-		void		AddSphereMesh(const Sphere3D& sphere);
-		void		AddCubeMesh(const Cube& cube);
+		void		AddSphereMesh(const Sphere3D& sphere,const AABB2& uvs, const Vec4& color);
+		void		AddCubeMesh(const Cube& cube,const AABB2& uvs, const Vec4& color);
 		void		GetTransformedVertices(Vec3& position, std::vector<Vertex_PNCUTB>& vertices);
 		std::string GetFilePath();
 

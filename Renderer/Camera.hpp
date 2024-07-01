@@ -79,8 +79,8 @@ class Camera {
 		EulerAngles			m_orientation;
 		AABB2				m_viewport = AABB2::ZERO_TO_ONE;
 		float				m_cameraAspectRatio = 2.0f;
-		Renderer*			m_owner;
-		CameraView			m_cameraView;
+		Renderer*			m_owner = nullptr;
+		CameraView			m_cameraView = CameraView::Perspective;
 	private:
 		Mat44				m_viewToRenderMatrix;
 		Vec3				m_renderI = Vec3(1.0f, 0.0f, 0.0f);

@@ -10,8 +10,11 @@
 
 Mesh::~Mesh()
 {	
-	m_cpuMesh->m_vertices.clear();
-	m_cpuMesh->m_indices.clear();
+	if(m_cpuMesh)
+	{
+		m_cpuMesh->m_vertices.clear();
+		m_cpuMesh->m_indices.clear();
+	}
 	//if (m_gpuMesh)
 	//{
 	//	DX_SAFE_RELEASE(m_gpuMesh->m_vertexBuffer->m_buffer);
@@ -436,12 +439,13 @@ bool Mesh::UpdateFromBuilder(Mesh const& builder)
 	return false;
 }
 
-void Mesh::AddSphereMesh(const Sphere3D& sphere)
+void Mesh::AddSphereMesh(const Sphere3D& sphere,const AABB2& uvs, const Vec4& color)
 {
-	
+	m_cpuMesh = new CPUMesh();
+	AddVertsForIndexedNormalSphere3D(m_cpuMesh->m_verticesWithTangent, m_cpuMesh->m_indices, 0.2f, Vec3(2.0f, 0.0f, 0.0f), AABB2::ZERO_TO_ONE, Vec4(1, 1, 1, 1), 0);
 }
 
-void Mesh::AddCubeMesh(const Cube& cube)
+void Mesh::AddCubeMesh(const Cube& cube, const AABB2& uvs, const Vec4& color)
 {
 }
 

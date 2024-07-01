@@ -387,11 +387,11 @@
     <ClCompile Include="Core\Vertex_PNCUTB.cpp" />
     <ClCompile Include="Core\XmlUtils.cpp" />
     <ClCompile Include="ECS\ECS.cpp" />
+    <ClCompile Include="ECS\ECSRenderingSystem.cpp" />
     <ClCompile Include="Input\AnalogJoystick.cpp" />
     <ClCompile Include="Input\InputSystem.cpp" />
     <ClCompile Include="Input\KeyButtonState.cpp" />
     <ClCompile Include="Input\XBoxController.cpp" />
-    <ClCompile Include="Material\Material.cpp" />
     <ClCompile Include="Math\AABB2.cpp" />
     <ClCompile Include="Math\AABB3.cpp" />
     <ClCompile Include="Math\Capsule2.cpp" />
@@ -522,12 +522,11 @@
     <ClInclude Include="Core\XmlUtils.hpp" />
     <ClInclude Include="ECS\ECS.hpp" />
     <ClInclude Include="ECS\ECSComponents.hpp" />
+    <ClInclude Include="ECS\ECSRenderingSystem.hpp" />
     <ClInclude Include="Input\AnalogJoystick.hpp" />
     <ClInclude Include="Input\InputSystem.hpp" />
     <ClInclude Include="Input\KeyButtonState.hpp" />
     <ClInclude Include="Input\XBoxController.hpp" />
-    <ClInclude Include="Material\Material.hpp" />
-    <ClInclude Include="Material\MaterialIncludes.hpp" />
     <ClInclude Include="Math\AABB2.hpp" />
     <ClInclude Include="Math\AABB3.hpp" />
     <ClInclude Include="Math\Capsule2.hpp" />

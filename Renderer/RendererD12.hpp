@@ -458,8 +458,12 @@ class RendererD12
 		 TextureD12*	GetTextureForFileNameOrPath(char const* fileName, char const* imageFilePath);
 		 TextureD12*	CreateTextureFromImage(const Image& image);;
 		 TextureD12*	CreateOrGetTextureFromFile(char const* name, char const* imageFilePath);
+		 void			CreateOrGetTextureFromFile(char const* fileName, char const* imageFilePath, int& textureIndex);
 		 TextureD12*	CreateTextureFromFile(char const* imageFilePath);
+		 TextureD12*	GetTextureAtIndex(int index);
+		 int			GetTextureIndex(char const* fileName);
 		 void	     	BindTexture(int index, TextureD12* textureToBind);
+		 void	     	BindTexture(int bufferIndex, int textureIndex);
 		 void	     	BindComputeTexture(int index, TextureD12* textureToBind);
 		 void	     	BindComputeGpuBuffer(int index, GpuBuffer* buffer, bool isUAV = false);
 		 void	     	BindHandle(int index, D3D12_GPU_DESCRIPTOR_HANDLE& handle);

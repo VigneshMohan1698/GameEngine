@@ -19,7 +19,7 @@ class ECS
 		T* GetComponentOfType(const EntityID entityID);
 
 		template<typename T>
-		void AddComponentToEntity(EntityID entityID);
+		T* AddComponentToEntity(EntityID entityID);
 
 		void DebugPrintEntityInformation();
 
@@ -28,4 +28,5 @@ class ECS
 		std::unordered_set<EntityID> m_activeEntities;
 		std::unordered_map<EntityID, TransformComponent> m_transformComponents;
 		std::unordered_map<EntityID, MeshComponent> m_meshComponents;
+		std::unordered_map<EntityID, CameraComponent> m_cameraComponents;
 };

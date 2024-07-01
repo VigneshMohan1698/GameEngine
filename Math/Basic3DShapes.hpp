@@ -9,7 +9,7 @@ public:
 	float	m_radius = 0.0f;
 
 public:
-	Sphere3D() {};
+	Sphere3D() {}
 	Sphere3D(Vec3 center, float radius);
 	~Sphere3D() {};
 

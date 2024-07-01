@@ -1986,6 +1986,22 @@ TextureD12* RendererD12::CreateOrGetTextureFromFile(char const* fileName, char c
 	newTexture->m_name = fileName;
 	return newTexture;
 }
+
+void RendererD12::CreateOrGetTextureFromFile(char const* fileName, char const* imageFilePath, int& textureIndex)
+{
+	//See if we already have this texture previously loaded
+	TextureD12* existingTexture = GetTextureForFileNameOrPath(fileName, imageFilePath);
+	if (existingTexture)
+	{
+		textureIndex = GetTextureIndex(existingTexture->m_name.c_str());
+	}
+
+	// Never seen this texture before!  Let's load it.
+	TextureD12* newTexture = CreateTextureFromFile(imageFilePath);
+	newTexture->m_name = fileName;
+	textureIndex = (int)m_loadedTextures.size() - 1;
+}
+
 TextureD12* RendererD12::CreateTextureFromFile(char const* imageFilePath)
 {
 	if (!FileExists(imageFilePath))
@@ -1999,9 +2015,39 @@ TextureD12* RendererD12::CreateTextureFromFile(char const* imageFilePath)
 	m_loadedTextures.push_back(texture);
 	return texture;
 }
+TextureD12* RendererD12::GetTextureAtIndex(int index)
+{	
+	if(index > (int)m_loadedTextures.size() - 1)
+	{
+		return nullptr;
+	}
+	return m_loadedTextures[index];
+}
+int RendererD12::GetTextureIndex(char const* fileName)
+{
+	for (int i = 0; i < m_loadedTextures.size(); i++)
+	{
+		if(m_loadedTextures[i]->m_name == fileName)
+		{
+			return i;
+		}
+	}
+	return -1;
+}
+
 void RendererD12::BindTexture(int index, TextureD12* textureToBind)
 {
 	m_RcommandList->SetGraphicsRootDescriptorTable(index, textureToBind->m_gpuDescriptorHandle);
+}
+
+void RendererD12::BindTexture(int bufferIndex, int textureIndex)
+{
+	TextureD12* textureToBind = GetTextureAtIndex(textureIndex);
+	if(!textureToBind)
+	{
+		ERROR_AND_DIE("Texture that you are trying to bind does not exist");
+	}
+	m_RcommandList->SetGraphicsRootDescriptorTable(bufferIndex, textureToBind->m_gpuDescriptorHandle);
 }
 
 void RendererD12::BindComputeTexture(int index, TextureD12* textureToBind)
