@@ -410,7 +410,7 @@ void Mesh::ApplyInvertVTexture()
 		m_cpuMesh->m_vertices[i].m_uvTexCoords.y = 1 - m_cpuMesh->m_vertices[i].m_uvTexCoords.y;
 	}
 }
-void Mesh::ApplyTransform(Mat44 const& transform)
+void Mesh::SetTransform(Mat44 const& transform)
 {
 	m_importOptions.m_transform = transform;
 }
@@ -433,6 +433,14 @@ void Mesh::GetTransformedVertices(Vec3& position, std::vector<Vertex_PNCUTB>& ve
 	TransformVertexArrayUsingMatrix3D((int)vertices.size(), vertices, transformMatrix);
 }
 
+VertexNormalTangentArray Mesh::GetTransformedVertices(Mat44 const& transform)
+{
+	VertexNormalTangentArray transformedVerts;
+	transformedVerts = m_cpuMesh->m_verticesWithTangent;
+	TransformVertexArrayUsingMatrix3D((int)transformedVerts.size(), transformedVerts, transform);
+	return transformedVerts;
+}
+
 bool Mesh::UpdateFromBuilder(Mesh const& builder)
 {
 	UNUSED((void) builder);
@@ -441,12 +449,22 @@ bool Mesh::UpdateFromBuilder(Mesh const& builder)
 
 void Mesh::AddSphereMesh(const Sphere3D& sphere,const AABB2& uvs, const Vec4& color)
 {
+	if(m_cpuMesh != nullptr) 
+	{
+		ERROR_AND_DIE("Cpu mesh is not null!");
+	}
 	m_cpuMesh = new CPUMesh();
-	AddVertsForIndexedNormalSphere3D(m_cpuMesh->m_verticesWithTangent, m_cpuMesh->m_indices, 0.2f, Vec3(2.0f, 0.0f, 0.0f), AABB2::ZERO_TO_ONE, Vec4(1, 1, 1, 1), 0);
+	AddVertsForIndexedNormalSphere3D(m_cpuMesh->m_verticesWithTangent, m_cpuMesh->m_indices, 0.2f, Vec3(0.0f, 0.0f, 0.0f), AABB2::ZERO_TO_ONE, Vec4(1.0f, 1.0f, 1.0f, 1.0f), 0);
 }
 
 void Mesh::AddCubeMesh(const Cube& cube, const AABB2& uvs, const Vec4& color)
 {
+	if (m_cpuMesh != nullptr)
+	{
+		ERROR_AND_DIE("Cpu mesh is not null!");
+	}
+	m_cpuMesh = new CPUMesh();
+	AddVertsForIndexedNormalCube(m_cpuMesh->m_verticesWithTangent, m_cpuMesh->m_indices, cube.m_bounds, Vec3(1.0f, 1.0f, 1.0f), AABB2::ZERO_TO_ONE, 0);
 }
 
 std::string Mesh::GetFilePath()

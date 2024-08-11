@@ -605,6 +605,7 @@ class RendererD12
 		
 		ComPtr<ID3D12CommandQueue>		 m_RcommandQueue;
 		ComPtr<ID3D12GraphicsCommandList>m_RcommandList;
+		bool							 m_isRendererPrepared = false;
 		ComPtr<ID3D12GraphicsCommandList4>m_dxrCommandList;
 		ComPtr<ID3D12Resource>			 m_RvertexBuffer;
 		D3D12_VERTEX_BUFFER_VIEW		 m_RvertexBufferView;

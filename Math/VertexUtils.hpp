@@ -47,6 +47,7 @@ void AddVertsForTexts2D(std::vector<Vertex_PCU>& vertexArray, Vec2 const& textMi
 	float cellHeight, std::string const& text, Rgba8 const& tint = Rgba8::WHITE, float cellAspect = 1.f);
 void AddVertsForArrow2D(std::vector<Vertex_PCU>& verts, Vec2 tailPos, Vec2 tipPos, float arrowSize, float lineThickness, Rgba8 color);
 void AddVertsForIndexedNormalSphere3D(std::vector<Vertex_PNCUTB>& verts, std::vector<unsigned int>& indices, const float& radius, const Vec3& center, const AABB2& UVs, Vec4 const& color, int indexCount = 0 );
+
 //-------------------------ADD VERTS FUNCTIONS 3D--------------------------------------------------
 void AddVertsForQuad3D(std::vector<Vertex_PCU>& verts, const Vec3& topLeft, const Vec3& bottomLeft, const Vec3& bottomRight, const Vec3& topRight, const Rgba8& color = Rgba8::WHITE, const AABB2& UVs = AABB2::ZERO_TO_ONE);
 void AddVertsForQuadPNCU3D(std::vector<Vertex_PNCU>& verts, const Vec3& topLeft, const Vec3& bottomLeft, const Vec3& bottomRight, const Vec3& topRight, const Rgba8& color = Rgba8::WHITE, const AABB2& UVs = AABB2::ZERO_TO_ONE);
@@ -58,7 +59,7 @@ void AddVertsForIndexedPNCUQuad3D(std::vector<Vertex_PNCU>& verts, std::vector<u
 void AddVertsForIndexedPNCUQuadtangent3D(std::vector<Vertex_PNCUTB>& verts, std::vector<unsigned int>& indexedVerts, Vec3& normal, int indexCount, const Vec3& topLeft, const Vec3& bottomLeft, const Vec3& bottomRight, const Vec3& topRight, const Vec4& color, const AABB2& UVs);
 void AddVertsForIndexedPNCUQuadtangent3D(std::vector<Vertex_PNCUTB>& verts, std::vector<unsigned int>& indexedVerts, Vec3& normal, int indexCount,
 	AABB3 bounds, const Vec4& color, const AABB2& UVs);
-void AddVertsForIndexedAABB3Tangent(std::vector<Vertex_PNCUTB>& verts, std::vector<unsigned int>& indexedVerts, int& indexCount,AABB3 const& bounds, const Vec4& color, const AABB2& UVs);
+void AddVertsForIndexedNormalCube(std::vector<Vertex_PNCUTB>& verts, std::vector<unsigned int>& indexedVerts, AABB3 const& bounds, const Vec4& color, const AABB2& UVs, int indexCount = 0);
 
 void AddVertsForIndexedQuad3D(std::vector<Vertex_PCU>& verts, std::vector<unsigned int>& indexedVerts,int indexCount ,const Vec3& topLeft, const Vec3& bottomLeft, const Vec3& bottomRight, const Vec3& topRight, const Rgba8& color = Rgba8::WHITE, const AABB2& UVs = AABB2::ZERO_TO_ONE);
 void AddVertsForIndexedQuad3D(std::vector<Vertex_PCU>& verts, std::vector<int>& indexedVerts,int indexCount ,const Vec3& topLeft, const Vec3& bottomLeft, const Vec3& bottomRight, const Vec3& topRight, const Rgba8& color = Rgba8::WHITE, const AABB2& UVs = AABB2::ZERO_TO_ONE);

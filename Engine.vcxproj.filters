@@ -62,6 +62,9 @@
     <Filter Include="ECS">
       <UniqueIdentifier>{20e4db0f-ed84-48fe-b2f8-b9565b805d35}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Material">
+      <UniqueIdentifier>{ffa43f57-9421-4ce8-accb-976d5f9f8178}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Math\Vec2.cpp">
@@ -349,8 +352,11 @@
     <ClCompile Include="ECS\ECS.cpp">
       <Filter>ECS</Filter>
     </ClCompile>
-    <ClCompile Include="ECS\ECSRenderingSystem.cpp">
+    <ClCompile Include="ECS\ECSSystems.cpp">
       <Filter>ECS</Filter>
+    </ClCompile>
+    <ClCompile Include="Material\Material.cpp">
+      <Filter>Material</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -696,8 +702,14 @@
     <ClInclude Include="ECS\ECS.hpp">
       <Filter>ECS</Filter>
     </ClInclude>
-    <ClInclude Include="ECS\ECSRenderingSystem.hpp">
+    <ClInclude Include="ECS\ECSSystems.hpp">
       <Filter>ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="Material\Material.hpp">
+      <Filter>Material</Filter>
+    </ClInclude>
+    <ClInclude Include="Material\MaterialIncludes.hpp">
+      <Filter>Material</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

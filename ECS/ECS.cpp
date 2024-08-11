@@ -1,8 +1,20 @@
 #include "ECS.hpp"
 #include <Engine\Core\ErrorWarningAssert.hpp>
 
+//TO DO: Is this bad? Maybe pass it in constructor?
+
+extern RendererD12* g_theRenderer;
 void ECS::Startup()
 {	
+	RegisterRequiredSystems();
+}
+
+void ECS::Update(float deltaSeconds)
+{
+	for (auto& system : m_ecsSystems)
+	{
+		system->Update();
+	}
 }
 
 void ECS::Shutdown()
@@ -12,7 +24,12 @@ void ECS::Shutdown()
 		DestroyEntity(entity);
 	}
 	m_activeEntities.clear();
-	}
+}
+
+void ECS::RegisterRequiredSystems()
+{
+	m_ecsSystems.push_back(std::make_unique<ECSRenderingSystem>(this, g_theRenderer));
+}
 
 EntityID ECS::CreateEntity()
 {
@@ -89,7 +106,6 @@ T* ECS::AddComponentToEntity(EntityID entityID)
 		else
 		{
 			ERROR_AND_DIE("Mesh Component already exists in entity " + std::to_string(entityID));
-			return nullptr;
 		}
 	}
 	if (std::is_same<T, CameraComponent>::value)

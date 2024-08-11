@@ -1249,8 +1249,8 @@ void AddVertsForIndexedPNCUQuadtangent3D(std::vector<Vertex_PNCUTB>& verts, std:
 
 }
 
-void AddVertsForIndexedAABB3Tangent(std::vector<Vertex_PNCUTB>& vertices, std::vector<unsigned int>& indexes, int& indexCount,
-	AABB3 const& bounds, const Vec4& color, const AABB2& UVs)
+void AddVertsForIndexedNormalCube(std::vector<Vertex_PNCUTB>& vertices, std::vector<unsigned int>& indexes, 
+	AABB3 const& bounds, const Vec4& color, const AABB2& UVs, int indexCount)
 {
 	Vec3 bottomLeft, bottomRight, topLeft, topRight;
 	float minx, miny, minz, maxx, maxy, maxz;

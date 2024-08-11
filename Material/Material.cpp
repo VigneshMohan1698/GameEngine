@@ -1,11 +1,11 @@
-#include "Material.hpp"
+#include "Engine/Material/Material.hpp"
 #include <Engine\Renderer\RendererD12.hpp>
 #include "MaterialIncludes.hpp"
 #include <Engine\Renderer\ShaderD12.hpp>
 
 extern RendererD12* g_theRenderer;
 
-Material::Material(const MaterialType& type)
+Material::Material(MaterialType type)
 {
 	m_type = type;
 
@@ -27,9 +27,4 @@ Material::Material(ShaderD12* customShader)
 {
 	m_shader = customShader;
 	m_type = MaterialType::Custom;
-}
-
-Material::~Material()
-{
-	m_shader = nullptr;
 }

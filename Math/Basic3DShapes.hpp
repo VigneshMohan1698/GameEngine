@@ -1,6 +1,7 @@
 #pragma once
 #include "Engine/Math/Vec2.hpp"
 #include "Engine/Math/Vec3.hpp"
+#include "Engine/Math/AABB3.hpp"
 
 struct Sphere3D
 {
@@ -18,12 +19,11 @@ public:
 struct Cube
 {
 public:
-	Vec3 m_center;
-	float m_sideLength;
+	AABB3 m_bounds = AABB3();
 
 public:
 	Cube() {};
-	Cube(Vec3 center, float length) : m_center(center), m_sideLength(length) {}
+	Cube(AABB3 bounds) : m_bounds(bounds) {}
 
 	~Cube() {};
 

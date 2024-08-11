@@ -20,11 +20,12 @@ enum class TextureIndexes
 };
 
 class ShaderD12;
+
 class Material
 {
 	public:
 	Material() {};
-	Material(const MaterialType& type);
+	Material(MaterialType type);
 	Material(ShaderD12* customShader);
 	~Material() { m_shader  = nullptr; };
 
@@ -32,7 +33,7 @@ class Material
 	MaterialType		   GetMaterialType() {return m_type;}
 	int					   GetAlbedoTextureIndex() {  return m_texturesIndexes[(int)TextureIndexes::Albedo]; }
 
-	private:
+	public:
 	MaterialType			m_type = MaterialType::NoMaterial;
 	int						m_texturesIndexes[(int)TextureIndexes::Count] = {};
 	ShaderD12*				m_shader = nullptr;

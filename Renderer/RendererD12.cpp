@@ -97,6 +97,7 @@ void RendererD12::Startup()
 	{
 		InitializeRasterization();
 	}
+	Prepare();
 }
 void RendererD12::BeginFrame()
 {
@@ -1564,10 +1565,12 @@ void RendererD12::SerializeAndCreateRaytracingRootSignature(ID3D12Device5* devic
 	device->CreateRootSignature(1, blob->GetBufferPointer(), blob->GetBufferSize(), IID_PPV_ARGS(&(*rootSig)));
 }
 
-//----------------------------DXR  RAYTRACING FUNCTIONS--------------------------
 void RendererD12::Prepare()
 {
-
+	if(m_isRendererPrepared) {
+		return;
+	}
+	m_isRendererPrepared = true;
 	ThrowIfFailed(m_RcommandAllocator[m_frameIndex]->Reset(), "Failed while Resetting command allocator");
 	if (m_currentShader == nullptr)
 	{
@@ -1577,6 +1580,7 @@ void RendererD12::Prepare()
 	{
 		ThrowIfFailed(m_RcommandList->Reset(m_RcommandAllocator[m_frameIndex].Get(), m_currentShader->m_pipelineStateObject.Get()), "Failed while Resetting command allocator");
 	}
+	
 	m_beforeState = D3D12_RESOURCE_STATE_PRESENT;
 	// Transition the render target into the correct state to allow for drawing into it.
 	D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_backBufferRenderTarget[m_frameIndex].Get(), m_beforeState, D3D12_RESOURCE_STATE_RENDER_TARGET);
@@ -1588,6 +1592,91 @@ void RendererD12::Prepare()
 	//	m_RcommandList->ResourceBarrier(1, &barrier);
 	//}
 }
+
+void RendererD12::Present()
+{
+	auto renderTarget = GetBackBuffer();
+	// Transition the render target to the state that allows it to be presented to the display.
+	if (m_renderingPipeline == RenderingPipeline::Raytracing)
+	{
+		D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(renderTarget, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT);
+		m_RcommandList->ResourceBarrier(1, &barrier);
+	}
+	else if (m_renderingPipeline == RenderingPipeline::Rasterization)
+	{
+		D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(renderTarget, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+		m_RcommandList->ResourceBarrier(1, &barrier);
+	}
+	//------------EXECUTING COMMAND LIST------------------
+	HRESULT commandListClosed = m_RcommandList->Close();
+	if (FAILED(commandListClosed))
+	{
+		ERROR_AND_DIE("Failed While closing command list");
+	}
+
+	ID3D12CommandList* commandLists[] = { m_RcommandList.Get() };
+	m_RcommandQueue->ExecuteCommandLists(ARRAYSIZE(commandLists), commandLists);
+
+	HRESULT result;
+	result = m_RswapChain->Present(0, 0);
+	/*HRESULT result2 = m_Rdevice.Get()->GetDeviceRemovedReason();*/
+	if (FAILED(result))
+	{
+		ERROR_AND_DIE("Failed while presenting");
+	}
+
+}
+
+void RendererD12::MoveToNextFrame()
+{
+	// Schedule a Signal command in the queue.
+	m_gpuWaitTime = (float)GetCurrentTimeSeconds();
+	const UINT64 currentFenceValue = m_fenceValues[m_frameIndex];
+	HRESULT result = m_RcommandQueue->Signal(m_fence.Get(), currentFenceValue);
+	if (FAILED(result)) { ERROR_AND_DIE("Failed while moving to next Frame"); }
+
+
+
+	// If the next frame is not ready to be rendered yet, wait until it is ready.
+	if (m_fence->GetCompletedValue() < m_fenceValues[m_frameIndex])
+	{
+		result = m_fence->SetEventOnCompletion(m_fenceValues[m_frameIndex], m_fenceEvent.Get());
+		if (FAILED(result)) { ERROR_AND_DIE("Failed while moving to next Frame"); }
+		WaitForSingleObjectEx(m_fenceEvent.Get(), INFINITE, FALSE);
+	}
+	// Update the back buffer index.
+	m_frameIndex = m_RswapChain->GetCurrentBackBufferIndex();
+	// Set the fence value for the next frame.
+	m_fenceValues[m_frameIndex] = currentFenceValue + 1;
+
+	//--------------CLEAR DYNAMIC RENDER ITEMS----------------
+	for (int i = 0; i < m_dynamicRenderItems.size(); i++)
+	{
+		//RenderItems& item = m_dynamicRenderItems[i];
+		//item.fenceValue = m_fenceValues[m_frameIndex];
+		//HRESULT hr = m_Rdevice.Get()->CreateFence(item.fenceValue, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&item.fence));
+		//if (FAILED(hr)) {
+		//	ERROR_AND_DIE("Failed while creating the Fence for Vertex buffer");
+		//}
+		//m_RcommandQueue->Signal(item.fence, item.fenceValue);
+		//item.fence->SetEventOnCompletion(item.fenceValue, item.fenceEvent);
+		//WaitForSingleObject(item.fenceEvent, INFINITE);
+
+		m_dynamicRenderItems[i].verticesPNCUTB.ResetResources();
+		m_dynamicRenderItems[i].verticesPCU.ResetResources();
+		m_dynamicRenderItems[i].indices.ResetResources();
+		//m_fenceValues[m_frameIndex] = item.fenceValue + 1;
+	}
+	m_dynamicRenderItems.clear();
+	m_gpuWaitTime = (float)GetCurrentTimeSeconds() - m_gpuWaitTime;
+
+	//Resources can't be created if command list and command allocator aren't reset. 
+	//So in startup when textures/shaders are created the renderer needs to be prepared.
+	//This bool prevents two prepares : startup->prepare, renderFrame->prepare, renderframe->movetonextframe
+	m_isRendererPrepared = false;
+}
+
+//----------------------------DXR  RAYTRACING FUNCTIONS--------------------------
 void RendererD12::RunRaytracer()
 {
 	auto commandList =	m_RcommandList.Get();
@@ -1733,83 +1822,6 @@ void RendererD12::FinishRaytraceCopyToBackBuffer()
 	postCopyBarriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(m_resourceManager->m_GpuresourceBuffers[(int)GBufferResources::OutputResource].GetResource(), D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 
 	commandList->ResourceBarrier(ARRAYSIZE(postCopyBarriers), postCopyBarriers);
-}
-void RendererD12::Present()
-{
-	auto renderTarget = GetBackBuffer();
-	// Transition the render target to the state that allows it to be presented to the display.
-	if (m_renderingPipeline == RenderingPipeline::Raytracing)
-	{
-		D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(renderTarget, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT);
-		m_RcommandList->ResourceBarrier(1, &barrier);
-	}
-	else if(m_renderingPipeline == RenderingPipeline::Rasterization)
-	{
-		D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(renderTarget, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
-		m_RcommandList->ResourceBarrier(1, &barrier);
-	}
-	//------------EXECUTING COMMAND LIST------------------
-	HRESULT commandListClosed = m_RcommandList->Close();
-	if (FAILED(commandListClosed))
-	{
-		ERROR_AND_DIE("Failed While closing command list");
-	}
-
-	ID3D12CommandList* commandLists[] = { m_RcommandList.Get() };
-	m_RcommandQueue->ExecuteCommandLists(ARRAYSIZE(commandLists), commandLists);
-
-	HRESULT result;
-	result = m_RswapChain->Present(0, 0);
-	/*HRESULT result2 = m_Rdevice.Get()->GetDeviceRemovedReason();*/
-	if (FAILED(result))
-	{
-		ERROR_AND_DIE("Failed while presenting");
-	}
-
-}
-void RendererD12::MoveToNextFrame()
-{
-	// Schedule a Signal command in the queue.
-	m_gpuWaitTime = (float)GetCurrentTimeSeconds();
-	const UINT64 currentFenceValue = m_fenceValues[m_frameIndex];
-	HRESULT result = m_RcommandQueue->Signal(m_fence.Get(), currentFenceValue);
-	if (FAILED(result)){ ERROR_AND_DIE("Failed while moving to next Frame"); }
-
-
-
-	// If the next frame is not ready to be rendered yet, wait until it is ready.
-	if (m_fence->GetCompletedValue() < m_fenceValues[m_frameIndex])
-	{
-		result = m_fence->SetEventOnCompletion(m_fenceValues[m_frameIndex], m_fenceEvent.Get());
-		if (FAILED(result)) { ERROR_AND_DIE("Failed while moving to next Frame"); }
-		WaitForSingleObjectEx(m_fenceEvent.Get(), INFINITE, FALSE);
-	}
-	// Update the back buffer index.
-	m_frameIndex = m_RswapChain->GetCurrentBackBufferIndex();
-	// Set the fence value for the next frame.
-	m_fenceValues[m_frameIndex] = currentFenceValue + 1;
-
-	//--------------CLEAR DYNAMIC RENDER ITEMS----------------
-	for (int i = 0; i < m_dynamicRenderItems.size(); i++)
-	{
-		//RenderItems& item = m_dynamicRenderItems[i];
-		//item.fenceValue = m_fenceValues[m_frameIndex];
-		//HRESULT hr = m_Rdevice.Get()->CreateFence(item.fenceValue, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&item.fence));
-		//if (FAILED(hr)) {
-		//	ERROR_AND_DIE("Failed while creating the Fence for Vertex buffer");
-		//}
-		//m_RcommandQueue->Signal(item.fence, item.fenceValue);
-		//item.fence->SetEventOnCompletion(item.fenceValue, item.fenceEvent);
-		//WaitForSingleObject(item.fenceEvent, INFINITE);
-
-		m_dynamicRenderItems[i].verticesPNCUTB.ResetResources();
-		m_dynamicRenderItems[i].verticesPCU.ResetResources();
-		m_dynamicRenderItems[i].indices.ResetResources();
-		//m_fenceValues[m_frameIndex] = item.fenceValue + 1;
-	}
-	m_dynamicRenderItems.clear();
-	m_gpuWaitTime = (float)GetCurrentTimeSeconds() - m_gpuWaitTime;
-
 }
 
 //----------------------------TEXTURES------------------------
