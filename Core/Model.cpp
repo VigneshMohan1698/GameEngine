@@ -467,6 +467,47 @@ void Mesh::AddCubeMesh(const Cube& cube, const AABB2& uvs, const Vec4& color)
 	AddVertsForIndexedNormalCube(m_cpuMesh->m_verticesWithTangent, m_cpuMesh->m_indices, cube.m_bounds, Vec3(1.0f, 1.0f, 1.0f), AABB2::ZERO_TO_ONE, 0);
 }
 
+void Mesh::AddGridLinesMesh()
+{
+	if (m_cpuMesh != nullptr)
+	{
+		ERROR_AND_DIE("Cpu mesh is not null!");
+	}
+	m_cpuMesh = new CPUMesh();
+	m_cpuMesh->m_verticesWithTangent.reserve(100);
+	for (int i = -2; i < 2; i++)
+	{
+		float thickness = 0.03f;
+		Rgba8 color = Rgba8::WHITE;
+		AABB3 redLinesBounds = AABB3(Vec3(-50.0f, i - thickness, -thickness), Vec3(49.0f, i + thickness, thickness));
+		color = Rgba8(150, 150, 150, 255);
+
+		if (i == 0)
+		{
+			color = Rgba8::RED;
+		}
+		AddVertsForIndexedNormalCube(m_cpuMesh->m_verticesWithTangent, m_cpuMesh->m_indices, redLinesBounds, Vec3(color.r, color.g, color.b), AABB2::ZERO_TO_ONE, m_cpuMesh->m_indices.size());
+	}
+	//for (int i = -50; i < 49; i++)
+	//{
+	//	float thickness = 0.03f;
+	//	Rgba8 color;
+
+	//	AABB3 greenLinesBounds = AABB3(Vec3(i - thickness, -50.f, 0), Vec3(i - thickness, 49.0f, 0));
+	//	color = Rgba8(150, 150, 150, 255);
+	//	if (i % 5 == 0.0f)
+	//	{
+	//		thickness = 0.06f;
+	//		color = Rgba8::GREEN;
+	//	}
+	//	if (i == 0)
+	//	{
+	//		color = Rgba8::WHITE;
+	//	}
+	//	AddVertsForIndexedNormalCube(m_cpuMesh->m_verticesWithTangent, m_cpuMesh->m_indices, greenLinesBounds, Vec3(color.r, color.g, color.b), AABB2::ZERO_TO_ONE, m_cpuMesh->m_indices.size());
+	//}
+}
+
 std::string Mesh::GetFilePath()
 {
 	return m_filePath;

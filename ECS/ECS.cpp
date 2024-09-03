@@ -1,9 +1,13 @@
 #include "ECS.hpp"
-#include <Engine\Core\ErrorWarningAssert.hpp>
+#include <Engine/Core/ErrorWarningAssert.hpp>
+#include <Engine/ECS/ECS.hpp>
 
+#include <Engine/Renderer/RendererD12.hpp>
 //TO DO: Is this bad? Maybe pass it in constructor?
 
 extern RendererD12* g_theRenderer;
+extern InputSystem* g_theInputSystem;
+
 void ECS::Startup()
 {	
 	RegisterRequiredSystems();
@@ -13,7 +17,7 @@ void ECS::Update(float deltaSeconds)
 {
 	for (auto& system : m_ecsSystems)
 	{
-		system->Update();
+		system->Update(deltaSeconds);
 	}
 }
 
@@ -24,10 +28,16 @@ void ECS::Shutdown()
 		DestroyEntity(entity);
 	}
 	m_activeEntities.clear();
+
+	//for (auto& system : m_ecsSystems)
+	//{
+	//	delete system;
+	//}
 }
 
 void ECS::RegisterRequiredSystems()
 {
+	m_ecsSystems.push_back(std::make_unique<ECSInputSystem>(this, g_theInputSystem));
 	m_ecsSystems.push_back(std::make_unique<ECSRenderingSystem>(this, g_theRenderer));
 }
 

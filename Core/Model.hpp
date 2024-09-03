@@ -77,6 +77,7 @@ class Mesh
 		bool		UpdateFromBuilder(Mesh const& builder);
 		void		AddSphereMesh(const Sphere3D& sphere,const AABB2& uvs, const Vec4& color);
 		void		AddCubeMesh(const Cube& cube,const AABB2& uvs, const Vec4& color);
+		void		AddGridLinesMesh();
 		void		GetTransformedVertices(Vec3& position, std::vector<Vertex_PNCUTB>& vertices);
 
 		//Don't Apply the transform to the m_cpuMesh.

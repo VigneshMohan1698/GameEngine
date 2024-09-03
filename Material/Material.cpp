@@ -17,6 +17,10 @@ Material::Material(MaterialType type)
 	{
 		m_shader = g_theRenderer->CreateOrGetShader("Default3D", Defaul3DShaderFilePath);
 	}
+	else if (type == MaterialType::Basic3DNoColor)
+	{
+		m_shader = g_theRenderer->CreateOrGetShader("Default3DNoColor", Defaul3DNoColorShaderFilePath);
+	}
 	else if (type == MaterialType::PBR3D)
 	{
 		m_shader = g_theRenderer->CreateOrGetShader("PBR3D", DefaulPBRShaderFilePath);
