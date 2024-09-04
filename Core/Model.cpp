@@ -454,7 +454,7 @@ void Mesh::AddSphereMesh(const Sphere3D& sphere,const AABB2& uvs, const Vec4& co
 		ERROR_AND_DIE("Cpu mesh is not null!");
 	}
 	m_cpuMesh = new CPUMesh();
-	AddVertsForIndexedNormalSphere3D(m_cpuMesh->m_verticesWithTangent, m_cpuMesh->m_indices, 0.2f, Vec3(0.0f, 0.0f, 0.0f), AABB2::ZERO_TO_ONE, Vec4(1.0f, 1.0f, 1.0f, 1.0f), 0);
+	AddVertsForIndexedNormalSphere3D(m_cpuMesh->m_verticesWithTangent, m_cpuMesh->m_indices, 0.2f, Vec3(0.0f, 0.0f, 0.0f), AABB2::ZERO_TO_ONE, color, 0);
 }
 
 void Mesh::AddCubeMesh(const Cube& cube, const AABB2& uvs, const Vec4& color)
@@ -464,8 +464,27 @@ void Mesh::AddCubeMesh(const Cube& cube, const AABB2& uvs, const Vec4& color)
 		ERROR_AND_DIE("Cpu mesh is not null!");
 	}
 	m_cpuMesh = new CPUMesh();
-	AddVertsForIndexedNormalCube(m_cpuMesh->m_verticesWithTangent, m_cpuMesh->m_indices, cube.m_bounds, Vec3(1.0f, 1.0f, 1.0f), AABB2::ZERO_TO_ONE, 0);
+	AddVertsForIndexedNormalCube(m_cpuMesh->m_verticesWithTangent, m_cpuMesh->m_indices, cube.m_bounds, color, AABB2::ZERO_TO_ONE, 0);
 }
+
+//void Mesh::AddPlaneMesh(const Plane3D& plane, const AABB2& uvs, const Vec4& color)
+//{
+//	/*Vec3 bottomLeft, bottomRight, topLeft, topRight;
+//
+//	bottomLeft = Vec3(maxx, maxy, minz);
+//	bottomRight = Vec3(maxx, miny, minz);
+//	topLeft = Vec3(minx, maxy, minz);
+//	topRight = Vec3(minx, miny, minz);
+//
+//	if (m_cpuMesh != nullptr)
+//	{
+//		ERROR_AND_DIE("Cpu mesh is not null!");
+//	}
+//	m_cpuMesh = new CPUMesh();
+//
+//	AddVertsForIndexedPNCUQuadtangent3D(m_cpuMesh->m_verticesWithTangent, m_cpuMesh->m_indices, plane.m_planeNormal, 0, topLeft, bottomLeft, bottomRight, topRight, color,
+//		uvs);*/
+//}
 
 void Mesh::AddGridLinesMesh()
 {
@@ -473,39 +492,48 @@ void Mesh::AddGridLinesMesh()
 	{
 		ERROR_AND_DIE("Cpu mesh is not null!");
 	}
+	float thickness = 0.005f;
 	m_cpuMesh = new CPUMesh();
 	m_cpuMesh->m_verticesWithTangent.reserve(100);
-	for (int i = -2; i < 2; i++)
+	for (int i = -50; i < 49; i++)
 	{
-		float thickness = 0.03f;
-		Rgba8 color = Rgba8::WHITE;
+		thickness = 0.005f;
 		AABB3 redLinesBounds = AABB3(Vec3(-50.0f, i - thickness, -thickness), Vec3(49.0f, i + thickness, thickness));
-		color = Rgba8(150, 150, 150, 255);
-
+		Rgba8 color = Rgba8(125, 125, 125, 255);
+		
 		if (i == 0)
 		{
+			thickness = 0.04f;
 			color = Rgba8::RED;
+		} 
+		else if (i % 5 == 0.0f)
+		{
+			thickness = 0.01f;
+			color = Rgba8::WHITE;
 		}
-		AddVertsForIndexedNormalCube(m_cpuMesh->m_verticesWithTangent, m_cpuMesh->m_indices, redLinesBounds, Vec3(color.r, color.g, color.b), AABB2::ZERO_TO_ONE, m_cpuMesh->m_indices.size());
+		float colorFloats[4];
+		color.GetAsFloats(colorFloats);
+		AddVertsForIndexedNormalCube(m_cpuMesh->m_verticesWithTangent, m_cpuMesh->m_indices, redLinesBounds, Vec3(colorFloats[0], colorFloats[1], colorFloats[2]), AABB2::ZERO_TO_ONE, m_cpuMesh->m_verticesWithTangent.size());
 	}
-	//for (int i = -50; i < 49; i++)
-	//{
-	//	float thickness = 0.03f;
-	//	Rgba8 color;
-
-	//	AABB3 greenLinesBounds = AABB3(Vec3(i - thickness, -50.f, 0), Vec3(i - thickness, 49.0f, 0));
-	//	color = Rgba8(150, 150, 150, 255);
-	//	if (i % 5 == 0.0f)
-	//	{
-	//		thickness = 0.06f;
-	//		color = Rgba8::GREEN;
-	//	}
-	//	if (i == 0)
-	//	{
-	//		color = Rgba8::WHITE;
-	//	}
-	//	AddVertsForIndexedNormalCube(m_cpuMesh->m_verticesWithTangent, m_cpuMesh->m_indices, greenLinesBounds, Vec3(color.r, color.g, color.b), AABB2::ZERO_TO_ONE, m_cpuMesh->m_indices.size());
-	//}
+	for (int i = -50; i < 49; i++)
+	{
+		thickness = 0.005f;
+		AABB3 redLinesBounds = AABB3(Vec3(i - thickness, -50.0f , -thickness), Vec3(i + thickness, 49.0f, thickness));
+		Rgba8 color = Rgba8(125, 125, 125, 255);
+		if (i == 0)
+		{
+			thickness = 0.04f;
+			color = Rgba8::GREEN;
+		}
+		else if (i % 5 == 0.0f)
+		{
+			thickness = 0.01f;
+			color = Rgba8::WHITE;
+		}
+		float colorFloats[4];
+		color.GetAsFloats(colorFloats);
+		AddVertsForIndexedNormalCube(m_cpuMesh->m_verticesWithTangent, m_cpuMesh->m_indices, redLinesBounds, Vec3(colorFloats[0], colorFloats[1], colorFloats[2]), AABB2::ZERO_TO_ONE, m_cpuMesh->m_verticesWithTangent.size());
+	}
 }
 
 std::string Mesh::GetFilePath()

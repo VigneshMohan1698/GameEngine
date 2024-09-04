@@ -19,6 +19,7 @@ void ShaderD12::CreateShaderObjects()
 	{
 		m_config.m_shaderType = ShaderDetails::PBRShader3D;
 		CreatePBRRootSignature();
+		m_renderer->SetDepthStencilState(DepthTestD12::LESSEQUAL, true);
 		CreatePBRPipelineStateObject();
 	}
 	else if (m_config.m_name.find("DFS2") != std::string::npos)
@@ -35,9 +36,9 @@ void ShaderD12::CreateShaderObjects()
 			m_config.m_fillMode = FillModeD12::WIREFRAME;
 		}
 		Create3DRootSignature();
+		m_renderer->SetDepthStencilState(DepthTestD12::LESSEQUAL, true);
 		Create3DPipelineStateObject();
 	}
-
 	else
 	{
 		m_config.m_shaderType = ShaderDetails::Shader2D;

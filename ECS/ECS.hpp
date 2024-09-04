@@ -40,4 +40,5 @@ class ECS
 		std::unordered_map<EntityID, TransformComponent> m_transformComponents;
 		std::unordered_map<EntityID, MeshComponent> m_meshComponents;
 		std::unordered_map<EntityID, CameraComponent> m_cameraComponents;
+		std::unordered_map<EntityID, LightComponent> m_lightComponents;
 };

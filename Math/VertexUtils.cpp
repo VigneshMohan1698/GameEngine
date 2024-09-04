@@ -1275,13 +1275,18 @@ void AddVertsForIndexedNormalCube(std::vector<Vertex_PNCUTB>& vertices, std::vec
 		UVs);
 	indexCount += 4;
 
-	bottomLeft = Vec3(maxx, miny, maxz);
-	bottomRight = Vec3(maxx, maxy, maxz);
-	topLeft = Vec3(minx, miny, maxz);
-	topRight = Vec3(minx, maxy, maxz);
+	bottomLeft = Vec3(maxx, maxy, minz);
+	bottomRight = Vec3(maxx, miny, minz);
+	topLeft = Vec3(minx, maxy, minz);
+	topRight = Vec3(minx, miny, minz);
 
 	//----------------------------------ROOF WALL-----------------------------------------------
 	quadNormal = Vec3(0.0f, 0.0f, 1.0f);
+
+	bottomLeft = Vec3(minx, maxy, maxz);
+	bottomRight = Vec3(minx, miny, maxz);
+	topLeft = Vec3(maxx, maxy, maxz);
+	topRight = Vec3(maxx, miny, maxz);
 
 	AddVertsForIndexedPNCUQuadtangent3D(vertices, indexes, quadNormal, indexCount, topLeft, bottomLeft, bottomRight, topRight, color,
 		UVs);
@@ -1310,7 +1315,7 @@ void AddVertsForIndexedNormalCube(std::vector<Vertex_PNCUTB>& vertices, std::vec
 		UVs);
 	indexCount += 4;
 
-	//------------------------BACK  WALL---------------------------
+	//------------------------FRONT  WALL---------------------------
 	bottomLeft = Vec3(minx, maxy, minz);
 	bottomRight = Vec3(minx, miny, minz);
 	topLeft = Vec3(minx, maxy, maxz);
@@ -1320,7 +1325,7 @@ void AddVertsForIndexedNormalCube(std::vector<Vertex_PNCUTB>& vertices, std::vec
 	AddVertsForIndexedPNCUQuadtangent3D(vertices, indexes, quadNormal, indexCount, topLeft, bottomLeft, bottomRight, topRight, color,
 		UVs);
 	indexCount += 4;
-	//----------------------FRONT WALL------------------------------
+	//----------------------BACK WALL------------------------------
 	bottomLeft = Vec3(maxx, miny, minz);
 	bottomRight = Vec3(maxx, maxy, minz);
 	topLeft = Vec3(maxx, miny, maxz);

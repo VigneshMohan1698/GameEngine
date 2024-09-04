@@ -1,5 +1,6 @@
 #include "ECSSystems.hpp"
 #include <Engine/ECS/ECS.hpp>
+#include <Engine/Renderer/ShadowMap.hpp>
 
 //---------------------------RENDERING SYSTEM---------------------------------------
 void ECSRenderingSystem::Update(float deltaSeconds)
@@ -36,7 +37,6 @@ void ECSRenderingSystem::Update3DCameraComponents(const bool updatingUICamera)
 
 void ECSRenderingSystem::RenderEntities()
 {
-	
 	//Go through a list of mesh components 
 	//Get their material which has shader and texture
 	//Bind shaders and textures
@@ -70,8 +70,6 @@ void ECSRenderingSystem::RenderEntities()
 		{
 			verts = meshComponent->m_mesh.m_cpuMesh->m_verticesWithTangent;
 		}
-
-		
 		m_renderer->DrawIndexedVertexArray((int)verts.size(), verts, meshComponent->m_mesh.m_cpuMesh->m_indices);
 	}
 	
@@ -81,6 +79,20 @@ void ECSRenderingSystem::RenderEntities()
 	m_renderer->MoveToNextFrame();
 }
 
+//----------------------------LIGHTING SYSTEM--------------------------
+void ECSLightingSystem::Update(float deltaSeconds)
+{
+	/*for (auto& pair : m_ecs->m_lightComponents)
+	{
+		TransformComponent* transformComponent = m_ecs->GetComponentOfType<TransformComponent>(pair.first);
+		if(!transformComponent) 
+		{
+			ERROR_AND_DIE("Light needs a transform component");
+		}
+		m_renderer->m_shadowMap->UpdateCameraPosition(transformComponent->m_position, transformComponent->m_orientationDegrees);
+	}*/
+
+}
 
 //----------------------------INPUT SYSTEM--------------------------------
 void ECSInputSystem::Update(float deltaSeconds)

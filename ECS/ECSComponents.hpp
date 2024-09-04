@@ -5,6 +5,14 @@
 #include <Engine\Material\Material.hpp>
 #include <Engine\Renderer\Camera.hpp>
 
+enum class LightType 
+{
+	Directional,
+	Spot,
+	Point,
+	Area,
+	NotDefined
+};
 struct TransformComponent
 {
 	Vec3 m_position;
@@ -32,4 +40,10 @@ struct CameraComponent
 	Camera			m_camera;
 	bool			m_mainUICamera = false;
 	bool			m_main3DCamera = false;
+};
+
+struct LightComponent
+{
+	LightType       m_type = LightType::NotDefined;
+	bool			m_isShadowed = false;
 };

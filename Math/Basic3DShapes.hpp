@@ -29,3 +29,17 @@ public:
 
 };
 
+//struct Plane
+//{
+//	public:
+//	// Mostly used to create a simple plane mesh
+//	Plane3D m_plane;
+//	Vec3 m_dimensions;
+//	Vec3 m_perpendicularVector;
+//
+//	Plane() {};
+//	Plane(Plane3D plane, Vec2 dimensions, Vec3 perpendicularVector) : m_plane(plane), m_dimensions(dimensions), m_perpendicularVector(perpendicularVector) {}
+//
+//	~Plane() {};
+//
+//};

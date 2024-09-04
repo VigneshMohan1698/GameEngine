@@ -38,6 +38,7 @@ void ECS::Shutdown()
 void ECS::RegisterRequiredSystems()
 {
 	m_ecsSystems.push_back(std::make_unique<ECSInputSystem>(this, g_theInputSystem));
+	m_ecsSystems.push_back(std::make_unique<ECSLightingSystem>(this, g_theRenderer));
 	m_ecsSystems.push_back(std::make_unique<ECSRenderingSystem>(this, g_theRenderer));
 }
 

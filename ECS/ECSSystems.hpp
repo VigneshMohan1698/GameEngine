@@ -51,6 +51,22 @@ class ECSRenderingSystem : public ECSSystem
 	RendererD12* m_renderer = nullptr;
 };
 
+class ECSLightingSystem : public ECSSystem
+{
+	public:
+	ECSLightingSystem(ECS* ecs, RendererD12* renderer) : ECSSystem(ecs) 
+	{
+		m_renderer = renderer;
+	}
+
+	~ECSLightingSystem() {};
+
+
+	void Update(float deltaSeconds) override;
+
+	private:
+	RendererD12* m_renderer = nullptr;
+};
 
 class ECSInputSystem : public ECSSystem
 {
