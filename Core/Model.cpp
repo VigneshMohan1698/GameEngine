@@ -541,6 +541,12 @@ std::string Mesh::GetFilePath()
 	return m_filePath;
 }
 
+CPUMesh::~CPUMesh()
+{
+	m_vertices.clear();
+	m_indices.clear();
+}
+
 CPUMesh::CPUMesh(std::vector<Vertex_PNCU>& vertices, std::vector<int>& indices)
 {
 
@@ -619,4 +625,14 @@ CPUMesh::CPUMesh(std::vector<Vertex_PNCU>& vertices, std::vector<int>& indices)
 	
 }
 
+CPUMesh2D::~CPUMesh2D()
+{
+	m_vertices.clear();
+	m_indices.clear();
+}
 
+CPUMesh2D::CPUMesh2D(std::vector<Vertex_PCU> vertices, std::vector<unsigned int> indices)
+{
+	m_vertices = vertices;
+	m_indices = indices;
+}

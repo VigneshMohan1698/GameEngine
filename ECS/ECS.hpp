@@ -31,14 +31,30 @@ class ECS
 		template<typename T>
 		T* AddComponentToEntity(EntityID entityID);
 
+
+		//-------------SYSTEMS---------------------
+
 		void DebugPrintEntityInformation();
+		void SetControlledEntity(EntityID entityID)
+		{
+			m_controlledEntity = entityID;
+		}
+
+		EntityID GetControlledEntity()
+		{
+			return m_controlledEntity;
+		}
 
 	public:
 		EntityID m_nextEntityID = 0;
+		//The entity that the main keyboard is controlling.
+		EntityID m_controlledEntity = 0;
+
 		std::vector<std::unique_ptr<ECSSystem>>  m_ecsSystems;
 		std::unordered_set<EntityID> m_activeEntities;
 		std::unordered_map<EntityID, TransformComponent> m_transformComponents;
 		std::unordered_map<EntityID, MeshComponent> m_meshComponents;
 		std::unordered_map<EntityID, CameraComponent> m_cameraComponents;
 		std::unordered_map<EntityID, LightComponent> m_lightComponents;
+		std::unordered_map<EntityID, UIComponent>    m_UIComponents;
 };

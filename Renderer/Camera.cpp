@@ -163,6 +163,13 @@ Mat44 Camera::GetModalMatrix() const
 }
 Mat44 Camera::GetViewMatrix() const
 {
+	//if the look at matrix is set, just return that and ignore 
+	//camera position and orientation.
+	if (m_lookAtMatrixSet)
+	{
+		return m_lookAtMatrix.GetOrthonormalInverse();
+	}
+
 	Mat44 translationMatrix = Mat44::CreateTranslation3D(m_position);
 	Mat44 rotationMatrix = m_orientation.GetAsMatrix_XFwd_YLeft_ZUp();
 	translationMatrix.Append(rotationMatrix);
@@ -175,15 +182,16 @@ Mat44 Camera::GetViewMatrixAtOrigin() const
 	translationMatrix.Append(rotationMatrix);
 	return translationMatrix.GetOrthonormalInverse();
 }
-Mat44 Camera::SetAndGetLookAtMatrix(const Vec3& positionToLookAt)
+void Camera::SetLookAt(const Vec3& lookAt, const Vec3& up)
 {
-	Vec3 iBasis, jBasis, kBasis;
-	iBasis = (m_position - positionToLookAt).GetNormalized();
-	Vec3 worldZBasis = Vec3(0.0f, 0.0, 1.0f);
-	jBasis = CrossProduct3D(worldZBasis, iBasis);
-	kBasis = CrossProduct3D(iBasis,jBasis);
-	m_lookAtMatrix = Mat44(iBasis, kBasis, jBasis, Vec3());
-	return m_lookAtMatrix;
+	Mat44 lookAtMatrix = Mat44::CreateLookAtMatrix(m_position, lookAt, up);
+	SetLookAtMatrix(lookAtMatrix, true);
+}
+
+void Camera::SetLookAtMatrix(const Mat44& matrix, bool setValue)
+{
+	m_lookAtMatrix = matrix;
+	m_lookAtMatrixSet = setValue;
 }
 
 Mat44 Camera::GetPerspectiveMatrix() const

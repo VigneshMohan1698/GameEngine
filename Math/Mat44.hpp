@@ -7,7 +7,7 @@ struct Vec4;
 struct Mat44
 {
 	enum {Ix,Iy,Iz,Iw,  Jx,Jy,Jz,Jw,  Kx,Ky,Kz,Kw,  Tx,Ty,Tz,Tw};
-	float m_values[16];
+	float m_values[16] = { 0 };
 
 	Mat44();
 	Mat44(bool zeroes);
@@ -27,6 +27,7 @@ struct Mat44
 	static Mat44 const CreateZRotationDegrees(float rotationDegreesAboutZ);
 	static Mat44 const CreateYRotationDegrees(float rotationDegreesAboutY);
 	static Mat44 const CreateXRotationDegrees(float rotationDegreesAboutX);
+	static Mat44 const CreateLookAtMatrix(Vec3 currentPosition, Vec3 lookAt, Vec3 up);
 
 	Vec2 const TransformVectorQuantity2D(Vec2 const& vectorQuantityXY) const;
 	Vec3 const TransformVectorQuantity3D(Vec3 const& vectorQuantityXYZ) const;
@@ -79,8 +80,10 @@ struct Mat44
 	Mat44                 GetNonOrthonormalInverse(); // For Non-Affine Matrices
 	void				  MapMatrixTo2DArray(Mat44 copyFrom, float copyTo[4][4]); // For Non-Affine Matrices
 	void				  Map2DArrayToMatrix(float copyFrom[4][4], Mat44& copyTo); // For Non-Affine Matrices
-	void                 Orthonormalize_XFwd_YLeft_ZUp(); // Forward is canonical, Up is secondary, Left tertiary
+	void                  Orthonormalize_XFwd_YLeft_ZUp(); // Forward is canonical, Up is secondary, Left tertiary
 	void				  SwapValues(float& valuea, float& valueb);
+
+
 };
 
 void GetCofactor(float A[4][4], float temp[4][4], int p, int q, int n);

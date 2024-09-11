@@ -65,7 +65,8 @@ class Camera {
 		Mat44				GetModalMatrix() const;
 		Mat44				GetViewMatrix() const;
 		Mat44				GetViewMatrixAtOrigin() const;
-		Mat44				SetAndGetLookAtMatrix(const Vec3& positionToLookAt);
+		void				SetLookAt(const Vec3& positionToLookAt, const Vec3& up);
+		void				SetLookAtMatrix(const Mat44& matrix, bool setValue);
 		EulerAngles			GetCameraOrientation();
 		void				SetColorTarget(Texture* tex);
 		void				SetDepthTarget(Texture* tex);
@@ -82,7 +83,7 @@ class Camera {
 		Renderer*			m_owner = nullptr;
 		CameraView			m_cameraView = CameraView::Perspective;
 	private:
-		Mat44				m_viewToRenderMatrix;
+		Mat44				m_viewToRenderMatrix = Mat44();
 		Vec3				m_renderI = Vec3(1.0f, 0.0f, 0.0f);
 		Vec3				m_renderJ = Vec3(0.0f, 1.0f, 0.0f);
 		Vec3				m_renderK = Vec3(0.0f, 0.0f, 1.0f);
@@ -94,7 +95,8 @@ class Camera {
 		Mat44				m_orthogrphicCameraMatrix;
 		Mat44				m_stereoScopicCameraMatrix;
 		Mat44				m_stereoScopicEyeMatrix;
-		Mat44				m_lookAtMatrix;
+		Mat44				m_lookAtMatrix = Mat44();
+		bool				m_lookAtMatrixSet = false;
 
 };
 

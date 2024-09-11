@@ -38,8 +38,8 @@ void ECS::Shutdown()
 void ECS::RegisterRequiredSystems()
 {
 	m_ecsSystems.push_back(std::make_unique<ECSInputSystem>(this, g_theInputSystem));
-	m_ecsSystems.push_back(std::make_unique<ECSLightingSystem>(this, g_theRenderer));
 	m_ecsSystems.push_back(std::make_unique<ECSRenderingSystem>(this, g_theRenderer));
+
 }
 
 EntityID ECS::CreateEntity()
@@ -131,5 +131,19 @@ T* ECS::AddComponentToEntity(EntityID entityID)
 			ERROR_AND_DIE("Camera Component already exists in entity " + std::to_string(entityID));
 		}
 	}
+
+	if (std::is_same<T, LightComponent>::value)
+	{
+		if (m_lightComponents.find(entityID) == m_lightComponents.end())
+		{
+			m_lightComponents[entityID] = LightComponent();
+			return (T*)&m_lightComponents[entityID];
+		}
+		else
+		{
+			ERROR_AND_DIE("Light Component already exists in entity " + std::to_string(entityID));
+		}
+	}
+
 	return nullptr;
 }

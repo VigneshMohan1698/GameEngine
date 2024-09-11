@@ -478,6 +478,27 @@ Mat44 const Mat44::CreateXRotationDegrees(float rotationDegreesAboutX)
 	return returnValue;
 }
 
+Mat44 const Mat44::CreateLookAtMatrix(Vec3 eye, Vec3 lookAt, Vec3 up)
+{
+	// [ rx,   ry,  rz , Dot(-r,eye)]
+	// [ ux,   uy,  uz , Dot(-u,eye)]
+	// [-fx,  -fy, -fz , Dot(f,eye)]
+	// [  0,    0,   0 , 1]
+
+
+	Vec3 forward = (lookAt - eye).GetNormalized();
+	Vec3 right = CrossProduct3D(up, forward).GetNormalized();
+	Vec3 correctUp = CrossProduct3D(forward,right);
+	Mat44 lookAtMatrix = Mat44();
+
+	//
+	const Vec3 wparts = Vec3(-DotProduct3D(forward,eye), DotProduct3D(right, eye), -DotProduct3D(correctUp,eye));
+
+	lookAtMatrix.SetIJKT4D(Vec4(forward, wparts.x), Vec4(right, wparts.y),  Vec4(correctUp, wparts.z), Vec4(0,0,0,1));
+	//lookAtMatrix.Transpose();
+	return lookAtMatrix;
+}
+
 Vec2 const Mat44::TransformVectorQuantity2D(Vec2 const& vectorQuantityXY) const
 {
 	Mat44 mat;

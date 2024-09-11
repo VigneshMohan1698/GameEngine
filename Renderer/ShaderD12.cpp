@@ -14,21 +14,22 @@ ShaderD12::ShaderD12(const ShaderConfigD12& config, RendererD12* renderer)
 
 void ShaderD12::CreateShaderObjects()
 {
-	
-	if (m_config.m_name.find("PBR") != std::string::npos)
+
+	if (m_config.m_name.find("Shadow") != std::string::npos) // Shadow shaders
+	{
+		m_config.m_shaderType = ShaderDetails::Shader3D; 
+		Create3DRootSignature();
+		m_renderer->SetDepthStencilState(DepthTestD12::LESSEQUAL, true);
+		CreateShadowPipelineStateObject();
+	}
+	else if (m_config.m_name.find("PBR") != std::string::npos) // PBR shaders
 	{
 		m_config.m_shaderType = ShaderDetails::PBRShader3D;
 		CreatePBRRootSignature();
 		m_renderer->SetDepthStencilState(DepthTestD12::LESSEQUAL, true);
 		CreatePBRPipelineStateObject();
 	}
-	else if (m_config.m_name.find("DFS2") != std::string::npos)
-	{
-		m_config.m_shaderType = ShaderDetails::DFS2;
-		CreateDFSRootSignature();
-		CreateDFSPipelineStateObject();
-	}
-	else if (m_config.m_name.find("3D") != std::string::npos)
+	else if (m_config.m_name.find("3D") != std::string::npos) // Simple 3D
 	{
 		m_config.m_shaderType = ShaderDetails::Shader3D;
 		if (m_config.m_name.find("WireFrame") != std::string::npos)
@@ -41,7 +42,7 @@ void ShaderD12::CreateShaderObjects()
 	}
 	else
 	{
-		m_config.m_shaderType = ShaderDetails::Shader2D;
+		m_config.m_shaderType = ShaderDetails::Shader2D; // 2D shaders for UI 
 		CreateRootSignature();
 		CreatePipelineStateObject();
 	}
@@ -132,6 +133,96 @@ void ShaderD12::Create3DRootSignature()
 		m_rootSignature->SetName(L"Vertex and pixel shader Root signature");
 	}
 }
+
+void ShaderD12::CreateShadowPipelineStateObject()
+{
+	//ComPtr<IDxcBlob> vsBlob = nullptr;
+	//ComPtr<IDxcBlob> psBlob = nullptr;
+	ComPtr<ID3DBlob> vsByteCode = nullptr;
+	ComPtr<ID3DBlob> psByteCode = nullptr;
+	ComPtr<ID3DBlob> dsByteCode = nullptr;
+	ComPtr<ID3DBlob> hsByteCode = nullptr;
+	const char* shaderFilePath = m_config.m_shaderFilePath.c_str();
+	const char* vsEntry = m_vertexEntryPoint.c_str();
+	const char* psEntry = m_pixelEntryPoint.c_str();
+	vsByteCode = m_renderer->m_shaderCompiler->CompileVsPs(shaderFilePath, nullptr, vsEntry, "vs_5_0");
+	psByteCode = m_renderer->m_shaderCompiler->CompileVsPs(shaderFilePath, nullptr, psEntry, "ps_5_0");
+
+	//-------CREATING THE INPUT LAYOUT------------------
+	D3D12_INPUT_ELEMENT_DESC inputElementDesc[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "BITANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+	};
+
+	std::vector<D3D12_INPUT_ELEMENT_DESC> inputLayout;
+	inputLayout.push_back(inputElementDesc[0]);
+	inputLayout.push_back(inputElementDesc[1]);
+	inputLayout.push_back(inputElementDesc[2]);
+	inputLayout.push_back(inputElementDesc[3]);
+	inputLayout.push_back(inputElementDesc[4]);
+	inputLayout.push_back(inputElementDesc[5]);
+
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc;
+	ZeroMemory(&psoDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
+
+	D3D12_DEPTH_STENCIL_DESC depthDesc = m_renderer->m_depthStencilBuffer.depthDesc;
+	//depthDesc.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
+	D3D12_RASTERIZER_DESC rasterizerDesc;
+	rasterizerDesc = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+	rasterizerDesc.FrontCounterClockwise = true;
+
+	rasterizerDesc.DepthClipEnable = true;
+	m_config.m_fillMode == FillModeD12::SOLID ? rasterizerDesc.FillMode = D3D12_FILL_MODE_SOLID :
+		rasterizerDesc.FillMode = D3D12_FILL_MODE_WIREFRAME;
+	psoDesc.pRootSignature = m_rootSignature.Get();
+	psoDesc.InputLayout = { inputLayout.data() , (UINT)inputLayout.size() };
+	psoDesc.VS = { reinterpret_cast<BYTE*>(vsByteCode->GetBufferPointer()),vsByteCode->GetBufferSize() };
+	psoDesc.PS = { reinterpret_cast<BYTE*>(psByteCode->GetBufferPointer()),psByteCode->GetBufferSize() };
+
+	//rasterizerDesc.DepthBias = 2000;
+	rasterizerDesc.DepthBias = 1000;
+	rasterizerDesc.SlopeScaledDepthBias = 5.0f;
+	//rasterizerDesc.DepthBiasClamp = 0.05f;
+
+	if (m_config.m_isTesselated)
+	{
+		const char* hsEntry = m_hsEntryPoint.c_str();
+		const char* dsEntry = m_dsEntryPoint.c_str();
+		hsByteCode = m_renderer->m_shaderCompiler->CompileVsPs(shaderFilePath, nullptr, hsEntry, "hs_5_0");
+		dsByteCode = m_renderer->m_shaderCompiler->CompileVsPs(shaderFilePath, nullptr, dsEntry, "ds_5_0");
+
+		psoDesc.HS = { reinterpret_cast<BYTE*>(hsByteCode->GetBufferPointer()),hsByteCode->GetBufferSize() };
+		psoDesc.DS = { reinterpret_cast<BYTE*>(dsByteCode->GetBufferPointer()),dsByteCode->GetBufferSize() };
+	}
+	psoDesc.RasterizerState = rasterizerDesc;
+	psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+	psoDesc.BlendState.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA;
+	psoDesc.BlendState.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
+
+	//psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+	psoDesc.DepthStencilState = depthDesc;
+	psoDesc.SampleMask = UINT_MAX;
+	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	psoDesc.NumRenderTargets = 1;
+	psoDesc.RTVFormats[0] = m_renderer->m_backBufferFormat;
+	psoDesc.SampleDesc.Count = 1;
+	psoDesc.SampleDesc.Quality = 0;
+	psoDesc.DSVFormat = m_renderer->m_depthBufferFormat;
+	psoDesc.DSVFormat = m_renderer->m_depthBufferFormat;
+
+	HRESULT res = m_renderer->m_Rdevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineStateObject));
+	if (!SUCCEEDED(res))
+	{
+		ERROR_AND_DIE("Failed while creating pipeline state object");
+	}
+	m_pipelineStateObject->SetName(L"3D Shadow Map pipeline state object");
+}
+
 void ShaderD12::Create3DPipelineStateObject()
 {
 	//ComPtr<IDxcBlob> vsBlob = nullptr;
@@ -223,14 +314,14 @@ void ShaderD12::Create3DPipelineStateObject()
 	}
 	m_pipelineStateObject->SetName(L"3D pipeline state object");
 
-	psoDesc.RasterizerState.DepthBias =200;
-	psoDesc.RasterizerState.SlopeScaledDepthBias = 3;
-	res = m_renderer->m_Rdevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_shadowMapPSO));
-	if (!SUCCEEDED(res))
-	{
-		ERROR_AND_DIE("Failed while creating pipeline state object");
-	}
-	m_pipelineStateObject->SetName(L"3D Shadow Map pipeline state object");
+	//psoDesc.RasterizerState.DepthBias = 1000;
+	//psoDesc.RasterizerState.SlopeScaledDepthBias = 3;
+	//res = m_renderer->m_Rdevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_shadowMapPSO));
+	//if (!SUCCEEDED(res))
+	//{
+	//	ERROR_AND_DIE("Failed while creating pipeline state object");
+	//}
+	//m_pipelineStateObject->SetName(L"3D Shadow Map pipeline state object");
 }
 
 

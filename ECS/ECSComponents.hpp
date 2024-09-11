@@ -17,16 +17,26 @@ struct TransformComponent
 {
 	Vec3 m_position;
 	EulerAngles m_orientationDegrees;
-	float m_scale;
+	float m_scale = 1.0f;
 
 	//Get model Matrix and do the transform on CPU?
 	//Or bind it to a shader and do it on GPU?
 	Mat44 GetTransformMatrix() {
 		Mat44 translationMatrix = Mat44::CreateTranslation3D(m_position);
+		Mat44 scaleMatrix = Mat44::CreateUniformScale3D(m_scale);
 		Mat44 rotationMatrix = m_orientationDegrees.GetAsMatrix_XFwd_YLeft_ZUp();
+
+		//-----------------SRT-------------
+		rotationMatrix.Append(scaleMatrix);
 		translationMatrix.Append(rotationMatrix);
+
 		return translationMatrix;
 	}
+};
+
+struct UIComponent
+{
+	Mesh2D			m_mesh2D;
 };
 
 struct MeshComponent
@@ -40,6 +50,11 @@ struct CameraComponent
 	Camera			m_camera;
 	bool			m_mainUICamera = false;
 	bool			m_main3DCamera = false;
+
+	void		   LookAt(const Vec3& position, const Vec3& up)
+	{
+		m_camera.SetLookAt(position, up);
+	}
 };
 
 struct LightComponent

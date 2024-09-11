@@ -1779,8 +1779,8 @@ void AddVertsForIndexedNormalSphere3D(std::vector<Vertex_PNCUTB>& verts, std::ve
 	//}
 
 	UNUSED((void)UVs);
-	int longitudeSlices = 16;
-	int latitudeSlices = 8;
+	int longitudeSlices = 32;
+	int latitudeSlices = 16;
 	float yawIncrements = 360.0f / longitudeSlices;
 	float pitchIncrements = 180.0f / latitudeSlices;
 	Vec3 vertexPosition;

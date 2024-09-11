@@ -470,7 +470,7 @@ class RendererD12
 		 void	     	WriteGpuBufferToFile(GpuBuffer* buffer, std::string filePath);
 
 		 //----------------SHADERS----------------------
-		 ShaderD12*		CreateOrGetShader(const char* shaderName, const char* shaderFilePath, bool isCompute = false, bool containsTesselation = false);
+		 ShaderD12*		CreateOrGetShader(const char* shaderName, const char* shaderFilePath, bool isCompute = false, bool containsTesselation = false, bool isShadowShader = false);
 		 ShaderD12*		GetShader(const char* shaderName);
 		 void			BindShader(ShaderD12* shader, bool isForShadowMap = false);
 		 void			BindComputeShader(ShaderD12* shader);
@@ -481,7 +481,7 @@ class RendererD12
 
 		 //----------------CAMERA FUNCTIONS----------------------------
 		 void			BeginCamera(const Camera& camera);
-		 void			BeginRasterizerCamera(const Camera& camera);
+		 void			BeginRasterizerCamera(const Camera& camera, ShadowMap* shadowMap = nullptr);
 		 void			EndCamera(const Camera& camera);
 		 void			SetRaytraceQuadCamera(Vec3 topLeft, Vec3 bottomLeft, Vec3 topRight, Vec3 bottomRight);
 
@@ -496,8 +496,8 @@ class RendererD12
 
 		 //---------------------RASTERIZATION FUNCTIONS--------------
 		 void				InitializeRasterization();
-		 void				BeginShadowMapRender();
-		 void				EndShadowMapRender();
+		 void				BeginShadowMapRender(ShadowMap* shadowMap);
+		 void				EndShadowMapRender(ShadowMap* shadowMap);
 		 void				FinishUpGPUWork();
 		// void				SetRasterizationState(CullModeD12 cullMode, FillModeD12 fillMode, WindingOrderD12 windingOrder);
 
@@ -686,9 +686,7 @@ class RendererD12
 		//------------------------RASTERIZATION VARIABLES-----------------
 		ConstantBufferD12<CameraConstantBuffer>	m_cameraCB;
 		ConstantBufferD12<GameDataBuffer>		m_gameDataCB;
-		ShadowMap*								m_shadowMap;
 
-		
 	private:
 		RayGenConstantBuffer					m_rayGenCB;
 		RendererD12Config						m_renderConfig;

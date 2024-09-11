@@ -33,5 +33,6 @@ class ShadowMap
 	UINT					m_height = 0;
 	DXGI_FORMAT				m_format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 	Camera					m_shadowCamera;
+	bool					m_isEnabled = false;
 
 };

@@ -53,6 +53,7 @@ public:
 
 	void Create3DRootSignature();
 	void Create3DPipelineStateObject();
+	void CreateShadowPipelineStateObject();
 
 	void CreatePBRRootSignature();
 	void CreatePBRPipelineStateObject();

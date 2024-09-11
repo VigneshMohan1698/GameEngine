@@ -19,6 +19,8 @@ public:
 	EulerAngles		operator+(const EulerAngles& valueToAdd);
 	EulerAngles		operator*(const EulerAngles& valueToMultiply);
 	void			operator-=(const EulerAngles& valueToSubtract);
+	bool			operator!=(const EulerAngles& value);
+	bool			operator==(const EulerAngles& value);
 public:
 	const static EulerAngles ZERO;
 	float m_yawDegrees = 0.0f;

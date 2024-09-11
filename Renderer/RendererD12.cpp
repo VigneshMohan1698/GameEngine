@@ -130,7 +130,6 @@ void RendererD12::ShutDown()
 		m_RcommandAllocator[i]->Reset();
 		m_backBufferRenderTarget[i].Reset();
 	}
-	delete m_shadowMap;
 
 	delete m_resourceManager;
 	m_resourceManager = nullptr;
@@ -285,7 +284,7 @@ void RendererD12::BeginCamera(const Camera& camera)
 	m_isFirstFrame = false;
 
 }
-void RendererD12::BeginRasterizerCamera(const Camera& camera)
+void RendererD12::BeginRasterizerCamera(const Camera& camera, ShadowMap* shadowMap)
 {
 	m_currentCamera = camera;
 	auto renderTarget = GetBackBufferCPUHandle();
@@ -297,9 +296,13 @@ void RendererD12::BeginRasterizerCamera(const Camera& camera)
 
 	m_cameraCB->projectionMatrix = m_currentCamera.GetProjectionMatrix();
 	m_cameraCB->viewMatrix = m_currentCamera.GetViewMatrix();
-
-	Mat44 lightViewMatrix = m_shadowMap->m_shadowCamera.GetViewMatrix();
-	Mat44 lightProjectionMatrix = m_shadowMap->m_shadowCamera.GetProjectionMatrix();
+	Mat44 lightViewMatrix = Mat44();
+	Mat44 lightProjectionMatrix = Mat44();
+	if(shadowMap) 
+	{
+		lightViewMatrix = shadowMap->m_shadowCamera.GetViewMatrix();
+		lightProjectionMatrix = shadowMap->m_shadowCamera.GetProjectionMatrix();
+	}
 	m_cameraCB->lightViewMatrix = lightViewMatrix;
 	m_cameraCB->lightProjMatrix = lightProjectionMatrix;
 
@@ -551,18 +554,15 @@ void RendererD12::InitializeRasterization()
 	//----------Creating camera Constant buffer---------------
 	m_cameraCB.Create(m_Rdevice.Get(), m_backBufferCount, L"Camera Constant Buffer");
 	m_gameDataCB.Create(m_Rdevice.Get(), m_backBufferCount, L"Game Constant Buffer");
-
-	m_shadowMap = new ShadowMap(this, m_Rdevice.Get(), m_dimensions.x, m_dimensions.y);
 }
 
-void RendererD12::BeginShadowMapRender()
+void RendererD12::BeginShadowMapRender(ShadowMap* shadowMap)
 {
-	//D3D12_CPU_DESCRIPTOR_HANDLE* depthDescriptorHandle = &m_shadowMap->m_shadowMapDSVBuffer.cpuDescriptorHandle;
 	auto depthTarget = &m_depthStencilBuffer.cpuDescriptorHandle;
 	m_RcommandList->OMSetRenderTargets(0, nullptr, FALSE, depthTarget);
 
-	m_currentCamera = m_shadowMap->m_shadowCamera;
-	m_currentCamera.SetTransform(m_shadowMap->m_shadowCamera.m_position, m_shadowMap->m_shadowCamera.m_orientation);
+	m_currentCamera = shadowMap->m_shadowCamera;
+	m_currentCamera.SetTransform(shadowMap->m_shadowCamera.m_position, shadowMap->m_shadowCamera.m_orientation);
 	m_RcommandList->RSSetViewports(1, &m_screenViewport);
 	m_RcommandList->RSSetScissorRects(1, &m_scissorRect);
 
@@ -578,10 +578,10 @@ void RendererD12::BeginShadowMapRender()
 	m_fenceValues[m_frameIndex] = m_fenceValues[m_frameIndex] + 1;
 }
 
-void RendererD12::EndShadowMapRender()
+void RendererD12::EndShadowMapRender(ShadowMap* shadowMap)
 {
 	FinishUpGPUWork();
-	CopyTextureResourceFromBuffer(&m_depthStencilBuffer, &m_shadowMap->m_shadowBuffer, m_shadowMap->GetDimensions());
+	CopyTextureResourceFromBuffer(&m_depthStencilBuffer, &shadowMap->m_shadowBuffer, shadowMap->GetDimensions());
 
 	D3D12_CLEAR_FLAGS flags = D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL;
 	m_RcommandList.Get()->ClearDepthStencilView(m_depthStencilBuffer.cpuDescriptorHandle, flags, 1, 0, 0, nullptr);
@@ -2739,7 +2739,7 @@ IDxcBlob* ShaderCompiler::Compile(IDxcBlobEncoding* sourceBlob, LPCWSTR* args, u
 	return nullptr;
 }
 
-ShaderD12* RendererD12::CreateOrGetShader(const char* shaderName, const char* shaderFilePath,bool isCompute, bool containsTesselation)
+ShaderD12* RendererD12::CreateOrGetShader(const char* shaderName, const char* shaderFilePath,bool isCompute, bool containsTesselation, bool isShadowShader)
 {
 	for (int i = 0; i < m_loadedShaders.size(); i++)
 	{

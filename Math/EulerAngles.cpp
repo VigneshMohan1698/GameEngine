@@ -133,3 +133,13 @@ void EulerAngles::operator-=(const EulerAngles& valueToSubtract)
 	m_pitchDegrees -= valueToSubtract.m_pitchDegrees;
 	m_rollDegrees -= valueToSubtract.m_rollDegrees;
 }
+
+bool EulerAngles::operator!=(const EulerAngles& value)
+{
+	return m_yawDegrees != value.m_yawDegrees || m_pitchDegrees != value.m_pitchDegrees || m_rollDegrees != value.m_rollDegrees;
+}
+
+bool EulerAngles::operator==(const EulerAngles& value)
+{
+	return m_yawDegrees == value.m_yawDegrees && m_pitchDegrees == value.m_pitchDegrees && m_rollDegrees == value.m_rollDegrees;
+}

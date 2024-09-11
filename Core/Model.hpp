@@ -20,12 +20,27 @@ struct MeshImportOptions
 	bool  m_invertV = false;
 };
 
+class CPUMesh2D
+{
+public:
+	//---------------------CONSTRUCTOR---------------------------
+	CPUMesh2D() {};
+	~CPUMesh2D();
+
+	CPUMesh2D(std::vector<Vertex_PCU> vertices, std::vector<unsigned int> indices);
+
+public:
+	std::vector<Vertex_PCU> m_vertices;
+	std::vector<unsigned int> m_indices;
+};
+
 class CPUMesh
 {
 	public:
 	//---------------------CONSTRUCTOR---------------------------
 		CPUMesh() {};
-		~CPUMesh();
+		~CPUMesh();	
+				CPUMesh(std::vector<Vertex_PNCU>& vertices, std::vector<unsigned int>& indices);
 
 		CPUMesh(std::vector<Vertex_PCU> vertices, std::vector<int> indices);
 		CPUMesh(std::vector<Vertex_PNCU>& vertices, std::vector<int>& indices);
@@ -92,4 +107,14 @@ class Mesh
 	 MeshImportOptions  m_importOptions;
 	 CPUMesh*		    m_cpuMesh    = nullptr;
 	 //GPUMesh*			m_gpuMesh    = nullptr;
+};
+
+class Mesh2D
+{
+public:
+	Mesh2D() {};
+	~Mesh2D() {};
+
+public:
+	CPUMesh2D* m_cpuMesh2D = nullptr;
 };
