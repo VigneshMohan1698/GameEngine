@@ -1,12 +1,14 @@
 #include "ECS.hpp"
 #include <Engine/Core/ErrorWarningAssert.hpp>
 #include <Engine/ECS/ECS.hpp>
+#include <Engine/Core/EventSystem.hpp>
 
 #include <Engine/Renderer/RendererD12.hpp>
 //TO DO: Is this bad? Maybe pass it in constructor?
 
 extern RendererD12* g_theRenderer;
 extern InputSystem* g_theInputSystem;
+extern EventSystem* g_theEventSystem;
 
 void ECS::Startup()
 {	
@@ -28,11 +30,8 @@ void ECS::Shutdown()
 		DestroyEntity(entity);
 	}
 	m_activeEntities.clear();
-
-	//for (auto& system : m_ecsSystems)
-	//{
-	//	delete system;
-	//}
+	
+	//Systems are unique pointers so don't have to worry about deleting them
 }
 
 void ECS::RegisterRequiredSystems()
@@ -52,7 +51,10 @@ EntityID ECS::CreateEntity()
 void ECS::DestroyEntity(const EntityID entityID)
 {
 	m_transformComponents.erase(entityID);
-
+	m_meshComponents.erase(entityID);
+	m_cameraComponents.erase(entityID);
+	m_lightComponents.erase(entityID);
+	m_UIComponents.erase(entityID);
 }
 
 void ECS::DebugPrintEntityInformation()

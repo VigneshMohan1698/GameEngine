@@ -2,6 +2,14 @@
 #include "Engine/Renderer/RendererD12.hpp"
 #include "Engine/Math/IntVec2.hpp"
 
+enum class ShadowTechnique 
+{
+	Basic,
+	BasicPCF,
+	PCSS,
+	//VSM,
+	Total
+};
 class ShadowMap
 {
 	friend class RendererD12;
@@ -34,5 +42,7 @@ class ShadowMap
 	DXGI_FORMAT				m_format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 	Camera					m_shadowCamera;
 	bool					m_isEnabled = false;
-
+	ShadowTechnique			m_technique = ShadowTechnique::PCSS;
+	float					m_debugOutput =  -1.0f;
+	float					m_lightSize =  1.0f;
 };

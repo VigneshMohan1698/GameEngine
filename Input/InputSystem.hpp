@@ -22,6 +22,7 @@ extern const unsigned char KEYCODE_RIGHTARROW;
 extern const unsigned char KEYCODE_LEFT_MOUSE;
 extern const unsigned char KEYCODE_RIGHT_MOUSE;
 extern const unsigned char KEYCODE_SPACE;
+extern const unsigned char KEYCODE_LCONTROL;
 
 constexpr int NUM_KEYCODES = 256;
 constexpr int NUM_XBOX_CONTROLLERS = 4;

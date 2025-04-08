@@ -90,8 +90,11 @@ class Mesh
 		void		SetTransform(Mat44 const& transform);
 		void		ReverseWindingOrder();
 		bool		UpdateFromBuilder(Mesh const& builder);
+
+		//-------------------Meshes------------
 		void		AddSphereMesh(const Sphere3D& sphere,const AABB2& uvs, const Vec4& color);
 		void		AddCubeMesh(const Cube& cube,const AABB2& uvs, const Vec4& color);
+
 		//void		AddPlaneMesh(const Plane3D& plane, const AABB2& uvs, const Vec4& color);
 		void		AddGridLinesMesh();
 		void		GetTransformedVertices(Vec3& position, std::vector<Vertex_PNCUTB>& vertices);

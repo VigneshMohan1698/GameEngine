@@ -4,6 +4,7 @@
 #include <Engine\Core\Model.hpp>
 #include <Engine\Material\Material.hpp>
 #include <Engine\Renderer\Camera.hpp>
+#include <Engine\Core\FileUtils.hpp>
 
 enum class LightType 
 {
@@ -19,6 +20,9 @@ struct TransformComponent
 	EulerAngles m_orientationDegrees;
 	float m_scale = 1.0f;
 
+	//Use this for dirty tracking. 
+	Mat44 m_transformMatrix = Mat44();
+
 	//Get model Matrix and do the transform on CPU?
 	//Or bind it to a shader and do it on GPU?
 	Mat44 GetTransformMatrix() {
@@ -29,7 +33,7 @@ struct TransformComponent
 		//-----------------SRT-------------
 		rotationMatrix.Append(scaleMatrix);
 		translationMatrix.Append(rotationMatrix);
-
+		m_transformMatrix = translationMatrix;
 		return translationMatrix;
 	}
 };
@@ -41,8 +45,15 @@ struct UIComponent
 
 struct MeshComponent
 {
-	Mesh			m_mesh;
+public:
+
+	MeshComponent();
+	~MeshComponent();
+	Mesh*			m_mesh = new Mesh();
 	Material		m_material;
+
+public:
+	void			Add3DModelMesh(std::string modelName);
 };
 
 struct CameraComponent
@@ -51,7 +62,7 @@ struct CameraComponent
 	bool			m_mainUICamera = false;
 	bool			m_main3DCamera = false;
 
-	void		   LookAt(const Vec3& position, const Vec3& up)
+	void LookAt(const Vec3& position, const Vec3& up)
 	{
 		m_camera.SetLookAt(position, up);
 	}

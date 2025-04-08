@@ -158,7 +158,7 @@ void RendererD12::ShutDown()
 	m_dxrCommandList.Reset();
 	m_dxrStateObject.Reset();
 	m_cameraCB.ResetResources();
-	m_gameDataCB.ResetResources();
+	m_modelConstantsCB.ResetResources();
 	m_descriptorHeap.Reset();
 	m_uselessRenderTarget.ResetResource();
 	m_descriptorsAllocated = 0;
@@ -298,19 +298,62 @@ void RendererD12::BeginRasterizerCamera(const Camera& camera, ShadowMap* shadowM
 	m_cameraCB->viewMatrix = m_currentCamera.GetViewMatrix();
 	Mat44 lightViewMatrix = Mat44();
 	Mat44 lightProjectionMatrix = Mat44();
+
 	if(shadowMap) 
 	{
 		lightViewMatrix = shadowMap->m_shadowCamera.GetViewMatrix();
 		lightProjectionMatrix = shadowMap->m_shadowCamera.GetProjectionMatrix();
+		m_cameraCB->additionalData.x = (float)shadowMap->m_technique;
+		m_cameraCB->additionalData.y = (float)shadowMap->m_debugOutput;
+		m_cameraCB->additionalData.z = (float)shadowMap->m_lightSize;
 	}
 	m_cameraCB->lightViewMatrix = lightViewMatrix;
 	m_cameraCB->lightProjMatrix = lightProjectionMatrix;
 
-	m_cameraCB->cameraPosition = Vec4(m_currentCamera.m_position, 0.0f);
+	//m_cameraCB->cameraPosition = Vec4(m_currentCamera.m_position, 0.0f);
 	m_gameDataCB->ViewX_GIOnY_ShadowPassZ_FrameTime.z = 0;
 	m_cameraCB.CopyStagingToGpu(m_frameIndex);
 	m_gameDataCB.CopyStagingToGpu(m_frameIndex);
 }
+
+void RendererD12::BeginShadowMapRender(ShadowMap* shadowMap)
+{
+	auto depthTarget = &m_depthStencilBuffer.cpuDescriptorHandle;
+	m_RcommandList->OMSetRenderTargets(0, nullptr, FALSE, depthTarget);
+
+	m_currentCamera = shadowMap->m_shadowCamera;
+	m_currentCamera.SetTransform(shadowMap->m_shadowCamera.m_position, shadowMap->m_shadowCamera.m_orientation);
+	m_RcommandList->RSSetViewports(1, &m_screenViewport);
+	m_RcommandList->RSSetScissorRects(1, &m_scissorRect);
+
+	m_cameraCB->projectionMatrix = m_currentCamera.GetProjectionMatrix();
+	m_cameraCB->viewMatrix = m_currentCamera.GetViewMatrix();
+	//m_cameraCB->cameraPosition = Vec4(m_currentCamera.m_position, 0.0f);
+	m_gameDataCB->ViewX_GIOnY_ShadowPassZ_FrameTime.z = 1;
+
+	//m_gameDataCB->globalLightPosition = 
+	m_cameraCB.CopyStagingToGpu(m_frameIndex);
+	m_gameDataCB.CopyStagingToGpu(m_frameIndex);
+
+	m_fenceValues[m_frameIndex] = m_fenceValues[m_frameIndex] + 1;
+}
+
+void RendererD12::EndShadowMapRender(ShadowMap* shadowMap)
+{
+	FinishUpGPUWork();
+	CopyTextureResourceFromBuffer(&m_depthStencilBuffer, &shadowMap->m_shadowBuffer, shadowMap->GetDimensions());
+
+	D3D12_CLEAR_FLAGS flags = D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL;
+	m_RcommandList.Get()->ClearDepthStencilView(m_depthStencilBuffer.cpuDescriptorHandle, flags, 1, 0, 0, nullptr);
+}
+
+void RendererD12::SetModelConstantData(Mat44 modelMatrix, Vec4 color)
+{
+	m_modelConstantsCB->ModelMatrix = modelMatrix;
+	m_modelConstantsCB->Color = color;
+	m_modelConstantsCB.CopyStagingToGpu(m_frameIndex);
+}
+
 void RendererD12::SetRaytraceQuadCamera( Vec3 topLeft, Vec3 bottomLeft,Vec3 topRight, Vec3 bottomRight)
 {
 UNUSED((void)topLeft);
@@ -554,38 +597,10 @@ void RendererD12::InitializeRasterization()
 	//----------Creating camera Constant buffer---------------
 	m_cameraCB.Create(m_Rdevice.Get(), m_backBufferCount, L"Camera Constant Buffer");
 	m_gameDataCB.Create(m_Rdevice.Get(), m_backBufferCount, L"Game Constant Buffer");
+	m_modelConstantsCB.Create(m_Rdevice.Get(), m_backBufferCount, L"Model Constants Buffer");
 }
 
-void RendererD12::BeginShadowMapRender(ShadowMap* shadowMap)
-{
-	auto depthTarget = &m_depthStencilBuffer.cpuDescriptorHandle;
-	m_RcommandList->OMSetRenderTargets(0, nullptr, FALSE, depthTarget);
 
-	m_currentCamera = shadowMap->m_shadowCamera;
-	m_currentCamera.SetTransform(shadowMap->m_shadowCamera.m_position, shadowMap->m_shadowCamera.m_orientation);
-	m_RcommandList->RSSetViewports(1, &m_screenViewport);
-	m_RcommandList->RSSetScissorRects(1, &m_scissorRect);
-
-	m_cameraCB->projectionMatrix = m_currentCamera.GetProjectionMatrix();
-	m_cameraCB->viewMatrix = m_currentCamera.GetViewMatrix();
-	m_cameraCB->cameraPosition = Vec4(m_currentCamera.m_position, 0.0f);
-	m_gameDataCB->ViewX_GIOnY_ShadowPassZ_FrameTime.z = 1;
-
-	//m_gameDataCB->globalLightPosition = 
-	m_cameraCB.CopyStagingToGpu(m_frameIndex);
-	m_gameDataCB.CopyStagingToGpu(m_frameIndex);
-
-	m_fenceValues[m_frameIndex] = m_fenceValues[m_frameIndex] + 1;
-}
-
-void RendererD12::EndShadowMapRender(ShadowMap* shadowMap)
-{
-	FinishUpGPUWork();
-	CopyTextureResourceFromBuffer(&m_depthStencilBuffer, &shadowMap->m_shadowBuffer, shadowMap->GetDimensions());
-
-	D3D12_CLEAR_FLAGS flags = D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL;
-	m_RcommandList.Get()->ClearDepthStencilView(m_depthStencilBuffer.cpuDescriptorHandle, flags, 1, 0, 0, nullptr);
-}
 
 void RendererD12::FinishUpGPUWork()
 {
@@ -2803,6 +2818,7 @@ void RendererD12::BindShader(ShaderD12* shader, bool isForShadowMap)
 	if (shader->GetShaderType() == ShaderDetails::Shader3D)
 	{
 		commandList->SetGraphicsRootConstantBufferView((UINT)Default3DRootSignatureParams::CameraConstantBuffer, m_cameraCB.GpuVirtualAddress(m_frameIndex));
+		commandList->SetGraphicsRootConstantBufferView((UINT)Default3DRootSignatureParams::ModelConstantBufferD12, m_modelConstantsCB.GpuVirtualAddress(m_frameIndex));
 		commandList->SetGraphicsRootConstantBufferView((UINT)Default3DRootSignatureParams::GameConstantBuffer, m_gameDataCB.GpuVirtualAddress(m_frameIndex));
 	}
 	else if (shader->GetShaderType() == ShaderDetails::PBRShader3D)

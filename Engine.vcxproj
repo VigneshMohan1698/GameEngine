@@ -387,6 +387,7 @@
     <ClCompile Include="Core\Vertex_PNCUTB.cpp" />
     <ClCompile Include="Core\XmlUtils.cpp" />
     <ClCompile Include="ECS\ECS.cpp" />
+    <ClCompile Include="ECS\ECSComponents.cpp" />
     <ClCompile Include="ECS\ECSSystems.cpp" />
     <ClCompile Include="Input\AnalogJoystick.cpp" />
     <ClCompile Include="Input\InputSystem.cpp" />

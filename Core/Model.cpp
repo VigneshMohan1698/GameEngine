@@ -8,6 +8,7 @@
 #include <d3d11.h>
 #include <Engine/Math/VertexUtils.hpp>
 
+extern Renderer* g_theRenderer;
 Mesh::~Mesh()
 {	
 	if(m_cpuMesh)
@@ -467,6 +468,8 @@ void Mesh::AddCubeMesh(const Cube& cube, const AABB2& uvs, const Vec4& color)
 	AddVertsForIndexedNormalCube(m_cpuMesh->m_verticesWithTangent, m_cpuMesh->m_indices, cube.m_bounds, color, AABB2::ZERO_TO_ONE, 0);
 }
 
+
+
 //void Mesh::AddPlaneMesh(const Plane3D& plane, const AABB2& uvs, const Vec4& color)
 //{
 //	/*Vec3 bottomLeft, bottomRight, topLeft, topRight;
@@ -554,7 +557,7 @@ CPUMesh::CPUMesh(std::vector<Vertex_PNCU>& vertices, std::vector<int>& indices)
 	{
 		m_vertices.push_back(vertices[i]);
 		Vertex_PNCUTB vert = vertices[i];
-
+		vert.m_color = Vec4(1.0f,1.0f,1.0f,1.0f);
 		m_verticesWithTangent.push_back(vert);
 	}
 	for (int i = 0; i < indices.size(); i++)

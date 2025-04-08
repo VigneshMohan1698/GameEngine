@@ -4,8 +4,8 @@ enum class MaterialType
 {
 	Basic2D,
 	Basic3D,
+	Basic3DLit,
 	Basic3DNoColor,
-	Lit3D,
 	PBR3D,
 	Custom,
 	NoMaterial

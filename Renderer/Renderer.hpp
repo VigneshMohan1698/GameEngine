@@ -93,6 +93,8 @@ struct LightConstants
 	float AmbientIntensity;
 	float padding[3];
 };
+
+
 struct ModelConstants
 {
 	Mat44 ModelMatrix;

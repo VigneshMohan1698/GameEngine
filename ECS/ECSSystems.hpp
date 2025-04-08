@@ -58,6 +58,11 @@ public:
 
 	void Render2DUI();
 
+	//Event system subscriptions
+	void DebugKeyPressed(EventArgs& args);
+	void DebugKeyPressed2(EventArgs& args);
+	void DebugKeyPressed3(EventArgs& args);
+
 private:
 	RendererD12* m_renderer = nullptr;
 	BitmapFont* m_font = nullptr;

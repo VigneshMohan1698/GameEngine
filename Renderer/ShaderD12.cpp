@@ -100,7 +100,9 @@ void ShaderD12::Create3DRootSignature()
 	rootParameters[(int)Default3DRootSignatureParams::DiffuseTexture].InitAsDescriptorTable(1, &ranges[(int)Default3DRootSignatureParams::DiffuseTexture]);
 	rootParameters[(int)Default3DRootSignatureParams::ShadowMapTexture].InitAsDescriptorTable(1, &ranges[(int)Default3DRootSignatureParams::ShadowMapTexture]);
 	rootParameters[(int)Default3DRootSignatureParams::CameraConstantBuffer].InitAsConstantBufferView(0);
-	rootParameters[(int)Default3DRootSignatureParams::GameConstantBuffer].InitAsConstantBufferView(1);
+	rootParameters[(int)Default3DRootSignatureParams::ModelConstantBufferD12].InitAsConstantBufferView(1);
+	rootParameters[(int)Default3DRootSignatureParams::GameConstantBuffer].InitAsConstantBufferView(2);
+
 
 	if (m_config.m_name == "Skybox3D")
 	{
@@ -117,15 +119,37 @@ void ShaderD12::Create3DRootSignature()
 	else
 	{
 
-		CD3DX12_STATIC_SAMPLER_DESC samplerDesc = CD3DX12_STATIC_SAMPLER_DESC(D3D12_FILTER_ANISOTROPIC);
-		samplerDesc.MaxAnisotropy = 16;
-		samplerDesc.ShaderRegister = 0;
+		CD3DX12_STATIC_SAMPLER_DESC SimplePointSampler = CD3DX12_STATIC_SAMPLER_DESC(D3D12_FILTER_COMPARISON_MIN_MAG_MIP_POINT);
+		SimplePointSampler.MaxAnisotropy = 16;
+		SimplePointSampler.ShaderRegister = 0;
+
+		CD3DX12_STATIC_SAMPLER_DESC ShadowBilinearSampler = CD3DX12_STATIC_SAMPLER_DESC(
+			1,                                 // Shader register
+			D3D12_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT, // Bilinear filtering
+			D3D12_TEXTURE_ADDRESS_MODE_CLAMP, // Address mode for shadow maps (border with comparison)
+			D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
+			D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
+			0.0f,                              // MipLODBias
+			16,                                // MaxAnisotropy (set to 16 for shadow mapping)
+			D3D12_COMPARISON_FUNC_LESS_EQUAL,  // Comparison function for depth-based shadow maps
+			D3D12_STATIC_BORDER_COLOR_OPAQUE_BLACK, // Border color
+			0.0f,                              // MinLOD
+			D3D12_FLOAT32_MAX,                 // MaxLOD
+			D3D12_SHADER_VISIBILITY_PIXEL      // Shader visibility (usually pixel shader for shadow maps)
+		);
+
+		CD3DX12_STATIC_SAMPLER_DESC pointSampler = CD3DX12_STATIC_SAMPLER_DESC(
+			0,                                   // ShaderRegister
+			D3D12_FILTER_MIN_MAG_MIP_POINT,      // Filter: Point filtering for Min, Mag, and Mip
+			D3D12_TEXTURE_ADDRESS_MODE_CLAMP,    // AddressU: Clamp
+			D3D12_TEXTURE_ADDRESS_MODE_CLAMP,    // AddressV: Clamp
+			D3D12_TEXTURE_ADDRESS_MODE_CLAMP    // AddressW: Clamp
+		);
 
 		CD3DX12_STATIC_SAMPLER_DESC staticSamplers[] =
 		{
-			// LinearWrapSampler
-			CD3DX12_STATIC_SAMPLER_DESC(0, D3D12_FILTER_COMPARISON_MIN_MAG_MIP_POINT),
-			//CD3DX12_STATIC_SAMPLER_DESC(1, D3D12_FILTER_ANISOTROPIC),
+			pointSampler,
+			ShadowBilinearSampler
 		};
 
 		CD3DX12_ROOT_SIGNATURE_DESC globalRootSignatureDesc(ARRAYSIZE(rootParameters), rootParameters, ARRAYSIZE(staticSamplers), staticSamplers, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);

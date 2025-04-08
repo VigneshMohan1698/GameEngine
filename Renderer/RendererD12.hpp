@@ -150,6 +150,7 @@ enum class Default3DRootSignatureParams {
 	ShadowMapTexture,
 	//---CBV-----
 	CameraConstantBuffer,
+	ModelConstantBufferD12,
 	GameConstantBuffer,
 	Count
 };
@@ -202,6 +203,12 @@ struct GameDataBuffer
 	Vec4 globalLightColor[4];
 	Vec4 ViewX_GIOnY_ShadowPassZ_FrameTime;
 	float  renderOutput; // ------- 0 final output 1 Normals 
+};
+
+struct ModelConstantsD12
+{
+	Mat44 ModelMatrix;
+	Vec4 Color;
 };
 
 struct SceneConstantBuffer
@@ -482,6 +489,7 @@ class RendererD12
 		 //----------------CAMERA FUNCTIONS----------------------------
 		 void			BeginCamera(const Camera& camera);
 		 void			BeginRasterizerCamera(const Camera& camera, ShadowMap* shadowMap = nullptr);
+		 void			SetModelConstantData(Mat44 modelMatrix, Vec4 color);
 		 void			EndCamera(const Camera& camera);
 		 void			SetRaytraceQuadCamera(Vec3 topLeft, Vec3 bottomLeft, Vec3 topRight, Vec3 bottomRight);
 
@@ -686,6 +694,8 @@ class RendererD12
 		//------------------------RASTERIZATION VARIABLES-----------------
 		ConstantBufferD12<CameraConstantBuffer>	m_cameraCB;
 		ConstantBufferD12<GameDataBuffer>		m_gameDataCB;
+		
+		ConstantBufferD12<ModelConstantsD12>	m_modelConstantsCB;
 
 	private:
 		RayGenConstantBuffer					m_rayGenCB;

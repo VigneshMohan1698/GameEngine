@@ -2,6 +2,8 @@
 #include <Engine/ECS/ECS.hpp>
 #include <Engine/Renderer/ShadowMap.hpp>
 
+extern EventSystem* g_theEventSystem;
+
 ECSRenderingSystem::ECSRenderingSystem(ECS* ecs, RendererD12* renderer)
 {
 	m_ecs = ecs;
@@ -11,6 +13,9 @@ ECSRenderingSystem::ECSRenderingSystem(ECS* ecs, RendererD12* renderer)
 	IntVec2 shadowMapDimensions(m_renderer->m_dimensions);
 	m_shadowShader = m_renderer->CreateOrGetShader("Shadow3D", "Data/Shaders/Shadow3D.hlsl");
 	m_engineShadowMap = new ShadowMap(m_renderer, m_renderer->GetDevice(), shadowMapDimensions.x, shadowMapDimensions.y);
+	g_theEventSystem->SubscribeEventCallbackObjectMethod("DebugKeyPressed", *this, &ECSRenderingSystem::DebugKeyPressed);
+	g_theEventSystem->SubscribeEventCallbackObjectMethod("DebugKeyPressed2", *this, &ECSRenderingSystem::DebugKeyPressed2);
+	g_theEventSystem->SubscribeEventCallbackObjectMethod("DebugKeyPressed3", *this, &ECSRenderingSystem::DebugKeyPressed3);
 }
 
 //---------------------------RENDERING SYSTEM---------------------------------------
@@ -96,29 +101,41 @@ void ECSRenderingSystem::Render3DEntities()
 		MeshComponent* meshComponent = &pair.second;
 		TransformComponent* transformComponent = m_ecs->GetComponentOfType<TransformComponent>(pair.first);
 
+		if (meshComponent->m_material.GetMaterialType() == MaterialType::NoMaterial)
+		{
+			ERROR_AND_DIE("Mesh Component has no material assigned");
+		}
+
+		//If the entity has no transform component, just draw the mesh as it is.
+		if (transformComponent)
+		{
+			/*Mat44 modelMatrix = transformComponent->GetTransformMatrix();
+			m_renderer->SetModelConstantData(modelMatrix, Vec4(1.0f, 0.0f, 1.0f, 0.0f));
+			verts = meshComponent->m_mesh->m_cpuMesh->m_verticesWithTangent;*/
+			meshComponent->m_mesh->SetTransform(transformComponent->GetTransformMatrix());
+			verts = meshComponent->m_mesh->GetTransformedVertices(transformComponent->GetTransformMatrix());
+		}
+		else
+		{
+			m_renderer->SetModelConstantData(Mat44(), Vec4(1.0f, 1.0f, 1.0f, 1.0f));
+			verts = meshComponent->m_mesh->m_cpuMesh->m_verticesWithTangent;
+		}
+
+		//If the entity mesh has no material ignore textures.
 		ShaderD12* shader = meshComponent->m_material.GetShader();
 		m_renderer->BindShader(shader);
 
-		//If the entity mesh has no material ignore textures.
-		if(meshComponent->m_material.GetMaterialType() != MaterialType::NoMaterial )
+		if (meshComponent->m_material.GetMaterialType() != MaterialType::Basic3DNoColor)
 		{
 			int albedoTextureIndex = meshComponent->m_material.GetAlbedoTextureIndex();
 			TextureD12* sphereTexture = m_renderer->GetTextureAtIndex(0);
 			m_renderer->BindTexture(0, albedoTextureIndex);
 		}
-		//If the entity has no transform component, just draw the mesh as it is.
-		if (transformComponent)
-		{
-			meshComponent->m_mesh.SetTransform(transformComponent->GetTransformMatrix());
-			verts = meshComponent->m_mesh.GetTransformedVertices(transformComponent->GetTransformMatrix());
-		}
-		else 
-		{
-			verts = meshComponent->m_mesh.m_cpuMesh->m_verticesWithTangent;
-		}
+
 		m_renderer->BindHandle(1, m_engineShadowMap->GetShaderResourceBuffer()->gpuReadDescriptorHandle);
-		m_renderer->DrawIndexedVertexArray((int)verts.size(), verts, meshComponent->m_mesh.m_cpuMesh->m_indices);
+		m_renderer->DrawIndexedVertexArray((int)verts.size(), verts, meshComponent->m_mesh->m_cpuMesh->m_indices);
 	}
+	m_renderer->SetModelConstantData(Mat44(), Vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	m_renderer->FinishUpGPUWork();
 
 	//TO DO: Remove these 2 lines from game and uncomment here: 
@@ -130,10 +147,6 @@ void ECSRenderingSystem::Render3DEntities()
 
 void ECSRenderingSystem::Render3DEntitiesShadows(ShadowMap* shadowMap, ShaderD12* shader)
 {
-	//Go through a list of mesh components 
-	//Just draw them with the shadow shader.
-	m_renderer->BindShader(shader);
-
 	for (auto& pair : m_ecs->m_meshComponents)
 	{
 		VertexNormalTangentArray verts;
@@ -144,15 +157,24 @@ void ECSRenderingSystem::Render3DEntitiesShadows(ShadowMap* shadowMap, ShaderD12
 		//If the entity has no transform component, just draw the mesh as it is.
 		if (transformComponent)
 		{
-			meshComponent->m_mesh.SetTransform(transformComponent->GetTransformMatrix());
-			verts = meshComponent->m_mesh.GetTransformedVertices(transformComponent->GetTransformMatrix());
+			Mat44 modelMatrix = transformComponent->GetTransformMatrix();
+			m_renderer->SetModelConstantData(modelMatrix, Vec4(1.0f,1.0f,1.0f,1.0f));
+			meshComponent->m_mesh->SetTransform(transformComponent->GetTransformMatrix());
+			verts = meshComponent->m_mesh->GetTransformedVertices(transformComponent->GetTransformMatrix());
+			//verts = meshComponent->m_mesh->m_cpuMesh->m_verticesWithTangent;
 		}
 		else
 		{
-			verts = meshComponent->m_mesh.m_cpuMesh->m_verticesWithTangent;
+			m_renderer->SetModelConstantData(Mat44(), Vec4(1.0f, 1.0f, 1.0f, 1.0f));
+			verts = meshComponent->m_mesh->m_cpuMesh->m_verticesWithTangent;
 		}
-		m_renderer->DrawIndexedVertexArray((int)verts.size(), verts, meshComponent->m_mesh.m_cpuMesh->m_indices);
+
+		//Go through a list of mesh components 
+		//Just draw them with the shadow shader.
+		m_renderer->BindShader(shader);
+		m_renderer->DrawIndexedVertexArray((int)verts.size(), verts, meshComponent->m_mesh->m_cpuMesh->m_indices);
 	}
+	m_renderer->SetModelConstantData(Mat44(), Vec4(1.0f, 1.0f, 1.0f, 1.0f));
 }
 
 void ECSRenderingSystem::Render2DUI()
@@ -166,6 +188,34 @@ void ECSRenderingSystem::Render2DUI()
 		m_renderer->BindTexture(0, fontTexture);
 		m_renderer->DrawVertexArray((int)UIcomponent->m_mesh2D.m_cpuMesh2D->m_vertices.size(), UIcomponent->m_mesh2D.m_cpuMesh2D->m_vertices);
 	}*/
+}
+
+void ECSRenderingSystem::DebugKeyPressed(EventArgs& args)
+{
+	int keyPressed = args.GetValue<int>("KeyPressed", -1);
+
+	if (keyPressed == 1)
+	{
+		int shadowTechnique = (int)m_engineShadowMap->m_technique;
+		shadowTechnique += 1;
+		if (shadowTechnique == (int)ShadowTechnique::Total)
+		{
+			shadowTechnique = 0;
+		}
+		m_engineShadowMap->m_technique = (ShadowTechnique)shadowTechnique;
+	}
+}
+
+void ECSRenderingSystem::DebugKeyPressed2(EventArgs& args)
+{
+	m_engineShadowMap->m_debugOutput = args.GetValue<int>("KeyPressed", -1);
+}
+
+void ECSRenderingSystem::DebugKeyPressed3(EventArgs& args)
+{
+	float valueChange = args.GetValue<float>("Value", 1.0f);
+
+	m_engineShadowMap->m_lightSize += valueChange;
 }
 
 //----------------------------INPUT SYSTEM--------------------------------
@@ -220,6 +270,11 @@ void ECSInputSystem::ControlledEntityMovement(float deltaSeconds, Mat44& ModelMa
 		engineCameraVelocity = 20.0f;
 	}
 
+	if (m_inputSystem->IsKeyDown(17) || m_inputSystem->GetController(0).IsButtonDown(XboxButtonID::XBOX_BUTTON_B))
+	{
+		engineCameraVelocity = 0.1f;
+	}
+
 	if (m_inputSystem->IsKeyDown('H') || m_inputSystem->GetController(0).IsButtonDown(XboxButtonID::XBOX_BUTTON_START))
 	{
 		entityPosition = Vec3(0.0f, 0.0f, 0.0f);
@@ -250,6 +305,53 @@ void ECSInputSystem::ControlledEntityMovement(float deltaSeconds, Mat44& ModelMa
 	{
 
 		entityPosition -= ModelMatrix.GetKBasis3D() * deltaSeconds * engineCameraVelocity;
+	}
+
+
+	//Shadow switch event
+
+	EventArgs args;
+	
+	if (m_inputSystem->WasKeyJustPressed('1'))
+	{
+		args.SetValue("KeyPressed", 1);
+		g_theEventSystem->FireEvent("DebugKeyPressed", args);
+	}
+	
+	if (m_inputSystem->WasKeyJustPressed('2'))
+	{
+		args.SetValue("KeyPressed", 2);
+		g_theEventSystem->FireEvent("DebugKeyPressed2", args);
+	}
+
+	if (m_inputSystem->WasKeyJustPressed('3'))
+	{
+		args.SetValue("KeyPressed", 3);
+		g_theEventSystem->FireEvent("DebugKeyPressed2", args);
+	}
+
+	if (m_inputSystem->WasKeyJustPressed('4'))
+	{
+		args.SetValue("KeyPressed", 4);
+		g_theEventSystem->FireEvent("DebugKeyPressed2", args);
+	}
+
+	if (m_inputSystem->WasKeyJustPressed('5'))
+	{
+		args.SetValue("KeyPressed", 5);
+		g_theEventSystem->FireEvent("DebugKeyPressed2", args);
+	}
+
+	if (m_inputSystem->IsKeyDown('J'))
+	{
+		args.SetValue("Value", -0.5f * deltaSeconds);
+		g_theEventSystem->FireEvent("DebugKeyPressed3", args);
+	}
+
+	if (m_inputSystem->IsKeyDown('L'))
+	{
+		args.SetValue("Value", 0.5f * deltaSeconds);
+		g_theEventSystem->FireEvent("DebugKeyPressed3", args);
 	}
 
 	Vec2 mouseDelta = m_inputSystem->GetMouseClientDelta();

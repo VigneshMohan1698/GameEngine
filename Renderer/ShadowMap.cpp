@@ -25,7 +25,7 @@ ShadowMap::ShadowMap(RendererD12* renderer,ID3D12Device* device, UINT width, UIN
 	Vec3 jbasis = Vec3(-1.0f, 0.0f, 0.0f);
 	Vec3 kbasis = Vec3(0.0f, 1.0f, 0.0f);
 	m_shadowCamera.SetViewToRenderTransform(ibasis, jbasis, kbasis);
-	m_shadowCamera.SetPerspectiveView(2.0f, 60.0f, 0.1f, 1000.0f);
+	m_shadowCamera.SetPerspectiveView(2.0f, 60.0f, 0.1f, 100.0f);
 }
 
 ShadowMap::~ShadowMap()

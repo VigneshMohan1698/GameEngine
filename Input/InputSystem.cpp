@@ -25,6 +25,7 @@ const unsigned char KEYCODE_RIGHTARROW = VK_RIGHT;
 const unsigned char KEYCODE_LEFT_MOUSE = VK_LBUTTON;
 const unsigned char KEYCODE_RIGHT_MOUSE = VK_RBUTTON;
 const unsigned char KEYCODE_SPACE = VK_SPACE;
+const unsigned char KEYCODE_LCONTROL = VK_LCONTROL;
 
 
 InputSystem::InputSystem()
