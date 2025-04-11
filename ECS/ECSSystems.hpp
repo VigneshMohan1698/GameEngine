@@ -35,9 +35,6 @@ public:
 	~ECSRenderingSystem() {
 		m_renderer = nullptr;
 
-		delete m_font;
-		m_font = nullptr;
-
 		delete m_shadowShader;
 		m_shadowShader = nullptr;
 
@@ -56,8 +53,6 @@ public:
 	void Render3DEntities();
 	void Render3DEntitiesShadows(ShadowMap* shadowMap, ShaderD12* shadowShader);
 
-	void Render2DUI();
-
 	//Event system subscriptions
 	void DebugKeyPressed(EventArgs& args);
 	void DebugKeyPressed2(EventArgs& args);
@@ -65,11 +60,11 @@ public:
 
 private:
 	RendererD12* m_renderer = nullptr;
-	BitmapFont* m_font = nullptr;
 
 	ShaderD12* m_shadowShader = nullptr;
 	ShadowMap* m_engineShadowMap = nullptr;
 };
+
 class ECSInputSystem : public ECSSystem
 {
 	public:

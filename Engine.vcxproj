@@ -389,6 +389,7 @@
     <ClCompile Include="ECS\ECS.cpp" />
     <ClCompile Include="ECS\ECSComponents.cpp" />
     <ClCompile Include="ECS\ECSSystems.cpp" />
+    <ClCompile Include="ECS\ECSUISystem.cpp" />
     <ClCompile Include="Input\AnalogJoystick.cpp" />
     <ClCompile Include="Input\InputSystem.cpp" />
     <ClCompile Include="Input\KeyButtonState.cpp" />
@@ -525,6 +526,7 @@
     <ClInclude Include="ECS\ECS.hpp" />
     <ClInclude Include="ECS\ECSComponents.hpp" />
     <ClInclude Include="ECS\ECSSystems.hpp" />
+    <ClInclude Include="ECS\ECSUISystem.hpp" />
     <ClInclude Include="Input\AnalogJoystick.hpp" />
     <ClInclude Include="Input\InputSystem.hpp" />
     <ClInclude Include="Input\KeyButtonState.hpp" />

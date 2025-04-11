@@ -28,6 +28,8 @@ static constexpr int HOME_KEY =36;
 static constexpr int END_KEY =35;
 static constexpr int DELETE_KEY=46;
 static constexpr int BACKSPACE_KEY =8;
+static constexpr float DefaultUITextHeight = 10.0f;
+static constexpr float DefaultUITextAspect = 0.6f;
 
 void PopulateGameConfigs(std::string XMLfilePath);
 std::wstring ConvertToWString(const char* c);

@@ -42,7 +42,7 @@ class ShadowMap
 	DXGI_FORMAT				m_format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 	Camera					m_shadowCamera;
 	bool					m_isEnabled = false;
-	ShadowTechnique			m_technique = ShadowTechnique::PCSS;
+	ShadowTechnique			m_technique = ShadowTechnique::Basic;
 	float					m_debugOutput =  -1.0f;
 	float					m_lightSize =  1.0f;
 };

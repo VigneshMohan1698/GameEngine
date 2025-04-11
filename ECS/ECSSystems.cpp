@@ -7,7 +7,6 @@ extern EventSystem* g_theEventSystem;
 ECSRenderingSystem::ECSRenderingSystem(ECS* ecs, RendererD12* renderer)
 {
 	m_ecs = ecs;
-	m_font = renderer->CreateBitmapFont("Data/Images/SquirrelFixedFont");
 	m_renderer = renderer;
 
 	IntVec2 shadowMapDimensions(m_renderer->m_dimensions);
@@ -25,10 +24,9 @@ void ECSRenderingSystem::Update(float deltaSeconds)
 	m_renderer->Prepare();
 	m_renderer->ClearScreen(Rgba8::BLACK);
    
-   //Update the light components first.
+   //Update the light components first for shadow maps
 	UpdateLightComponents();
 
-	//TO DO: Add 2D UI content.
 	UpdateCameraComponents();
 }
 
@@ -38,17 +36,12 @@ void ECSRenderingSystem::UpdateCameraComponents()
 	//If it's UI camera update - set ui main camera buffer for gpu
 	//else set 3D main camera buffer for gpu
 	CameraComponent* mainCamera3D = nullptr;
-	CameraComponent* mainCameraUI = nullptr;
 
 	for (auto& pair : m_ecs->m_cameraComponents)
 	{
 		if (pair.second.m_main3DCamera)
 		{
 			mainCamera3D = &pair.second;
-		}
-		else if (pair.second.m_mainUICamera)
-		{
-			mainCameraUI = &pair.second;
 		}
 	}
 
@@ -66,13 +59,6 @@ void ECSRenderingSystem::UpdateCameraComponents()
 		//TO DO: If the entity is inactive don't render the mesh component.
 		Render3DEntities();
 	}
-	
-	//3D First and then UI
-	//if (mainCameraUI)
-	//{
-	//	m_renderer->BeginRasterizerCamera(mainCameraUI->m_camera);
-	//	Render2DUI();
-	//}
 }
 
 void ECSRenderingSystem::UpdateLightComponents()
@@ -177,18 +163,6 @@ void ECSRenderingSystem::Render3DEntitiesShadows(ShadowMap* shadowMap, ShaderD12
 	m_renderer->SetModelConstantData(Mat44(), Vec4(1.0f, 1.0f, 1.0f, 1.0f));
 }
 
-void ECSRenderingSystem::Render2DUI()
-{
-	/*ShaderD12* shader2D = m_renderer->CreateOrGetShader("Default", "Data/Shaders/Default.hlsl");
-	TextureD12* fontTexture = m_renderer->CreateOrGetTextureFromFile("FontTexture", "Data/Images/SquirrelFixedFont.png");
-	for (auto& pair : m_ecs->m_UIComponents)
-	{
-		UIComponent* UIcomponent = &pair.second;
-		m_renderer->BindShader(shader2D);
-		m_renderer->BindTexture(0, fontTexture);
-		m_renderer->DrawVertexArray((int)UIcomponent->m_mesh2D.m_cpuMesh2D->m_vertices.size(), UIcomponent->m_mesh2D.m_cpuMesh2D->m_vertices);
-	}*/
-}
 
 void ECSRenderingSystem::DebugKeyPressed(EventArgs& args)
 {

@@ -4,6 +4,7 @@
 #include <Engine/Core/EventSystem.hpp>
 
 #include <Engine/Renderer/RendererD12.hpp>
+#include "ECSUISystem.hpp"
 //TO DO: Is this bad? Maybe pass it in constructor?
 
 extern RendererD12* g_theRenderer;
@@ -21,6 +22,10 @@ void ECS::Update(float deltaSeconds)
 	{
 		system->Update(deltaSeconds);
 	}
+
+	g_theRenderer->Present();
+	g_theRenderer->MoveToNextFrame();
+
 }
 
 void ECS::Shutdown()
@@ -38,7 +43,7 @@ void ECS::RegisterRequiredSystems()
 {
 	m_ecsSystems.push_back(std::make_unique<ECSInputSystem>(this, g_theInputSystem));
 	m_ecsSystems.push_back(std::make_unique<ECSRenderingSystem>(this, g_theRenderer));
-
+	m_ecsSystems.push_back(std::make_unique<ECSUISystem>(this, g_theRenderer));
 }
 
 EntityID ECS::CreateEntity()
@@ -54,7 +59,7 @@ void ECS::DestroyEntity(const EntityID entityID)
 	m_meshComponents.erase(entityID);
 	m_cameraComponents.erase(entityID);
 	m_lightComponents.erase(entityID);
-	m_UIComponents.erase(entityID);
+	m_UITextComponents.erase(entityID);
 }
 
 void ECS::DebugPrintEntityInformation()
@@ -87,6 +92,20 @@ T* ECS::GetComponentOfType(const EntityID entityID)
 		if (m_cameraComponents.find(entityID) != m_cameraComponents.end())
 		{
 			return (T*)&m_cameraComponents[entityID];
+		}
+	}
+	if (std::is_same<T, LightComponent>::value)
+	{
+		if (m_lightComponents.find(entityID) != m_lightComponents.end())
+		{
+			return (T*)&m_lightComponents[entityID];
+		}
+	}
+	if (std::is_same<T, UITextComponent>::value)
+	{
+		if (m_UITextComponents.find(entityID) != m_UITextComponents.end())
+		{
+			return (T*)&m_UITextComponents[entityID];
 		}
 	}
 
@@ -144,6 +163,19 @@ T* ECS::AddComponentToEntity(EntityID entityID)
 		else
 		{
 			ERROR_AND_DIE("Light Component already exists in entity " + std::to_string(entityID));
+		}
+	}
+
+	if (std::is_same<T, UITextComponent>::value)
+	{
+		if (m_UITextComponents.find(entityID) == m_UITextComponents.end())
+		{
+			m_UITextComponents[entityID] = UITextComponent();
+			return (T*)&m_UITextComponents[entityID];
+		}
+		else
+		{
+			ERROR_AND_DIE("UI text Component already exists in entity " + std::to_string(entityID));
 		}
 	}
 

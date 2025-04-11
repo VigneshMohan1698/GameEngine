@@ -15,3 +15,11 @@ Game Engine Features :
 9. 2D Sprite Sheet Animation System
 
 
+Debug keys: 
+1, 2 & 3 are recognized by the input system and send out events that can be picked up by other systems.
+
+To Dos: 
+Add UI as part of ECS.
+Write a profiler, fix performance. Get atleast 144fps. 
+Create actual engine UI tools. Meaning an editor
+Start with rendering work, volumetrics, lighting etc.,

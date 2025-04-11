@@ -7,6 +7,7 @@
 #include <memory>
 
 typedef unsigned int EntityID;
+static const EntityID kInvalidEntityID = -1;
 
 class ECSSystem;
 
@@ -56,5 +57,5 @@ class ECS
 		std::unordered_map<EntityID, MeshComponent> m_meshComponents;
 		std::unordered_map<EntityID, CameraComponent> m_cameraComponents;
 		std::unordered_map<EntityID, LightComponent> m_lightComponents;
-		std::unordered_map<EntityID, UIComponent>    m_UIComponents;
+		std::unordered_map<EntityID, UITextComponent> m_UITextComponents;
 };

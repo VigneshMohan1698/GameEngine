@@ -14,6 +14,15 @@ enum class LightType
 	Area,
 	NotDefined
 };
+
+enum class UIType
+{
+	Text,
+	Window,
+	Checkbox
+};
+
+
 struct TransformComponent
 {
 	Vec3 m_position;
@@ -38,10 +47,17 @@ struct TransformComponent
 	}
 };
 
-struct UIComponent
+struct UITextComponent
 {
-	Mesh2D			m_mesh2D;
+	UITextComponent() {};
+	~UITextComponent() {};
+	std::string m_text = "";
+	Rgba8		m_color = Rgba8();
+	AABB2		m_bounds = AABB2::ZERO_TO_ONE;
+	float		m_textHeight = DefaultUITextHeight;
+	bool		m_isDebugRender = false;
 };
+
 
 struct MeshComponent
 {

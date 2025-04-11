@@ -361,6 +361,9 @@
     <ClCompile Include="ECS\ECSComponents.cpp">
       <Filter>ECS</Filter>
     </ClCompile>
+    <ClCompile Include="ECS\ECSUISystem.cpp">
+      <Filter>ECS</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Math\Vec2.hpp">
@@ -713,6 +716,9 @@
     </ClInclude>
     <ClInclude Include="Material\MaterialIncludes.hpp">
       <Filter>Material</Filter>
+    </ClInclude>
+    <ClInclude Include="ECS\ECSUISystem.hpp">
+      <Filter>ECS</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
