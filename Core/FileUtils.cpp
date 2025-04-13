@@ -1,7 +1,7 @@
 #include "FileUtils.hpp"
 #include <Engine/Core/ErrorWarningAssert.hpp>
 #include <Engine/Core/EngineCommon.hpp>
-#include "Engine/Core/Vertex_PNCU.hpp"
+#include "Engine/Core/VertexDefinitions.hpp"
 
 bool FileExists(const std::string& filename)
 {

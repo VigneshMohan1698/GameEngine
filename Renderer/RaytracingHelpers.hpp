@@ -7,7 +7,7 @@
 #include <d3d12.h>
 #include "Engine/Math/Vec3.hpp"
 #include "RaytracingHelpers.hpp"
-#include "Engine/Core/Vertex_PNCU.hpp"
+#include "Engine/Core/VertexDefinitions.hpp"
 
 //#include <atlbase.h>
 
@@ -76,17 +76,18 @@ public:
     }
 };
 
+enum ReadWriteFlags {
+    None = 0x0,
+    AllowRead = 0x1,
+    AllowWrite = 0x2,
+};
+
 struct GpuBuffer
 {
-    enum ReadWriteFlags {
-        None = 0x0,
-        AllowRead = 0x1,
-        AllowWrite = 0x2,
-    };
-
     UINT rwFlags = ReadWriteFlags::AllowRead | ReadWriteFlags::AllowWrite;
     Microsoft::WRL::ComPtr<ID3D12Resource> resource;
     D3D12_CPU_DESCRIPTOR_HANDLE cpuDescriptorHandle;
+    D3D12_CPU_DESCRIPTOR_HANDLE cpuDescriptorHandleForDepth;
     D3D12_GPU_DESCRIPTOR_HANDLE gpuReadDescriptorHandle;
     D3D12_GPU_DESCRIPTOR_HANDLE gpuWriteDescriptorHandle;
     UINT srvHeapIndex = UINT_MAX;

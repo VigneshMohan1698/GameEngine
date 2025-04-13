@@ -1,8 +1,6 @@
 #pragma once
 #include <vector>
-#include "Engine/Core/Vertex_PCU.hpp"
-#include "Engine/Core/Vertex_PNCU.hpp"
-#include "Engine/Core/Vertex_PNCUTB.hpp"
+#include "Engine/Core/VertexDefinitions.hpp"
 #include "Engine/Renderer/VertexBuffer.hpp"
 #include "Engine/Renderer/IndexBuffer.hpp"
 #include <Engine/Core/StringUtils.hpp>

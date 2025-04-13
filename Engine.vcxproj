@@ -212,6 +212,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)Code/;$(SolutionDir)../Engine/Code/</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -300,6 +301,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)Code/;$(SolutionDir)../Engine/Code/</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -381,10 +383,7 @@
     <ClCompile Include="Core\StringUtils.cpp" />
     <ClCompile Include="Core\TileHeatMap.cpp" />
     <ClCompile Include="Core\Time.cpp" />
-    <ClCompile Include="Core\Vertex_PCU.cpp" />
-    <ClCompile Include="Core\Vertex_PNCU.cpp" />
-    <ClCompile Include="Core\Vertex_PNCUT.cpp" />
-    <ClCompile Include="Core\Vertex_PNCUTB.cpp" />
+    <ClCompile Include="Core\VertexDefinitions.cpp" />
     <ClCompile Include="Core\XmlUtils.cpp" />
     <ClCompile Include="ECS\ECS.cpp" />
     <ClCompile Include="ECS\ECSComponents.cpp" />
@@ -439,6 +438,8 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugInline|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">/Wall %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/Wall %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Renderer\ResourceManager.cpp" />
     <ClCompile Include="Renderer\Sampler.cpp" />
@@ -518,15 +519,13 @@
     <ClInclude Include="Core\StringUtils.hpp" />
     <ClInclude Include="Core\TileHeatMap.hpp" />
     <ClInclude Include="Core\Time.hpp" />
-    <ClInclude Include="Core\Vertex_PCU.hpp" />
-    <ClInclude Include="Core\Vertex_PNCU.hpp" />
-    <ClInclude Include="Core\Vertex_PNCUT.hpp" />
-    <ClInclude Include="Core\Vertex_PNCUTB.hpp" />
+    <ClInclude Include="Core\VertexDefinitions.hpp" />
     <ClInclude Include="Core\XmlUtils.hpp" />
     <ClInclude Include="ECS\ECS.hpp" />
     <ClInclude Include="ECS\ECSComponents.hpp" />
     <ClInclude Include="ECS\ECSSystems.hpp" />
     <ClInclude Include="ECS\ECSUISystem.hpp" />
+    <ClInclude Include="ECS\EngineData.hpp" />
     <ClInclude Include="Input\AnalogJoystick.hpp" />
     <ClInclude Include="Input\InputSystem.hpp" />
     <ClInclude Include="Input\KeyButtonState.hpp" />

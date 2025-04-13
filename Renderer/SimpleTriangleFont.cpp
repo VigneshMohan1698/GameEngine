@@ -2,7 +2,7 @@
 #include "Engine/Renderer/SimpleTriangleFont.hpp"
 #include "Engine/Renderer/Renderer.hpp"
 //#include "Engine/Core/MeshUtils.hpp"
-#include "Engine/Core/Vertex_PCU.hpp"
+#include "Engine/Core/VertexDefinitions.hpp"
 #include "Engine/Core/Rgba8.hpp"
 #include "Engine/Math/AABB2.hpp"
 #include "Engine/Core/EngineCommon.hpp"

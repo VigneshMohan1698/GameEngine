@@ -3,7 +3,7 @@
 #include <string>
 #include <Engine/Core/Rgba8.hpp>
 #include <Engine/Math/IntVec2.hpp>
-#include <Engine/Core/Vertex_PCU.hpp>
+#include "Engine/Core/VertexDefinitions.hpp"
 
 enum class EndianNess
 {

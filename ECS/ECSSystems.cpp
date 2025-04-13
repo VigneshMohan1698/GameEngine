@@ -13,8 +13,6 @@ ECSRenderingSystem::ECSRenderingSystem(ECS* ecs, RendererD12* renderer)
 	m_shadowShader = m_renderer->CreateOrGetShader("Shadow3D", "Data/Shaders/Shadow3D.hlsl");
 	m_engineShadowMap = new ShadowMap(m_renderer, m_renderer->GetDevice(), shadowMapDimensions.x, shadowMapDimensions.y);
 	g_theEventSystem->SubscribeEventCallbackObjectMethod("DebugKeyPressed", *this, &ECSRenderingSystem::DebugKeyPressed);
-	g_theEventSystem->SubscribeEventCallbackObjectMethod("DebugKeyPressed2", *this, &ECSRenderingSystem::DebugKeyPressed2);
-	g_theEventSystem->SubscribeEventCallbackObjectMethod("DebugKeyPressed3", *this, &ECSRenderingSystem::DebugKeyPressed3);
 }
 
 //---------------------------RENDERING SYSTEM---------------------------------------
@@ -46,7 +44,9 @@ void ECSRenderingSystem::UpdateCameraComponents()
 	}
 
 	//----------------------SHADOW PRE-PASS--------------------
-	if(m_engineShadowMap->m_isEnabled)
+	bool shadowMapFeatureEnabled = m_ecs->GetEngineState().m_enabledFeatures.shadowMapEnabled;
+
+	if(m_engineShadowMap->m_isEnabled && shadowMapFeatureEnabled)
 	{
 		m_renderer->BeginShadowMapRender(m_engineShadowMap);
 		Render3DEntitiesShadows(m_engineShadowMap, m_shadowShader);
@@ -59,6 +59,8 @@ void ECSRenderingSystem::UpdateCameraComponents()
 		//TO DO: If the entity is inactive don't render the mesh component.
 		Render3DEntities();
 	}
+
+	m_engineShadowMap->ClearShadows();
 }
 
 void ECSRenderingSystem::UpdateLightComponents()
@@ -163,33 +165,32 @@ void ECSRenderingSystem::Render3DEntitiesShadows(ShadowMap* shadowMap, ShaderD12
 	m_renderer->SetModelConstantData(Mat44(), Vec4(1.0f, 1.0f, 1.0f, 1.0f));
 }
 
-
 void ECSRenderingSystem::DebugKeyPressed(EventArgs& args)
 {
-	int keyPressed = args.GetValue<int>("KeyPressed", -1);
-
-	if (keyPressed == 1)
-	{
-		int shadowTechnique = (int)m_engineShadowMap->m_technique;
-		shadowTechnique += 1;
-		if (shadowTechnique == (int)ShadowTechnique::Total)
-		{
-			shadowTechnique = 0;
-		}
-		m_engineShadowMap->m_technique = (ShadowTechnique)shadowTechnique;
+	unsigned char keyCode = args.GetValue<unsigned char>("KeyPressed", 0);
+	Vec4& debugDataValues = m_renderer->m_cameraCB->debugData;
+	EngineState& engineState = m_ecs->GetEngineState();
+	if(keyCode == KEYCODE_F1) {
+		debugDataValues.x += 1.0f;
 	}
-}
-
-void ECSRenderingSystem::DebugKeyPressed2(EventArgs& args)
-{
-	m_engineShadowMap->m_debugOutput = args.GetValue<int>("KeyPressed", -1);
-}
-
-void ECSRenderingSystem::DebugKeyPressed3(EventArgs& args)
-{
-	float valueChange = args.GetValue<float>("Value", 1.0f);
-
-	m_engineShadowMap->m_lightSize += valueChange;
+	else if (keyCode == KEYCODE_F2) {
+		debugDataValues.y += 1.0f;
+	}
+	else if (keyCode == KEYCODE_F3) {
+		debugDataValues.z += 1.0f;
+	}
+	else if (keyCode == KEYCODE_F4) {
+		debugDataValues.w += 1.0f;
+	}
+	else if (keyCode == KEYCODE_F5) {
+		engineState.m_enabledFeatures.debugRendererEnabled = !engineState.m_enabledFeatures.debugRendererEnabled;
+	}
+	else if (keyCode == KEYCODE_F6) {
+		engineState.m_enabledFeatures.shadowMapEnabled = !engineState.m_enabledFeatures.shadowMapEnabled;
+	}
+	else if (keyCode == KEYCODE_F11) {
+		debugDataValues = Vec4();
+	}
 }
 
 //----------------------------INPUT SYSTEM--------------------------------
@@ -286,46 +287,65 @@ void ECSInputSystem::ControlledEntityMovement(float deltaSeconds, Mat44& ModelMa
 
 	EventArgs args;
 	
-	if (m_inputSystem->WasKeyJustPressed('1'))
+	if (m_inputSystem->WasKeyJustPressed(KEYCODE_F1))
 	{
-		args.SetValue("KeyPressed", 1);
+		args.SetValue("KeyPressed", KEYCODE_F1);
 		g_theEventSystem->FireEvent("DebugKeyPressed", args);
 	}
-	
-	if (m_inputSystem->WasKeyJustPressed('2'))
+
+	if (m_inputSystem->WasKeyJustPressed(KEYCODE_F2))
 	{
-		args.SetValue("KeyPressed", 2);
-		g_theEventSystem->FireEvent("DebugKeyPressed2", args);
+		args.SetValue("KeyPressed", KEYCODE_F2);
+		g_theEventSystem->FireEvent("DebugKeyPressed", args);
 	}
 
-	if (m_inputSystem->WasKeyJustPressed('3'))
+	if (m_inputSystem->WasKeyJustPressed(KEYCODE_F3))
 	{
-		args.SetValue("KeyPressed", 3);
-		g_theEventSystem->FireEvent("DebugKeyPressed2", args);
+		args.SetValue("KeyPressed", KEYCODE_F3);
+		g_theEventSystem->FireEvent("DebugKeyPressed", args);
 	}
 
-	if (m_inputSystem->WasKeyJustPressed('4'))
+	if (m_inputSystem->WasKeyJustPressed(KEYCODE_F4))
 	{
-		args.SetValue("KeyPressed", 4);
-		g_theEventSystem->FireEvent("DebugKeyPressed2", args);
+		args.SetValue("KeyPressed", KEYCODE_F4);
+		g_theEventSystem->FireEvent("DebugKeyPressed", args);
 	}
 
-	if (m_inputSystem->WasKeyJustPressed('5'))
+	if (m_inputSystem->WasKeyJustPressed(KEYCODE_F5))
 	{
-		args.SetValue("KeyPressed", 5);
-		g_theEventSystem->FireEvent("DebugKeyPressed2", args);
+		args.SetValue("KeyPressed", KEYCODE_F5);
+		g_theEventSystem->FireEvent("DebugKeyPressed", args);
 	}
 
-	if (m_inputSystem->IsKeyDown('J'))
+	if (m_inputSystem->WasKeyJustPressed(KEYCODE_F6))
 	{
-		args.SetValue("Value", -0.5f * deltaSeconds);
-		g_theEventSystem->FireEvent("DebugKeyPressed3", args);
+		args.SetValue("KeyPressed", KEYCODE_F6);
+		g_theEventSystem->FireEvent("DebugKeyPressed", args);
 	}
-
-	if (m_inputSystem->IsKeyDown('L'))
+	if (m_inputSystem->WasKeyJustPressed(KEYCODE_F7))
 	{
-		args.SetValue("Value", 0.5f * deltaSeconds);
-		g_theEventSystem->FireEvent("DebugKeyPressed3", args);
+		args.SetValue("KeyPressed", KEYCODE_F7);
+		g_theEventSystem->FireEvent("DebugKeyPressed", args);
+	}
+	if (m_inputSystem->WasKeyJustPressed(KEYCODE_F8))
+	{
+		args.SetValue("KeyPressed", KEYCODE_F8);
+		g_theEventSystem->FireEvent("DebugKeyPressed", args);
+	}
+	if (m_inputSystem->WasKeyJustPressed(KEYCODE_F9))
+	{
+		args.SetValue("KeyPressed", KEYCODE_F9);
+		g_theEventSystem->FireEvent("DebugKeyPressed", args);
+	}
+	if (m_inputSystem->WasKeyJustPressed(KEYCODE_F10))
+	{
+		args.SetValue("KeyPressed", KEYCODE_F10);
+		g_theEventSystem->FireEvent("DebugKeyPressed", args);
+	}
+	if (m_inputSystem->WasKeyJustPressed(KEYCODE_F11))
+	{
+		args.SetValue("KeyPressed", KEYCODE_F11);
+		g_theEventSystem->FireEvent("DebugKeyPressed", args);
 	}
 
 	Vec2 mouseDelta = m_inputSystem->GetMouseClientDelta();

@@ -1,7 +1,7 @@
 #include "Model.hpp"
 #include <string>
 #include <Engine/Core/FileUtils.hpp>
-#include <Engine/Core/Vertex_PNCU.hpp>
+#include "Engine/Core/VertexDefinitions.hpp"
 #include <Engine/Math/IntVec3.hpp>
 
 #include <Engine/Renderer/Renderer.hpp>

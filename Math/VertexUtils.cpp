@@ -3,7 +3,7 @@
 #include "Engine/Math/MathUtils.hpp"
 #include "Game/GameCommon.hpp"
 #include "Engine/Core/EngineCommon.hpp"
-#include <Engine/Core/Vertex_PNCUTB.hpp>
+#include "Engine/Core/VertexDefinitions.hpp"
 
 void TransformVertexArray3D(int vertices, Vertex_PCU* positionVertexArrays, float uniformScale, float rotationDegrees, const Vec3& translatePos)
 {

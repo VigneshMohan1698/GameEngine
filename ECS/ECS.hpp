@@ -13,6 +13,9 @@ class ECSSystem;
 
 class ECS
 { 
+	private:
+		EngineState m_engineState;
+
 	public:
 		void Startup();
 		void Shutdown();
@@ -46,6 +49,8 @@ class ECS
 			return m_controlledEntity;
 		}
 
+		void SetEngineState(const EngineState& engineState) { m_engineState = engineState;}
+		EngineState& GetEngineState() { return m_engineState ;}
 	public:
 		EntityID m_nextEntityID = 0;
 		//The entity that the main keyboard is controlling.
@@ -58,4 +63,5 @@ class ECS
 		std::unordered_map<EntityID, CameraComponent> m_cameraComponents;
 		std::unordered_map<EntityID, LightComponent> m_lightComponents;
 		std::unordered_map<EntityID, UITextComponent> m_UITextComponents;
+
 };

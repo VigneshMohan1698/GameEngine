@@ -1,5 +1,5 @@
 #pragma once
-#include "Engine/Core/Vertex_PCU.hpp"
+#include "Engine/Core/VertexDefinitions.hpp"
 #include <vector>
 #include "Engine/Math/AABB2.hpp"
 

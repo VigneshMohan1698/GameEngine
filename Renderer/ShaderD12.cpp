@@ -5,7 +5,6 @@
 #include "Engine/Renderer/RendererD12.hpp"
 #include <dxcapi.h>
 
-
 ShaderD12::ShaderD12(const ShaderConfigD12& config, RendererD12* renderer)
 {
 	m_config = config;
@@ -47,7 +46,6 @@ void ShaderD12::CreateShaderObjects()
 		CreatePipelineStateObject();
 	}
 }
-
 void ShaderD12::CreateComputeShaderObjects()
 {
 	m_config.m_shaderType = ShaderDetails::Compute;
@@ -86,7 +84,6 @@ void ShaderD12::CreateComputeShaderObjects()
 	m_pipelineStateObject->SetName(L"Compute PSO");
 
 }
-
 void ShaderD12::Create3DRootSignature()
 {
 	//-------------------CREATING ROOT SIGNATURE-----------------------------
@@ -157,7 +154,6 @@ void ShaderD12::Create3DRootSignature()
 		m_rootSignature->SetName(L"Vertex and pixel shader Root signature");
 	}
 }
-
 void ShaderD12::CreateShadowPipelineStateObject()
 {
 	//ComPtr<IDxcBlob> vsBlob = nullptr;
@@ -246,7 +242,6 @@ void ShaderD12::CreateShadowPipelineStateObject()
 	}
 	m_pipelineStateObject->SetName(L"3D Shadow Map pipeline state object");
 }
-
 void ShaderD12::Create3DPipelineStateObject()
 {
 	//ComPtr<IDxcBlob> vsBlob = nullptr;
@@ -347,8 +342,6 @@ void ShaderD12::Create3DPipelineStateObject()
 	//}
 	//m_pipelineStateObject->SetName(L"3D Shadow Map pipeline state object");
 }
-
-
 void ShaderD12::CreatePBRRootSignature()
 {
 	//-------------------CREATING ROOT SIGNATURE-----------------------------
@@ -473,8 +466,6 @@ void ShaderD12::CreatePBRPipelineStateObject()
 	}
 	m_pipelineStateObject->SetName(L"3D Shadow Map pipeline state object");
 }
-
-
 void ShaderD12::CreateDFSRootSignature()
 {
 	//-------------------CREATING ROOT SIGNATURE-----------------------------
@@ -515,7 +506,6 @@ void ShaderD12::CreateDFSRootSignature()
 	m_renderer->SerializeAndCreateRaytracingRootSignature(globalRootSignatureDesc, &m_rootSignature);
 	m_rootSignature->SetName(L"Vertex and pixel shader Root signature");
 }
-
 void ShaderD12::CreateDFSPipelineStateObject()
 {
 	//ComPtr<IDxcBlob> vsBlob = nullptr;
@@ -606,9 +596,6 @@ void ShaderD12::CreateDFSPipelineStateObject()
 	}
 	m_pipelineStateObject->SetName(L"3D Shadow Map pipeline state object");
 }
-
-
-
 void ShaderD12::CreateRootSignature()
 {
 	//-------------------CREATING ROOT SIGNATURE-----------------------------
@@ -631,7 +618,6 @@ void ShaderD12::CreateRootSignature()
 	m_renderer->SerializeAndCreateRaytracingRootSignature(globalRootSignatureDesc, &m_rootSignature);
 	m_rootSignature->SetName(L"Vertex and pixel shader 2D Root signature");
 }
-
 void ShaderD12::CreatePipelineStateObject()
 {
 	//ComPtr<IDxcBlob> vsBlob = nullptr;
@@ -691,12 +677,10 @@ void ShaderD12::CreatePipelineStateObject()
 	}
 	m_pipelineStateObject->SetName(L"2D pipeline State object");
 }
-
 const std::string& ShaderD12::GetName() const
 {
 	return m_config.m_name;
 }
-
 
 ShaderD12::~ShaderD12()
 {
@@ -704,3 +688,4 @@ ShaderD12::~ShaderD12()
 	m_pipelineStateObject.Reset();
 	m_shadowMapPSO.Reset();
 }
+

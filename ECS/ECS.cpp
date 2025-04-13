@@ -18,6 +18,7 @@ void ECS::Startup()
 
 void ECS::Update(float deltaSeconds)
 {
+	
 	for (auto& system : m_ecsSystems)
 	{
 		system->Update(deltaSeconds);

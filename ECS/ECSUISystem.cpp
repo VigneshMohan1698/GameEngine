@@ -11,6 +11,11 @@ ECSUISystem::ECSUISystem(ECS* ecs, RendererD12* renderer)
 
 void ECSUISystem::Update(float deltaSeconds)
 {
+	if (!m_ecs->GetEngineState().m_enabledFeatures.debugRendererEnabled) 
+	{
+		return;
+	}
+
 	CameraComponent* mainUICamera = nullptr;
 
 	for (auto& pair : m_ecs->m_cameraComponents)

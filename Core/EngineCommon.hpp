@@ -3,9 +3,7 @@
 #include "Engine/Core/NamedStrings.hpp"
 #include "Engine/Core/DevConsole.hpp"
 #include "Engine/Core/EventSystem.hpp"
-#include "Engine/Core/Vertex_PCU.hpp"
-#include "Engine/Core/Vertex_PNCU.hpp"
-#include "Engine/Core/Vertex_PNCUTB.hpp"
+#include "Engine/Core/VertexDefinitions.hpp"
 #include "Engine/Core/XmlUtils.hpp"
 
 //#include "Engine/Core/DevConsole.hpp"

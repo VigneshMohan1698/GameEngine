@@ -1,5 +1,5 @@
 #pragma once
-#include "Engine/Core/Vertex_PCU.hpp"
+#include "Engine/Core/VertexDefinitions.hpp"
 #include <vector>
 #include "Engine/Math/Capsule2.hpp"
 #include "Engine/Math/AABB2.hpp"
@@ -7,8 +7,6 @@
 #include "Engine/Math/LineSegment2.hpp"
 #include <string>
 #include "Engine/Math/AABB3.hpp"
-#include "Engine/Core/Vertex_PNCUTB.hpp"
-#include "Engine/Core/Vertex_PNCU.hpp"
 #include "Engine/Math/ConvexShapes.hpp"
 
 struct Mat44;

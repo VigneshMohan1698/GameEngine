@@ -3,15 +3,13 @@
 #include "Engine/Math/Vec2.hpp"
 #include "Engine/Math/Vec3.hpp"
 #include "Engine/Math/Vec4.hpp"
-#include "Engine/Core/Vertex_PCU.hpp"
-#include "Engine/Core/Vertex_PNCU.hpp"
+#include "Engine/Core/VertexDefinitions.hpp"
 #include "Engine/Renderer/Camera.hpp"
 #include "Engine/Window/Window.hpp"
 #include "Engine/Core/Image.hpp"
 #include "Engine/Math/IntVec2.hpp"
 #include "Engine/Renderer/BitmapFont.hpp"
 #include "Engine/Renderer/ConstantBuffer.hpp"
-#include "Engine/Core/Vertex_PNCU.hpp"
 #include "Engine/Renderer/RaytracingHelpers.hpp"
 #include "Engine/Renderer/TextureD12.hpp"
 #include "Engine/Core/EngineCommon.hpp"
@@ -30,11 +28,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <DirectXMath.h>
-#include "Engine/Core/Vertex_PNCUTB.hpp"
-
-
-
-
+#include <Engine/ECS/EngineData.hpp>
 using namespace Microsoft::WRL;
 
 class ResourceManager;
@@ -91,49 +85,6 @@ struct RaytracedPointLights
 	int  MaxLights = 30;
 };
 
-class ShaderCompiler
-{
-
-	public:
-	ShaderCompiler();
-	~ShaderCompiler();
-	
-	ComPtr<IDxcBlob>  Compile(const char* ShaderFilePath);
-	ComPtr<ID3DBlob>  CompileVsPs(const char* filePath, const D3D_SHADER_MACRO* defines, const std::string& entryPoint, const std::string& target);
-	ComPtr<IDxcBlob>  CompileComputeShader(const char* ShaderFilePath);
-	IDxcBlob*		  Compile(IDxcBlobEncoding* sourceBlob, LPCWSTR* args, unsigned long long numargs);
-
-	public:
-		//CD3DX12_SHADER_BYTECODE					m_shaderByteCodes[(int)CompiledShaderByteCodes::Count];
-
-	private:
-		ComPtr<IDxcCompiler>					m_compiler;
-		ComPtr<IDxcLibrary>						m_utils;
-		ComPtr<IDxcIncludeHandler>				m_handler;
-
-};
-typedef UINT Index;
-typedef DirectX::XMMATRIX XMMATRIX;
-typedef DirectX::XMVECTOR XMVECTOR;
-typedef DirectX::XMFLOAT4 XMFLOAT4;
-typedef DirectX::XMFLOAT2 XMFLOAT2;
-typedef DirectX::XMFLOAT3 XMFLOAT3;
-
-struct IrradianceCache
-{
-	Vec3 vertexPosition;
-	Vec3 vertexNormal;
-	Vec4 GI;
-};
-
-struct Vertex
-{
-	Vec4 position;
-	Vec3 normal;
-	Vec4 color;
-	Vec2 uv;
-};
-
 enum class DefaultRootSignatureParams {
 
 	//----SRV---
@@ -187,23 +138,6 @@ enum class DFSRootSignatureParams {
 	Count
 };
 
-struct CameraConstantBuffer
-{
-	Mat44 projectionMatrix;
-	Mat44 viewMatrix;
-	Mat44 lightViewMatrix;
-	Mat44 lightProjMatrix;
-	Vec4 cameraPosition;
-	Vec4 additionalData;
-};
-struct GameDataBuffer
-{
-	Vec4 globalLightPosition[4];
-	Vec4 globalLightDirection[4];
-	Vec4 globalLightColor[4];
-	Vec4 ViewX_GIOnY_ShadowPassZ_FrameTime;
-	float  renderOutput; // ------- 0 final output 1 Normals 
-};
 
 struct ModelConstantsD12
 {
@@ -375,6 +309,28 @@ struct RayGenConstantBuffer
 	Viewport stencil;
 };
 
+
+class ShaderCompiler
+{
+
+public:
+	ShaderCompiler();
+	~ShaderCompiler();
+
+	ComPtr<IDxcBlob>  Compile(const char* ShaderFilePath);
+	ComPtr<ID3DBlob>  CompileVsPs(const char* filePath, const D3D_SHADER_MACRO* defines, const std::string& entryPoint, const std::string& target);
+	ComPtr<IDxcBlob>  CompileComputeShader(const char* ShaderFilePath);
+	IDxcBlob* Compile(IDxcBlobEncoding* sourceBlob, LPCWSTR* args, unsigned long long numargs);
+
+public:
+	//CD3DX12_SHADER_BYTECODE					m_shaderByteCodes[(int)CompiledShaderByteCodes::Count];
+
+private:
+	ComPtr<IDxcCompiler>					m_compiler;
+	ComPtr<IDxcLibrary>						m_utils;
+	ComPtr<IDxcIncludeHandler>				m_handler;
+};
+
 class RendererD12
 {
 	public:
@@ -402,7 +358,7 @@ class RendererD12
 		 void			InitializeBasicBottomLevelAS();
 		 //void			InitializeSampler();
 		 void			InitializeGlobalIllumination();
-		 void			InitializeIrradianceCaching();
+		 //void			InitializeIrradianceCaching();
 		 void			BuildGeometryAndAS(std::vector<Vertex_PNCUTB>& verts, std::vector<UINT>& indices, int index = 0);
 		 void			BuildModelGeometryAndAS(std::vector<Vertex_PNCUTB>& verts, std::vector<UINT>& indices, int index);
 		 void			BuildBLAS(std::vector<Vertex_PNCUTB>& verts, std::vector<UINT>& indices, int index);
@@ -457,6 +413,7 @@ class RendererD12
 		 void			CopyTextureResourceFromBuffer(GpuBuffer* source, GpuBuffer* dest);
 		 void			CopyTextureResourceFromBuffer(GpuBuffer* source, GpuBuffer* dest , IntVec2 dimensionsToCopy);
 		 void			TransitionBufferToSRV(GpuBuffer* buffer);
+		 void			TransitionResourceToDepthWrite(GpuBuffer* buffer);
 		 void			TransitionBufferToUAV(GpuBuffer* buffer);
 		 void			CreateGPUBuffer(GpuBuffer* buffer, DXGI_FORMAT format, IntVec2 resourceDimensions, LPCWSTR name = L"");
 
@@ -568,8 +525,6 @@ class RendererD12
 		StructuredBuffer<AlignedHemisphereSample> m_hemisphereSamplesGPUBuffer;
 		GlobalIllumination*						  m_globalIllumination = nullptr;
 
-		//-----------------------------IRRADIANCE CACHING VARIABLES----------
-		StructuredBuffer<IrradianceCache>					m_irradianceCacheGPUBuffer;
 		//-----------------------------RESOURCE MANAGEMENT---------------
 		ResourceManager*						 m_resourceManager = nullptr;
 		//----------------------------DENOISING VARIABLES-------------------
@@ -693,7 +648,7 @@ class RendererD12
 
 		//------------------------RASTERIZATION VARIABLES-----------------
 		ConstantBufferD12<CameraConstantBuffer>	m_cameraCB;
-		ConstantBufferD12<GameDataBuffer>		m_gameDataCB;
+		ConstantBufferD12<EngineDataBuffer>		m_gameDataCB;
 		
 		ConstantBufferD12<ModelConstantsD12>	m_modelConstantsCB;
 

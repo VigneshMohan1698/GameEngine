@@ -1,7 +1,7 @@
 #pragma once	
 #include "Engine/Math/Vec2.hpp"
 #include "Engine/Math/Vec3.hpp"
-#include "Engine/Core/Vertex_PCU.hpp"
+#include "Engine/Core/VertexDefinitions.hpp"
 #include "Engine/Renderer/Camera.hpp"
 #include "Engine/Window/Window.hpp"
 #include "Engine/Renderer/Texture.hpp"
@@ -10,7 +10,6 @@
 #include <vector>
 #include "Engine/Renderer/BitmapFont.hpp"
 #include "Engine/Renderer/ConstantBuffer.hpp"
-#include <Engine/Core/Vertex_PNCU.hpp>
 #include <Engine/Core/Model.hpp>
 #include "Engine/Renderer/TextureView.hpp"
 #include "Engine/Math/MathUtils.hpp"

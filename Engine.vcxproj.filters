@@ -73,9 +73,6 @@
     <ClCompile Include="Core\Rgba8.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="Core\Vertex_PCU.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
     <ClCompile Include="Math\Vec3.cpp">
       <Filter>Math</Filter>
     </ClCompile>
@@ -229,9 +226,6 @@
     <ClCompile Include="Core\RaycastResult3D.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="Core\Vertex_PNCU.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
     <ClCompile Include="Renderer\SpriteAnimationGroupDefinition.cpp">
       <Filter>Renderer</Filter>
     </ClCompile>
@@ -310,9 +304,6 @@
     <ClCompile Include="Renderer\Composition.cpp">
       <Filter>RendererD12</Filter>
     </ClCompile>
-    <ClCompile Include="Core\Vertex_PNCUTB.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
     <ClCompile Include="..\ThirdParty\Mikkt\mikktspace.cpp">
       <Filter>ThirdParty\Mikkt</Filter>
     </ClCompile>
@@ -327,9 +318,6 @@
     </ClCompile>
     <ClCompile Include="Renderer\Sampler.cpp">
       <Filter>RenderPasses</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\Vertex_PNCUT.cpp">
-      <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="Renderer\PostProcess.cpp">
       <Filter>RenderPasses</Filter>
@@ -364,15 +352,15 @@
     <ClCompile Include="ECS\ECSUISystem.cpp">
       <Filter>ECS</Filter>
     </ClCompile>
+    <ClCompile Include="Core\VertexDefinitions.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Math\Vec2.hpp">
       <Filter>Math</Filter>
     </ClInclude>
     <ClInclude Include="Core\Rgba8.hpp">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\Vertex_PCU.hpp">
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Math\Vec3.hpp">
@@ -558,9 +546,6 @@
     <ClInclude Include="Core\RaycastResult3D.hpp">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="Core\Vertex_PNCU.hpp">
-      <Filter>Core</Filter>
-    </ClInclude>
     <ClInclude Include="Renderer\SpriteAnimationGroupDefinition.hpp">
       <Filter>Renderer</Filter>
     </ClInclude>
@@ -663,9 +648,6 @@
     <ClInclude Include="Renderer\Composition.hpp">
       <Filter>RendererD12</Filter>
     </ClInclude>
-    <ClInclude Include="Core\Vertex_PNCUTB.hpp">
-      <Filter>Core</Filter>
-    </ClInclude>
     <ClInclude Include="..\ThirdParty\Mikkt\mikktspace.h">
       <Filter>ThirdParty\Mikkt</Filter>
     </ClInclude>
@@ -680,9 +662,6 @@
     </ClInclude>
     <ClInclude Include="Renderer\Sampler.hpp">
       <Filter>RenderPasses</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\Vertex_PNCUT.hpp">
-      <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Renderer\PostProcess.hpp">
       <Filter>RenderPasses</Filter>
@@ -718,6 +697,12 @@
       <Filter>Material</Filter>
     </ClInclude>
     <ClInclude Include="ECS\ECSUISystem.hpp">
+      <Filter>ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\VertexDefinitions.hpp">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="ECS\EngineData.hpp">
       <Filter>ECS</Filter>
     </ClInclude>
   </ItemGroup>

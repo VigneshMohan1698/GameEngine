@@ -1,6 +1,5 @@
 #pragma once
-#include "Engine/Core/Vertex_PCU.hpp"
-
+#include "Engine/Core/VertexDefinitions.hpp"
 struct AABB3
 {
 const static AABB3 ZERO_TO_ONE;

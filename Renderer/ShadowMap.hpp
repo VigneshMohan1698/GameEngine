@@ -28,6 +28,7 @@ class ShadowMap
 
 	public:
 	void				 BuildBuffer();
+	void				 ClearShadows();
 	GpuBuffer*			 GetShaderResourceBuffer();
 	void				 UpdateCameraPosition(Vec3 position, EulerAngles orientation);
 	public:
@@ -43,6 +44,4 @@ class ShadowMap
 	Camera					m_shadowCamera;
 	bool					m_isEnabled = false;
 	ShadowTechnique			m_technique = ShadowTechnique::Basic;
-	float					m_debugOutput =  -1.0f;
-	float					m_lightSize =  1.0f;
 };

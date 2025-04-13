@@ -150,7 +150,6 @@ void RendererD12::ShutDown()
 	m_bunnyBlas.Reset();
 	m_sceneCB.ResetResources();
 	m_lightCB.ResetResources();
-	m_irradianceCacheGPUBuffer.ResetResources();
 	m_rtvDescriptorHeap.Reset();
 	m_dsvDescriptorHeap.Reset();
 	m_imguiDescriptorHeap.Reset();
@@ -187,15 +186,6 @@ void RendererD12::ShutDown()
 	::FreeLibrary((HMODULE)m_dxgiDebugModule);
 	m_dxgiDebugModule = nullptr;
 #endif 
-}
-void RendererD12::AddPointLights(Vec4 position)
-{
-	int currentCounter = m_lightCB->Counter;
-	if(currentCounter < m_lightCB->MaxLights - 1)
-	{
-		m_lightCB->Counter = currentCounter + 1;
-		m_lightCB->PointLightPosition[currentCounter + 1] = position;
-	}
 }
 void RendererD12::EndFrame()
 {
@@ -303,10 +293,8 @@ void RendererD12::BeginRasterizerCamera(const Camera& camera, ShadowMap* shadowM
 	{
 		lightViewMatrix = shadowMap->m_shadowCamera.GetViewMatrix();
 		lightProjectionMatrix = shadowMap->m_shadowCamera.GetProjectionMatrix();
-		m_cameraCB->additionalData.x = (float)shadowMap->m_technique;
-		m_cameraCB->additionalData.y = (float)shadowMap->m_debugOutput;
-		m_cameraCB->additionalData.z = (float)shadowMap->m_lightSize;
 	}
+
 	m_cameraCB->lightViewMatrix = lightViewMatrix;
 	m_cameraCB->lightProjMatrix = lightProjectionMatrix;
 
@@ -318,8 +306,12 @@ void RendererD12::BeginRasterizerCamera(const Camera& camera, ShadowMap* shadowM
 
 void RendererD12::BeginShadowMapRender(ShadowMap* shadowMap)
 {
-	auto depthTarget = &m_depthStencilBuffer.cpuDescriptorHandle;
+	GpuBuffer* shadowBuffer = &shadowMap->m_shadowBuffer;
+	auto depthTarget = &shadowBuffer->cpuDescriptorHandleForDepth;
 	m_RcommandList->OMSetRenderTargets(0, nullptr, FALSE, depthTarget);
+
+	//auto depthTarget = &m_depthStencilBuffer.cpuDescriptorHandle;
+	//m_RcommandList->OMSetRenderTargets(0, nullptr, FALSE, depthTarget);
 
 	m_currentCamera = shadowMap->m_shadowCamera;
 	m_currentCamera.SetTransform(shadowMap->m_shadowCamera.m_position, shadowMap->m_shadowCamera.m_orientation);
@@ -341,10 +333,18 @@ void RendererD12::BeginShadowMapRender(ShadowMap* shadowMap)
 void RendererD12::EndShadowMapRender(ShadowMap* shadowMap)
 {
 	FinishUpGPUWork();
-	CopyTextureResourceFromBuffer(&m_depthStencilBuffer, &shadowMap->m_shadowBuffer, shadowMap->GetDimensions());
+	GpuBuffer* shadowBuffer = &shadowMap->m_shadowBuffer;
 
-	D3D12_CLEAR_FLAGS flags = D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL;
-	m_RcommandList.Get()->ClearDepthStencilView(m_depthStencilBuffer.cpuDescriptorHandle, flags, 1, 0, 0, nullptr);
+	//Transition shadow map from Depth write to Shader resource so we can sample it
+	CD3DX12_RESOURCE_BARRIER depthTransitionBarrier = CD3DX12_RESOURCE_BARRIER::Transition(shadowBuffer->GetResource(),
+		D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	m_RcommandList->ResourceBarrier(1, &depthTransitionBarrier);
+
+	//Setting depth stencil back as the rendertarget
+	auto depthTarget = &m_depthStencilBuffer.cpuDescriptorHandle;
+	m_RcommandList->OMSetRenderTargets(0, nullptr, FALSE, depthTarget);
+
+	//CopyTextureResourceFromBuffer(&m_depthStencilBuffer, &shadowMap->m_shadowBuffer, shadowMap->GetDimensions());
 }
 
 void RendererD12::SetModelConstantData(Mat44 modelMatrix, Vec4 color)
@@ -765,15 +765,15 @@ void RendererD12::InitializeGlobalIllumination()
 	m_globalIllumination = new GlobalIllumination();
 	m_globalIllumination->Initialize(m_dxrDevice.Get(), m_backBufferCount);
 }
-void RendererD12::InitializeIrradianceCaching()
-{
-	//UINT maxPixelsInSampleSet1D = 8;
-	UINT maxSamplesPerSet = 65536;
-	UINT numSampleSets = 83;
-	auto device = m_Rdevice.Get();
-
-	m_irradianceCacheGPUBuffer.Create(device, maxSamplesPerSet * numSampleSets, m_backBufferCount, L"GPU buffer: Irradiance Cache");
-}
+//void RendererD12::InitializeIrradianceCaching()
+//{
+//	//UINT maxPixelsInSampleSet1D = 8;
+//	UINT maxSamplesPerSet = 65536;
+//	UINT numSampleSets = 83;
+//	auto device = m_Rdevice.Get();
+//
+//	m_irradianceCacheGPUBuffer.Create(device, maxSamplesPerSet * numSampleSets, m_backBufferCount, L"GPU buffer: Irradiance Cache");
+//}
 
 //--------------------------------------ACCELERATION STRUCTURE BUILDS-----------------------------
 void RendererD12::BuildGeometryAndAS(std::vector<Vertex_PNCUTB>& verts,std::vector<UINT>& indices, int index)
@@ -2028,7 +2028,6 @@ void RendererD12::CreateOrGetTextureFromFile(char const* fileName, char const* i
 	newTexture->m_name = fileName;
 	textureIndex = (int)m_loadedTextures.size() - 1;
 }
-
 TextureD12* RendererD12::CreateTextureFromFile(char const* imageFilePath)
 {
 	if (!FileExists(imageFilePath))
@@ -2066,7 +2065,6 @@ void RendererD12::BindTexture(int index, TextureD12* textureToBind)
 {
 	m_RcommandList->SetGraphicsRootDescriptorTable(index, textureToBind->m_gpuDescriptorHandle);
 }
-
 void RendererD12::BindTexture(int bufferIndex, int textureIndex)
 {
 	TextureD12* textureToBind = GetTextureAtIndex(textureIndex);
@@ -2076,13 +2074,11 @@ void RendererD12::BindTexture(int bufferIndex, int textureIndex)
 	}
 	m_RcommandList->SetGraphicsRootDescriptorTable(bufferIndex, textureToBind->m_gpuDescriptorHandle);
 }
-
 void RendererD12::BindComputeTexture(int index, TextureD12* textureToBind)
 {
 	m_RcommandList->SetComputeRootDescriptorTable(index, textureToBind->m_gpuDescriptorHandle);
 	
 }
-
 void RendererD12::BindComputeGpuBuffer(int index, GpuBuffer* buffer, bool isUAV)
 {
 	if (isUAV)
@@ -2099,7 +2095,6 @@ void RendererD12::BindHandle(int index,D3D12_GPU_DESCRIPTOR_HANDLE& handle)
 {
 	m_RcommandList->SetGraphicsRootDescriptorTable(index, handle);
 }
-
 void RendererD12::WriteGpuBufferToFile(GpuBuffer* buffer,std::string filePath)
 {
 	D3D12_RANGE readRange{ 0, 0 }; // Map the entire texture.
@@ -2133,6 +2128,15 @@ void RendererD12::WriteGpuBufferToFile(GpuBuffer* buffer,std::string filePath)
 }
 
 //----------------------------MAIN RENDER FUNCTIONS----------------------
+void RendererD12::AddPointLights(Vec4 position)
+{
+	int currentCounter = m_lightCB->Counter;
+	if (currentCounter < m_lightCB->MaxLights - 1)
+	{
+		m_lightCB->Counter = currentCounter + 1;
+		m_lightCB->PointLightPosition[currentCounter + 1] = position;
+	}
+}
 void RendererD12::ClearScreen(Rgba8 color)
 {
 	auto renderTarget = GetBackBufferCPUHandle();
@@ -2525,6 +2529,7 @@ void  RendererD12::ThrowIfFalse(bool result, const char* msg)
 }
 
 //----------------------------SHADERS AND SHADER COMPILATIONS----------------------
+//-----------------------Shader compiler functions-------------
 ShaderCompiler::ShaderCompiler()
 {
 	HRESULT hr = DxcCreateInstance(CLSID_DxcLibrary, IID_PPV_ARGS(&m_utils));
@@ -2577,7 +2582,7 @@ ComPtr<IDxcBlob> ShaderCompiler::Compile(const char* ShaderFilePath)
 			DebuggerPrintf("Shader Compiled successfully");
 		}
 	}
-		// Handle compilation error...
+	// Handle compilation error...
 	ComPtr<IDxcBlob> code;
 	result->GetResult(&code);
 	return code;
@@ -2585,9 +2590,9 @@ ComPtr<IDxcBlob> ShaderCompiler::Compile(const char* ShaderFilePath)
 ComPtr<ID3DBlob> ShaderCompiler::CompileVsPs(const char* filePath, const D3D_SHADER_MACRO* defines, const std::string& entryPoint, const std::string& target)
 {
 	UINT compileFlags = 0;
-	#if defined(ENGINE_DEBUG_RENDER)
-		compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
-	#endif
+#if defined(ENGINE_DEBUG_RENDER)
+	compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+#endif
 
 	ComPtr<ID3DBlob> byteCode = nullptr;
 	ComPtr<ID3DBlob> errors;
@@ -2595,7 +2600,7 @@ ComPtr<ID3DBlob> ShaderCompiler::CompileVsPs(const char* filePath, const D3D_SHA
 	wchar_t wtext[40];
 	size_t size = strlen(filePath) + 1;
 	mbstowcs_s(&size, wtext, filePath, strlen(filePath) + 1);//Plus null
-	HRESULT hr = D3DCompileFromFile(wtext, defines, D3D_COMPILE_STANDARD_FILE_INCLUDE, entryPoint.c_str(), target.c_str(), compileFlags, 0 , &byteCode, &errors);
+	HRESULT hr = D3DCompileFromFile(wtext, defines, D3D_COMPILE_STANDARD_FILE_INCLUDE, entryPoint.c_str(), target.c_str(), compileFlags, 0, &byteCode, &errors);
 
 	if (FAILED(hr))
 	{
@@ -2670,7 +2675,6 @@ ComPtr<ID3DBlob> ShaderCompiler::CompileVsPs(const char* filePath, const D3D_SHA
 	//result->GetResult(&code);
 	//return code;
 }
-
 ComPtr<IDxcBlob> ShaderCompiler::CompileComputeShader(const char* ShaderFilePath)
 {
 	wchar_t wtext[40];
@@ -2753,6 +2757,8 @@ IDxcBlob* ShaderCompiler::Compile(IDxcBlobEncoding* sourceBlob, LPCWSTR* args, u
 	//return finalShaderOutput.Detach();
 	return nullptr;
 }
+
+
 
 ShaderD12* RendererD12::CreateOrGetShader(const char* shaderName, const char* shaderFilePath,bool isCompute, bool containsTesselation, bool isShadowShader)
 {
@@ -3205,6 +3211,11 @@ void RendererD12::TransitionBufferToSRV(GpuBuffer* buffer)
 	m_resourceManager->TransitionResource(buffer, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, true);
 }
 
+void RendererD12::TransitionResourceToDepthWrite(GpuBuffer* buffer)
+{
+	m_resourceManager->TransitionResource(buffer, D3D12_RESOURCE_STATE_DEPTH_WRITE, true);
+}
+
 void RendererD12::TransitionBufferToUAV(GpuBuffer* buffer)
 {
 	m_resourceManager->TransitionResource(buffer, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, true);
@@ -3414,7 +3425,6 @@ Mesh* RendererD12::CreateOrGetMesh(const char* filePath)
 	Mesh* mesh = CreateMesh(filePath);
 	return mesh;
 }
-
 Mesh* RendererD12::GetMeshForName(const char* name)
 {
 	for (int i = 0; i < m_loadedMeshes.size(); i++)
@@ -3427,13 +3437,10 @@ Mesh* RendererD12::GetMeshForName(const char* name)
 
 	return nullptr;
 }
-
 Mesh* RendererD12::GetMeshAtIndex(int index)
 {
 	return m_loadedMeshes[index];
 }
-
-
 Mesh* RendererD12::CreateMeshFromSavedFile(const char* filePath)
 {
 	for (int i = 0; i < m_loadedMeshes.size(); i++)
