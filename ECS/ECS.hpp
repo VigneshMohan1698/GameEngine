@@ -3,13 +3,12 @@
 #include <Engine\ECS\ECSComponents.hpp>
 #include <Engine\Math\MathUtils.hpp>
 #include <unordered_set>
-#include <Engine/ECS/ECSSystems.hpp>
+#include <Engine/ECS/ECSRenderingSystem.hpp>
 #include <memory>
+
 
 typedef unsigned int EntityID;
 static const EntityID kInvalidEntityID = -1;
-
-class ECSSystem;
 
 class ECS
 { 
@@ -63,5 +62,5 @@ class ECS
 		std::unordered_map<EntityID, CameraComponent> m_cameraComponents;
 		std::unordered_map<EntityID, LightComponent> m_lightComponents;
 		std::unordered_map<EntityID, UITextComponent> m_UITextComponents;
-
 };
+

@@ -1,11 +1,13 @@
 #pragma once
 
 #include <unordered_map>
-#include <Engine/ECS/ECSSystems.hpp>
+#include <Engine/ECS/ECSRenderingSystem.hpp>
 #include <Engine/Renderer/RendererD12.hpp>
 #include <Engine/Input/InputSystem.hpp>
 #include <Engine/ECS/ECSComponents.hpp>
+#include "Engine/ECS/ECSSystem.hpp"
 
+class ECS;
 class ECSUISystem : public ECSSystem
 {
 public:

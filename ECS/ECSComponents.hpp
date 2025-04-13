@@ -22,8 +22,15 @@ enum class UIType
 	Checkbox
 };
 
+struct Component
+{
+	bool m_isDirty = true;
+	void MarkDirty() { m_isDirty  = true;}
+	void ClearDirty() { m_isDirty  = false;}
+	bool IsDirty() { return m_isDirty;}
+};
 
-struct TransformComponent
+struct TransformComponent : public Component
 {
 	Vec3 m_position;
 	EulerAngles m_orientationDegrees;
@@ -32,9 +39,8 @@ struct TransformComponent
 	//Use this for dirty tracking. 
 	Mat44 m_transformMatrix = Mat44();
 
-	//Get model Matrix and do the transform on CPU?
-	//Or bind it to a shader and do it on GPU?
-	Mat44 GetTransformMatrix() {
+	void CalculateAndCacheTransformMatrix()
+	{
 		Mat44 translationMatrix = Mat44::CreateTranslation3D(m_position);
 		Mat44 scaleMatrix = Mat44::CreateUniformScale3D(m_scale);
 		Mat44 rotationMatrix = m_orientationDegrees.GetAsMatrix_XFwd_YLeft_ZUp();
@@ -43,11 +49,16 @@ struct TransformComponent
 		rotationMatrix.Append(scaleMatrix);
 		translationMatrix.Append(rotationMatrix);
 		m_transformMatrix = translationMatrix;
-		return translationMatrix;
+	}
+
+	//Get model Matrix and do the transform on CPU?
+	//Or bind it to a shader and do it on GPU?
+	Mat44 GetTransformMatrix() {
+		return m_transformMatrix;
 	}
 };
 
-struct UITextComponent
+struct UITextComponent : public Component
 {
 	UITextComponent() {};
 	~UITextComponent() {};
@@ -59,7 +70,7 @@ struct UITextComponent
 };
 
 
-struct MeshComponent
+struct MeshComponent : public Component
 {
 public:
 
@@ -67,14 +78,16 @@ public:
 	~MeshComponent();
 	Mesh*			m_mesh = new Mesh();
 	Material		m_material;
+	bool			m_isStatic = false;
+	bool			m_castsShadows = true;
 
 public:
 	void			Add3DModelMesh(std::string modelName);
 };
 
-struct CameraComponent
+struct CameraComponent : public Component
 {
-	Camera			m_camera;
+	Camera			m_camera = Camera();
 	bool			m_mainUICamera = false;
 	bool			m_main3DCamera = false;
 
@@ -84,7 +97,7 @@ struct CameraComponent
 	}
 };
 
-struct LightComponent
+struct LightComponent : public Component
 {
 	LightType       m_type = LightType::NotDefined;
 	bool			m_isShadowed = false;

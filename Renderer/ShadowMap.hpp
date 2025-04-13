@@ -14,7 +14,7 @@ class ShadowMap
 {
 	friend class RendererD12;
 	public:
-	ShadowMap(RendererD12* renderer,ID3D12Device* device,UINT width, UINT height);
+	ShadowMap(RendererD12* renderer,ID3D12Device* device);
 
 	ShadowMap(const ShadowMap& shadowMap)=delete;
 	ShadowMap& operator=(const ShadowMap& shadowMap)=delete;
@@ -23,8 +23,8 @@ class ShadowMap
 	UINT				 GetWidth() { return m_width; };
 	UINT				 GetHeight() { return m_height; } ;
 	IntVec2				 GetDimensions() {return IntVec2(m_width , m_height);}
-	D3D12_VIEWPORT		 GetViewport() {return m_viewport;} ;
-	D3D12_RECT			 ScissorRect() {return m_scissorRect;} ;
+	D3D12_VIEWPORT*		 GetViewport() {return &m_viewport;} ;
+	const D3D12_RECT*			 GetScissorRect() {return &m_scissorRect;} ;
 
 	public:
 	void				 BuildBuffer();

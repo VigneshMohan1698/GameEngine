@@ -2,6 +2,9 @@
 
 #include <Engine/Math/Mat44.hpp>
 #include <Engine/Math/Vec4.hpp>
+#include <Engine/Math/Vec2.hpp>
+
+const static IntVec2 ShadowMapResolution = IntVec2(1024,1024);
 
 struct FeaturesEnabled
 {

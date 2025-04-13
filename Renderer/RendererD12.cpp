@@ -189,54 +189,10 @@ void RendererD12::ShutDown()
 }
 void RendererD12::EndFrame()
 {
-	//return;
-	//HRESULT result;
-	//unsigned long long fenceToWaitFor;
-	//ID3D12CommandList* ppCommandLists[1];
-	//// Indicate that the back buffer will now be used to present.
-	//m_barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
-	//m_barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
-	//m_commandList->ResourceBarrier(1, &m_barrier);
-	////Once we are done our rendering list we close the command listand then submit it to the command queue to execute that list for us.
-
-	//// Close the list of commands.
-	//result = m_commandList->Close();
-	////if (FAILED(result))
-	////{
-	////	ERROR_AND_DIE("Failed to close command list");
-	////}
-
-	//// Load the command list array (only one command list for now).
-	//ppCommandLists[0] = m_commandList;
-
-	//// Execute the list of commands.
-	//m_commandQueue->ExecuteCommandLists(1, ppCommandLists);
-	//m_swapChain->Present(1, 0);
-
-	//fenceToWaitFor = m_fenceValue;
-	//result = m_commandQueue->Signal(m_fencePointer, fenceToWaitFor);
-	//if (FAILED(result))
-	//{
-	//	ERROR_AND_DIE("Failed while fetching fence")
-	//}
-	//m_fenceValue++;
-
-	//// Wait until the GPU is done rendering.
-	//if (m_fence->GetCompletedValue() < fenceToWaitFor)
-	//{
-	//	result = m_fence->SetEventOnCompletion(fenceToWaitFor, m_fenceEventHandle);
-	//	if (FAILED(result))
-	//	{
-	//		ERROR_AND_DIE("Failed while event completion in end frame")
-	//	}
-	//	WaitForSingleObject(m_fenceEventHandle, INFINITE);
-	//}
-	////For the next frame swap to the other back buffer using the alternating index.
-
-	//// Alternate the back buffer index back and forth between 0 and 1 each frame.
-	//m_frameIndex == 0 ? m_frameIndex = 1 : m_frameIndex = 0;
+	FinishUpGPUWork();
+	Present();
+	MoveToNextFrame();
 }
-
 
 //----------------------------CAMERA FUNCTIONS-----------------------------
 void RendererD12::BeginCamera(const Camera& camera)
@@ -310,26 +266,20 @@ void RendererD12::BeginShadowMapRender(ShadowMap* shadowMap)
 	auto depthTarget = &shadowBuffer->cpuDescriptorHandleForDepth;
 	m_RcommandList->OMSetRenderTargets(0, nullptr, FALSE, depthTarget);
 
-	//auto depthTarget = &m_depthStencilBuffer.cpuDescriptorHandle;
-	//m_RcommandList->OMSetRenderTargets(0, nullptr, FALSE, depthTarget);
-
 	m_currentCamera = shadowMap->m_shadowCamera;
 	m_currentCamera.SetTransform(shadowMap->m_shadowCamera.m_position, shadowMap->m_shadowCamera.m_orientation);
-	m_RcommandList->RSSetViewports(1, &m_screenViewport);
-	m_RcommandList->RSSetScissorRects(1, &m_scissorRect);
+	m_RcommandList->RSSetViewports(1, shadowMap->GetViewport());
+	m_RcommandList->RSSetScissorRects(1, shadowMap->GetScissorRect());
 
 	m_cameraCB->projectionMatrix = m_currentCamera.GetProjectionMatrix();
 	m_cameraCB->viewMatrix = m_currentCamera.GetViewMatrix();
-	//m_cameraCB->cameraPosition = Vec4(m_currentCamera.m_position, 0.0f);
 	m_gameDataCB->ViewX_GIOnY_ShadowPassZ_FrameTime.z = 1;
 
-	//m_gameDataCB->globalLightPosition = 
 	m_cameraCB.CopyStagingToGpu(m_frameIndex);
 	m_gameDataCB.CopyStagingToGpu(m_frameIndex);
 
 	m_fenceValues[m_frameIndex] = m_fenceValues[m_frameIndex] + 1;
 }
-
 void RendererD12::EndShadowMapRender(ShadowMap* shadowMap)
 {
 	FinishUpGPUWork();
@@ -346,14 +296,12 @@ void RendererD12::EndShadowMapRender(ShadowMap* shadowMap)
 
 	//CopyTextureResourceFromBuffer(&m_depthStencilBuffer, &shadowMap->m_shadowBuffer, shadowMap->GetDimensions());
 }
-
 void RendererD12::SetModelConstantData(Mat44 modelMatrix, Vec4 color)
 {
 	m_modelConstantsCB->ModelMatrix = modelMatrix;
 	m_modelConstantsCB->Color = color;
 	m_modelConstantsCB.CopyStagingToGpu(m_frameIndex);
 }
-
 void RendererD12::SetRaytraceQuadCamera( Vec3 topLeft, Vec3 bottomLeft,Vec3 topRight, Vec3 bottomRight)
 {
 UNUSED((void)topLeft);
@@ -369,7 +317,6 @@ void RendererD12::EndCamera(const Camera& camera)
 {
 	UNUSED((void)camera);
 }
-
 void RendererD12::D3D12InterfaceInitialization()
 {
 	m_windowDimensions = m_renderConfig.m_window->GetClientDimensions();
@@ -599,9 +546,6 @@ void RendererD12::InitializeRasterization()
 	m_gameDataCB.Create(m_Rdevice.Get(), m_backBufferCount, L"Game Constant Buffer");
 	m_modelConstantsCB.Create(m_Rdevice.Get(), m_backBufferCount, L"Model Constants Buffer");
 }
-
-
-
 void RendererD12::FinishUpGPUWork()
 {
 	ExecuteCommandList(m_RcommandList);

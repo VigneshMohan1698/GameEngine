@@ -64,5 +64,5 @@ void ECSUISystem::RenderUI(CameraComponent* uiCamera)
 	m_renderer->BindTexture(0, fontTexture);
 	m_renderer->BeginRasterizerCamera(uiCamera->m_camera);
 	m_renderer->DrawVertexArray(uiVerts.size(), uiVerts);
-	m_renderer->FinishUpGPUWork();
+	//m_renderer->FinishUpGPUWork();
 }

@@ -1,21 +1,22 @@
 #include "Engine/Renderer/ShadowMap.hpp"
 #include "Engine/Renderer/RendererD12.hpp"
 
-ShadowMap::ShadowMap(RendererD12* renderer,ID3D12Device* device, UINT width, UINT height)
+ShadowMap::ShadowMap(RendererD12* renderer,ID3D12Device* device)
 {
 	m_device = device;
-	m_width = width;
-	m_height = height;
+	IntVec2 shadowMapRes = ShadowMapResolution;
+	m_width = shadowMapRes.x;
+	m_height = shadowMapRes.y;
 	m_viewport.TopLeftX = 0.0f;
 	m_viewport.TopLeftY = 0.0f;
-	m_viewport.Width = (float)width;
-	m_viewport.Height = (float)height;
+	m_viewport.Width = (float)shadowMapRes.x;
+	m_viewport.Height = (float)shadowMapRes.y;
 	m_viewport.MinDepth = 0.0f;
 	m_viewport.MaxDepth = 1.0f;
 	m_scissorRect.left = 0;
 	m_scissorRect.top = 0;
-	m_scissorRect.right = (int)width;
-	m_scissorRect.bottom = (int)height;
+	m_scissorRect.right = (int)shadowMapRes.x;
+	m_scissorRect.bottom = (int)shadowMapRes.y;
 
 	//BuildDepthResource();
 	//BuildShaderResource();
@@ -25,14 +26,12 @@ ShadowMap::ShadowMap(RendererD12* renderer,ID3D12Device* device, UINT width, UIN
 	Vec3 jbasis = Vec3(-1.0f, 0.0f, 0.0f);
 	Vec3 kbasis = Vec3(0.0f, 1.0f, 0.0f);
 	m_shadowCamera.SetViewToRenderTransform(ibasis, jbasis, kbasis);
-	m_shadowCamera.SetPerspectiveView(2.0f, 60.0f, 0.1f, 100.0f);
+	m_shadowCamera.SetPerspectiveView(1.0f, 90.0f, 0.1f, 100.0f);
 }
-
 ShadowMap::~ShadowMap()
 {
 	m_shadowBuffer.ResetResource();
 }
-
 void ShadowMap::BuildBuffer()
 {
 	auto device = m_renderer->m_Rdevice;
@@ -138,19 +137,22 @@ void ShadowMap::BuildBuffer()
 	//m_shadowBuffer.gpuReadDescriptorHandle = CD3DX12_GPU_DESCRIPTOR_HANDLE(m_renderer->m_descriptorHeap->GetGPUDescriptorHandleForHeapStart(), heapIndex, m_renderer->m_descriptorSize);
 
 }
-
 void ShadowMap::ClearShadows() 
 {
+	CD3DX12_RESOURCE_BARRIER depthTransitionBarrier = CD3DX12_RESOURCE_BARRIER::Transition(m_shadowBuffer.GetResource(),
+		D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE );
+	m_renderer->m_RcommandList.Get()->ResourceBarrier(1, &depthTransitionBarrier);
+
 	D3D12_CLEAR_FLAGS flags = D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL;
 	m_renderer->m_RcommandList.Get()->ClearDepthStencilView(m_shadowBuffer.cpuDescriptorHandleForDepth, flags, 1, 0, 0, nullptr);
 }
-
 GpuBuffer* ShadowMap::GetShaderResourceBuffer()
 {
 	return &m_shadowBuffer;
 }
 void ShadowMap::UpdateCameraPosition(Vec3 position, EulerAngles orientation)
 {
+	//Vec3& lightPosition = position;
 	m_shadowCamera.SetTransform(position, orientation);
 }
 

@@ -5,6 +5,8 @@
 
 #include <Engine/Renderer/RendererD12.hpp>
 #include "ECSUISystem.hpp"
+#include "ECSInputSystem.hpp"
+#include "ECSTransformSystem.hpp"
 //TO DO: Is this bad? Maybe pass it in constructor?
 
 extern RendererD12* g_theRenderer;
@@ -23,10 +25,6 @@ void ECS::Update(float deltaSeconds)
 	{
 		system->Update(deltaSeconds);
 	}
-
-	g_theRenderer->Present();
-	g_theRenderer->MoveToNextFrame();
-
 }
 
 void ECS::Shutdown()
@@ -43,6 +41,7 @@ void ECS::Shutdown()
 void ECS::RegisterRequiredSystems()
 {
 	m_ecsSystems.push_back(std::make_unique<ECSInputSystem>(this, g_theInputSystem));
+	m_ecsSystems.push_back(std::make_unique<ECSTransformSystem>(this));
 	m_ecsSystems.push_back(std::make_unique<ECSRenderingSystem>(this, g_theRenderer));
 	m_ecsSystems.push_back(std::make_unique<ECSUISystem>(this, g_theRenderer));
 }

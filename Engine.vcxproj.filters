@@ -340,7 +340,7 @@
     <ClCompile Include="ECS\ECS.cpp">
       <Filter>ECS</Filter>
     </ClCompile>
-    <ClCompile Include="ECS\ECSSystems.cpp">
+    <ClCompile Include="ECS\ECSRenderingSystem.cpp">
       <Filter>ECS</Filter>
     </ClCompile>
     <ClCompile Include="Material\Material.cpp">
@@ -354,6 +354,15 @@
     </ClCompile>
     <ClCompile Include="Core\VertexDefinitions.cpp">
       <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="ECS\ECSInputSystem.cpp">
+      <Filter>ECS</Filter>
+    </ClCompile>
+    <ClCompile Include="ECS\ECSTransformSystem.cpp">
+      <Filter>ECS</Filter>
+    </ClCompile>
+    <ClCompile Include="ECS\ECSSystem.cpp">
+      <Filter>ECS</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -687,7 +696,7 @@
     <ClInclude Include="ECS\ECS.hpp">
       <Filter>ECS</Filter>
     </ClInclude>
-    <ClInclude Include="ECS\ECSSystems.hpp">
+    <ClInclude Include="ECS\ECSRenderingSystem.hpp">
       <Filter>ECS</Filter>
     </ClInclude>
     <ClInclude Include="Material\Material.hpp">
@@ -703,6 +712,15 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="ECS\EngineData.hpp">
+      <Filter>ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="ECS\ECSInputSystem.hpp">
+      <Filter>ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="ECS\ECSTransformSystem.hpp">
+      <Filter>ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="ECS\ECSSystem.hpp">
       <Filter>ECS</Filter>
     </ClInclude>
   </ItemGroup>
