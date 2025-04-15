@@ -65,6 +65,9 @@
     <Filter Include="Material">
       <UniqueIdentifier>{ffa43f57-9421-4ce8-accb-976d5f9f8178}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Editor">
+      <UniqueIdentifier>{66d7c5d3-b747-4935-a03f-062f6d8141b6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Math\Vec2.cpp">
@@ -363,6 +366,12 @@
     </ClCompile>
     <ClCompile Include="ECS\ECSSystem.cpp">
       <Filter>ECS</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor\Editor.cpp">
+      <Filter>Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor\EditorImgui.cpp">
+      <Filter>Editor</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -722,6 +731,12 @@
     </ClInclude>
     <ClInclude Include="ECS\ECSSystem.hpp">
       <Filter>ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\Editor.hpp">
+      <Filter>Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\EditorImgui.hpp">
+      <Filter>Editor</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

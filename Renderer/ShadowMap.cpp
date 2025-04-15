@@ -155,5 +155,3 @@ void ShadowMap::UpdateCameraPosition(Vec3 position, EulerAngles orientation)
 	//Vec3& lightPosition = position;
 	m_shadowCamera.SetTransform(position, orientation);
 }
-
-

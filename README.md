@@ -14,12 +14,8 @@ Game Engine Features :
 8. Multithreaded Job System
 9. 2D Sprite Sheet Animation System
 
+Buttons and debug keys: 
 
-Debug keys: 
-1, 2 & 3 are recognized by the input system and send out events that can be picked up by other systems.
-
-To Dos: 
-Add UI as part of ECS.
-Write a profiler, fix performance. Get atleast 144fps. 
-Create actual engine UI tools. Meaning an editor
-Start with rendering work, volumetrics, lighting etc.,
+General Notes: 
+Use this link to track future plans: 
+https://app.milanote.com/1U4ySy1OLtoA2y/albus-future-plans
