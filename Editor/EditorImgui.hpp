@@ -1,13 +1,23 @@
 #pragma once
 #include "Engine/Math/IntVec2.hpp"
-#include "ThirdParty/ImGui/imgui_internal.h"
+#include "Engine/Math/Vec4.hpp"
+#include "ThirdParty/ImGui/imgui.h"
 class Editor;
+
+enum Fonts {
+	SF20,
+	SF14,
+	SFItalic,
+	SFBold20,
+	SFBold14,
+	FontCount
+};
 
 enum ImGuiColorIndexes {
 	HeadingText,
 	SubheadingText,
 	SimpleText,
-	Count
+	ImGuiColorsCount
 };
 
 class EditorImGui
@@ -20,12 +30,15 @@ class EditorImGui
 	void DrawEditor();
 	void ShutdownImGui();
 
+	void InitializeFonts(ImGuiIO* io);
+	void SetStyle();
 	//bool ImGuiColorPicker(const char* label, ImColor* color);
 
 	private:
-	static ImVec4   m_colors[ImGuiColorIndexes::Count];
+	//static Vec4     m_colors[ImGuiColorIndexes::ImGuiColorsCount];
 	float			m_relativeScale = 1.0f;
 	IntVec2			m_windowdim = IntVec2();
 	ImGuiContext*	m_context = nullptr;
 	Editor*			m_editor  = nullptr;
+	ImFont*			m_fonts[Fonts::FontCount] = {};
 };

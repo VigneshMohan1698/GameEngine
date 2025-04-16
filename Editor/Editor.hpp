@@ -24,7 +24,7 @@ class Editor
 	void Update(float deltaSeconds);
 	void Shutdown();
 
-	private: 
+	public: 
 	EditorImGui*		 m_editorImgui = nullptr;
 	EditorSettings		 m_settings  = EditorSettings();
 

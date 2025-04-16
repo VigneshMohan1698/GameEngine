@@ -157,7 +157,7 @@ void Window::CreateOSWindow()
 	float desktopAspect = desktopWidth / desktopHeight;
 
 	// Calculate maximum client size (as some % of desktop size)
-	constexpr float maxClientFractionOfDesktop = 0.99f;
+	constexpr float maxClientFractionOfDesktop = 0.999f;
 	float clientWidth = desktopWidth * maxClientFractionOfDesktop;
 	float clientHeight = desktopHeight * maxClientFractionOfDesktop;
 	float clientAspect = windowContext->GetConfig().m_clientAspect;

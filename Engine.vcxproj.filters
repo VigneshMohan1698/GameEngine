@@ -68,6 +68,12 @@
     <Filter Include="Editor">
       <UniqueIdentifier>{66d7c5d3-b747-4935-a03f-062f6d8141b6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Assets">
+      <UniqueIdentifier>{707a765b-d5f9-44af-a31b-ef1dc13dd203}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Assets\Fonts">
+      <UniqueIdentifier>{ca42e32c-5c9e-46b0-8a43-9795c19e82cd}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Math\Vec2.cpp">
@@ -738,5 +744,13 @@
     <ClInclude Include="Editor\EditorImgui.hpp">
       <Filter>Editor</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Font Include="Assets\Fonts\SF.ttf">
+      <Filter>Assets\Fonts</Filter>
+    </Font>
+    <Font Include="Assets\Fonts\SFItalic.ttf">
+      <Filter>Assets\Fonts</Filter>
+    </Font>
   </ItemGroup>
 </Project>

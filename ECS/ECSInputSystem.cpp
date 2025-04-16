@@ -3,10 +3,34 @@
 #include <Engine/Renderer/ShadowMap.hpp>
 
 extern EventSystem* g_theEventSystem;
+extern RendererD12* g_theRenderer;
 
 //----------------------------INPUT SYSTEM--------------------------------
 void ECSInputSystem::Update(float deltaSeconds)
 {
+	bool windowHasFocus = g_theRenderer->GetRenderConfig().m_window->HasFocus();
+
+	if (m_inputSystem->WasKeyJustPressed(KEYCODE_SPACE))
+	{
+		m_mouseVisible = !m_mouseVisible;
+	}
+
+	if (!windowHasFocus)
+	{
+		m_inputSystem->SetMouseMode(false, false, false);
+	}
+	else if (windowHasFocus)
+	{
+		if (m_mouseVisible)
+		{
+			m_inputSystem->SetMouseMode(false, false, false);
+		}
+		else
+		{
+			m_inputSystem->SetMouseMode(true, true, true);
+		}
+	}
+
 	for (auto& pair : m_ecs->m_cameraComponents)
 	{
 		//----------Update main camera if that's what the game is controlling-----------------

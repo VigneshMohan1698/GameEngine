@@ -1,4 +1,7 @@
 #include "Editor.hpp"
+#include "Engine/Renderer/RendererD12.hpp"
+
+extern RendererD12* g_theRenderer;
 
 void Editor::Startup()
 {

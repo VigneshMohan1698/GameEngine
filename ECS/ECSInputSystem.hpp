@@ -27,4 +27,5 @@ class ECSInputSystem : public ECSSystem
 
 	private:
 	InputSystem* m_inputSystem = nullptr;
+	bool		 m_mouseVisible = true;
 };

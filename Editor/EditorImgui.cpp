@@ -10,9 +10,9 @@ extern RendererD12* g_theRenderer;
 
 EditorImGui::EditorImGui(Editor* editor)
 {
+	m_editor = editor;
 	InitializeImGui();
-	m_colors[0] = ImVec4(0.0f, 1.0f, 1.0f, 1.0f);
-	m_colors[1] = ImVec4(0.0f, 0.5f, 0.5f, 1.0f);
+	SetStyle();
 }
 
 EditorImGui::~EditorImGui()
@@ -33,12 +33,15 @@ void EditorImGui::InitializeImGui()
 	D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = imguiHeap->GetGPUDescriptorHandleForHeapStart();
 	ImGui_ImplDX12_Init(device, 3, DXGI_FORMAT_R8G8B8A8_UNORM, imguiHeap,
 		cpuHandle, gpuHandle);
+
+	ImGuiIO& io = ImGui::GetIO();
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+	InitializeFonts(&io);
 	ImGui_ImplDX12_CreateDeviceObjects();
 
 	//m_color = new ImColor(255, 255, 255);
 	m_windowdim = g_theRenderer->GetRenderConfig().m_window->GetClientDimensions();
-	ImGui::GetIO().ImeWindowHandle = g_theRenderer->GetRenderConfig().m_window->GetHwnd();
-
+	//io.ImeWindowHandle = g_theRenderer->GetRenderConfig().m_window->GetHwnd();
 	m_relativeScale = g_theRenderer->m_dimensions.x / static_cast<float>(m_windowdim.x);
 }
 
@@ -48,24 +51,39 @@ void EditorImGui::DrawEditor()
 	ImGui_ImplWin32_NewFrame();
 
 	ImGui::NewFrame();
-	if (ImGui::CollapsingHeader("Player Info"))
-	{
-		ImGui::TextColored(m_colors[0], "Player Info : ");
-		ImGui::TextColored(m_colors[1], "Game Info : ");
-		ImGui::Text("F1-F4 Different Debug options");
-		ImGui::Text("F5 Debug renderer enabled");
-		ImGui::Text("F6 Shadows enabled");
-		ImGui::Text("(SPACE) for Activate IMGUI (WASD) To Move Camera (IJKL, MN) to move Light");
-	}
+
+	ImGuiID dockspace_id = ImGui::GetID("Engine");
+	ImGui::DockSpace(dockspace_id, ImVec2(0, 0), ImGuiDockNodeFlags_PassthruCentralNode);
+
+	ImGui::PushFont(m_fonts[Fonts::SF14]);
+
+	ImGui::PushFont(m_fonts[Fonts::SFBold14]); 	ImGui::Begin("Scene Inspector", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing ); ImGui::PopFont();
+
+	ImGui::Text("Contains scene information");
 
 	ImGui::End();
+
+	ImGui::PushFont(m_fonts[Fonts::SFBold14]);  ImGui::Begin("Assets", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing);  ImGui::PopFont();
+	ImGui::Text("Acces to all assets");
+	ImGui::End();
+
+	ImGui::PushFont(m_fonts[Fonts::SFBold14]);  ImGui::Begin("Profiler", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing); ImGui::PopFont();
+	ImGui::Text("Performance and memory information");
+	ImGui::End();
+
+	ImGui::PushFont(m_fonts[Fonts::SFBold14]);  ImGui::Begin("Additional Information", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing);  ImGui::PopFont();
+	ImGui::Text("Information about clicked entity?");
+	ImGui::End();
+
+	ImGui::PopFont();
 	ImGui::Render();
+
 	auto heap = g_theRenderer->GetIMGUIDescriptorHeap();
 	auto renderTarget = g_theRenderer->GetBackBufferCPUHandle();
 	g_theRenderer->GetCommandList()->SetDescriptorHeaps(1, &heap);
 	g_theRenderer->GetCommandList()->OMSetRenderTargets(1, renderTarget, FALSE, NULL);
 	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), g_theRenderer->GetCommandList());
-
+	
 }
 
 void EditorImGui::ShutdownImGui()
@@ -75,6 +93,28 @@ void EditorImGui::ShutdownImGui()
 	ImGui::DestroyContext();
 }
 
+void EditorImGui::SetStyle()
+{
+	ImGuiStyle& style = ImGui::GetStyle();
+	if (m_editor->m_settings.editorTheme == EditorTheme::Dark) {
+		ImGui::StyleColorsDark();
+	} else {
+		ImGui::StyleColorsLight();
+	}
+	style.Colors[ImGuiCol_TitleBgActive] = style.Colors[ImGuiCol_TitleBg];
+	style.Colors[ImGuiCol_DockingEmptyBg] = style.Colors[ImGuiCol_TitleBg];
+	style.Colors[ImGuiCol_WindowBg].w = 1.0f;
+}
+
+void EditorImGui::InitializeFonts(ImGuiIO* io)
+{
+	m_fonts[Fonts::SF20] = io->Fonts->AddFontFromFileTTF("../../Engine/Code/Engine/Assets/Fonts/SF.ttf", 20.0f);
+	m_fonts[Fonts::SF14] = io->Fonts->AddFontFromFileTTF("../../Engine/Code/Engine/Assets/Fonts/SF.ttf", 16.0f);
+	m_fonts[Fonts::SFItalic] = io->Fonts->AddFontFromFileTTF("../../Engine/Code/Engine/Assets/Fonts/SFItalic.ttf", 14.0f);
+	m_fonts[Fonts::SFBold20] = io->Fonts->AddFontFromFileTTF("../../Engine/Code/Engine/Assets/Fonts/SFBold.ttf", 20.0f);
+	m_fonts[Fonts::SFBold14] = io->Fonts->AddFontFromFileTTF("../../Engine/Code/Engine/Assets/Fonts/SFBold.ttf", 16.0f);
+	io->Fonts->Build();
+}
 //bool EditorImGui::ImGuiColorPicker(const char* label, ImColor* color)
 //{
 //	static const float HUE_PICKER_WIDTH = 20.0f;
