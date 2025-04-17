@@ -379,6 +379,9 @@
     <ClCompile Include="Editor\EditorImgui.cpp">
       <Filter>Editor</Filter>
     </ClCompile>
+    <ClCompile Include="Editor\EditorComponents.cpp">
+      <Filter>Editor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Math\Vec2.hpp">
@@ -742,6 +745,9 @@
       <Filter>Editor</Filter>
     </ClInclude>
     <ClInclude Include="Editor\EditorImgui.hpp">
+      <Filter>Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\EditorComponents.hpp">
       <Filter>Editor</Filter>
     </ClInclude>
   </ItemGroup>

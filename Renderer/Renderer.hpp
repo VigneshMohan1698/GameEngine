@@ -318,8 +318,8 @@ public:
 	Texture*	CreateTextureFromImage(const Image& image);			
 	Texture*	CreateTextureFromInfo(const TextureCreateInfo& image);
 	void		DestroyTexture(Texture* texture);
-	Texture*	GetCurrentColorTarget();
-	Texture*	GetCurrentDepthTarget();
+	//Texture*	GetCurrentColorTarget();
+	//Texture*	GetCurrentDepthTarget();
 	void		CopyTexture(Texture* from, Texture* to);
 
 	//----------EFFECTS------------------------

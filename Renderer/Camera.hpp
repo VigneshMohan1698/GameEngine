@@ -13,6 +13,14 @@ class Texture;
 	Stereoscope
 };
 
+struct CameraSettings {
+	CameraView viewType = CameraView::Perspective;
+	float	   fov = 90.0f;
+	float	   znear = 0.01f;
+	float	   zFar =  1000.0f;
+	float	   aspect = 2.0f;
+};
+
 class OrbitCamera
 {
 	public:
@@ -51,12 +59,9 @@ class Camera {
 
 		//--------------------CAMERA VIEWS-------------------------------------------
 		void				SetPerspectiveView(float aspect, float fov, float near, float far);
-		void				SetStereoscopicView(Mat44 stereoScopicProjectionMatrix, Mat44 viewToRender);
-		void				SetStereoscopicView(float aspect, float fov, float, float, float left, float right);
 		void				SetOrthoView(Vec2 const& bottomLeft, Vec2 const& topRight);
 		void				SetOrthoView();
 		Mat44				GetPerspectiveMatrix() const;
-		Mat44				GetStereoScopicMatrix() const;
 		void				SetViewToRenderTransform(Vec3 const& iBasis, Vec3 const& jBasis, Vec3 const& kBasis);
 		Mat44				GetViewToRenderMatrix() const;
 		Mat44				GetOrthoMatrix() const;
@@ -68,33 +73,24 @@ class Camera {
 		void				SetLookAt(const Vec3& positionToLookAt, const Vec3& up);
 		void				SetLookAtMatrix(const Mat44& matrix, bool setValue);
 		EulerAngles			GetCameraOrientation();
-		void				SetColorTarget(Texture* tex);
-		void				SetDepthTarget(Texture* tex);
-		Texture*			GetColorTarget();
-		Texture*			GetDepthTarget();
-		void				DestroyTextures();
+		void				SetFov(float fov);
+		void				SetZnearAndFar(float znear, float zfar);
+		void				SetCameraSettings(const CameraSettings& cameraSettings) {m_cameraSettings = cameraSettings;}
+		const CameraSettings&  GetCameraSettings() {return m_cameraSettings;}
+		void				RecalculateCameraMatrix();
 
-		Texture*			m_colorTarget = nullptr;
-		Texture*			m_depthTarget = nullptr;
 		Vec3				m_position;
 		EulerAngles			m_orientation;
 		AABB2				m_viewport = AABB2::ZERO_TO_ONE;
-		float				m_cameraAspectRatio = 2.0f;
-		Renderer*			m_owner = nullptr;
-		CameraView			m_cameraView = CameraView::Perspective;
+		CameraSettings		m_cameraSettings = {};
 	private:
 		Mat44				m_viewToRenderMatrix = Mat44();
 		Vec3				m_renderI = Vec3(1.0f, 0.0f, 0.0f);
 		Vec3				m_renderJ = Vec3(0.0f, 1.0f, 0.0f);
 		Vec3				m_renderK = Vec3(0.0f, 0.0f, 1.0f);
 
-		Vec2				m_bottomLeft;
-		Vec2				m_topRight;
-
 		Mat44				m_perspectiveCameraMatrix;
 		Mat44				m_orthogrphicCameraMatrix;
-		Mat44				m_stereoScopicCameraMatrix;
-		Mat44				m_stereoScopicEyeMatrix;
 		Mat44				m_lookAtMatrix = Mat44();
 		bool				m_lookAtMatrixSet = false;
 

@@ -6,8 +6,13 @@ extern RendererD12* g_theRenderer;
 void Editor::Startup()
 {
 	//The constructor will initialize imgui
-	m_editorImgui = new EditorImGui(this);
 	m_settings.editorTheme = EditorTheme::Dark;
+	m_editorImgui = new EditorImGui(this);
+}
+
+void Editor::Update(float deltaSeconds)
+{
+	m_editorImgui->UpdateEditor(deltaSeconds);
 }
 
 void Editor::Render()
@@ -15,10 +20,6 @@ void Editor::Render()
 	m_editorImgui->DrawEditor();
 }
 
-void Editor::Update(float deltaSeconds)
-{
-	
-}
 
 void Editor::Shutdown()
 {

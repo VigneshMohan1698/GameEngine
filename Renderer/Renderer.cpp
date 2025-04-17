@@ -145,24 +145,24 @@ void Renderer::DestroyTexture(Texture* texture)
 		texture = nullptr;
 	}
 }
-Texture* Renderer::GetCurrentColorTarget()
-{
-	if (m_currentCamera == nullptr)
-	{
-		return m_activeColorTarget[m_activeColorTargetIndex];
-	}
-	Texture* color = m_currentCamera->GetColorTarget();
-	return (color == nullptr ) ?  m_activeColorTarget[m_activeColorTargetIndex] : color;
-}
-Texture* Renderer::GetCurrentDepthTarget()
-{
-	if (m_currentCamera == nullptr)
-	{
-		return m_depthBuffer;
-	}
-	Texture* color = m_currentCamera->GetDepthTarget();
-	return (color == nullptr) ? m_depthBuffer : color;
-}
+//Texture* Renderer::GetCurrentColorTarget()
+//{
+//	if (m_currentCamera == nullptr)
+//	{
+//		return m_activeColorTarget[m_activeColorTargetIndex];
+//	}
+//	Texture* color = m_currentCamera->GetColorTarget();
+//	return (color == nullptr ) ?  m_activeColorTarget[m_activeColorTargetIndex] : color;
+//}
+//Texture* Renderer::GetCurrentDepthTarget()
+//{
+//	if (m_currentCamera == nullptr)
+//	{
+//		return m_depthBuffer;
+//	}
+//	Texture* color = m_currentCamera->GetDepthTarget();
+//	return (color == nullptr) ? m_depthBuffer : color;
+//}
 void Renderer::ShutDown()
 {
 	DebugRenderShutDown();
@@ -200,7 +200,7 @@ void Renderer::ShutDown()
 		DX_SAFE_RELEASE(m_worldCubesCBO->m_buffer);
 	}
 	DestroyTexture(m_backBuffer);
-	DestroyTexture(GetCurrentDepthTarget());
+	//DestroyTexture(GetCurrentDepthTarget());
 	DestroyTexture(m_defaultTexture);
 	DestroyTexture(m_activeColorTarget[0]);
 	DestroyTexture(m_activeColorTarget[1]);
@@ -884,8 +884,8 @@ void Renderer::ClearScreen(const Rgba8& clearColor)
 	float clearScreenColor[4];
 	clearColor.GetAsFloats(clearScreenColor);
 
-	TextureView* rtv = GetCurrentColorTarget()->GetRenderTargetView();
-	m_deviceContext->ClearRenderTargetView(rtv->m_rtv, clearScreenColor);
+	//TextureView* rtv = GetCurrentColorTarget()->GetRenderTargetView();
+	//m_deviceContext->ClearRenderTargetView(rtv->m_rtv, clearScreenColor);
 	//rtv = m_activeColorTarget[1]->GetRenderTargetView();
 	//m_deviceContext->ClearRenderTargetView(rtv->m_rtv, clearScreenColor);
 	ClearDepth();
@@ -901,14 +901,14 @@ void Renderer::BeginCamera(const Camera& camera)
 	glOrtho(cameraMinBounds.x, cameraMaxBounds.x, cameraMinBounds.y,
 		cameraMaxBounds.y, 0.f, 1.f);*/
 	//-------------------------OPENGL-----------------------------------------
-	if (camera.m_cameraView == CameraView::Perspective)
+	if (camera.m_cameraSettings.viewType == CameraView::Perspective)
 	{
 		SetRasterizerState(CullMode::BACK, FillMode::SOLID, WindingOrder::COUNTERCLOCKWISE);
 		SetDepthStencilState(DepthTest::LESSEQUAL, true);
 		SetSamplerMode(SamplerMode::BILINEARWRAP);
 		SetBlendMode(BlendMode::ALPHA);
 	}
-	else if (camera.m_cameraView == CameraView::Orthographic)
+	else if (camera.m_cameraSettings.viewType == CameraView::Orthographic)
 	{
 		SetDepthStencilState(DepthTest::ALWAYS, false);
 		SetRasterizerState(CullMode::NONE, FillMode::SOLID, WindingOrder::COUNTERCLOCKWISE);
@@ -923,12 +923,12 @@ void Renderer::BeginCamera(const Camera& camera)
 	SetModalMatrix(Mat44());
 	SetModalColor(modelColor);
 
-	TextureView* rtv = GetCurrentColorTarget()->GetRenderTargetView();
-	if (GetCurrentDepthTarget() != nullptr)
+	//TextureView* rtv = GetCurrentColorTarget()->GetRenderTargetView();
+	/*if (GetCurrentDepthTarget() != nullptr)
 	{
 		TextureView* dsv = GetCurrentDepthTarget()->GetDepthStencilView();
 		m_deviceContext->OMSetRenderTargets(1, &(rtv->m_rtv), dsv->m_dsv);
-	}
+	}*/
 	BindCameraConstantsToShader();
 }
 
@@ -1894,72 +1894,72 @@ void Renderer::CopyTexture(Texture* src, Texture* dest)
 }
 void Renderer::PrepareRendererForNextPass()
 {
-	Texture* src = GetCurrentColorTarget();
+	/*Texture* src = GetCurrentColorTarget();
 	TextureView* rtv = src->GetRenderTargetView();
 	m_deviceContext->OMSetRenderTargets(1, &rtv->m_rtv, nullptr);
-	m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);*/
 }
 void Renderer::ApplySpecialEffects(Shader* shader)
 {
-	BindShader(shader);
-	Texture* src = GetCurrentColorTarget();
-	Texture* dst = m_activeColorTargetIndex == 0 ? m_activeColorTarget[1] : m_activeColorTarget[0];
-	Texture* depth = GetCurrentDepthTarget();
+	//BindShader(shader);
+	////Texture* src = GetCurrentColorTarget();
+	//Texture* dst = m_activeColorTargetIndex == 0 ? m_activeColorTarget[1] : m_activeColorTarget[0];
+	////Texture* depth = GetCurrentDepthTarget();
 
-	TextureView* rtv = dst->GetRenderTargetView();
-	m_deviceContext->OMSetRenderTargets(1, &rtv->m_rtv, nullptr);
-	m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	//TextureView* rtv = dst->GetRenderTargetView();
+	//m_deviceContext->OMSetRenderTargets(1, &rtv->m_rtv, nullptr);
+	//m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	float windowDimensionsX = static_cast<float>(src->m_dimensions.x);
-	float windowDimensionsY = static_cast<float>(src->m_dimensions.y);
-	D3D11_VIEWPORT viewport = { 0 };
-	viewport.TopLeftX = 0;
-	viewport.TopLeftY = 0;
-	viewport.Width = windowDimensionsX;
-	viewport.Height = windowDimensionsY;
-	viewport.MinDepth = 0.f;
-	viewport.MaxDepth = 1.f;
-	m_deviceContext->RSSetViewports(1, &viewport);
+	////float windowDimensionsX = static_cast<float>(src->m_dimensions.x);
+	////float windowDimensionsY = static_cast<float>(src->m_dimensions.y);
+	//D3D11_VIEWPORT viewport = { 0 };
+	//viewport.TopLeftX = 0;
+	//viewport.TopLeftY = 0;
+	//viewport.Width = windowDimensionsX;
+	//viewport.Height = windowDimensionsY;
+	//viewport.MinDepth = 0.f;
+	//viewport.MaxDepth = 1.f;
+	//m_deviceContext->RSSetViewports(1, &viewport);
 
-	BindTexture(src, 0);
-	BindTexture(depth, 1);
-	BindSampler();
-	m_deviceContext->Draw(3, 0);
-	m_activeColorTargetIndex = (m_activeColorTargetIndex + 1) % 2;
-	m_deviceContext->ClearState();
+	////BindTexture(src, 0);
+	////BindTexture(depth, 1);
+	//BindSampler();
+	//m_deviceContext->Draw(3, 0);
+	//m_activeColorTargetIndex = (m_activeColorTargetIndex + 1) % 2;
+	//m_deviceContext->ClearState();
 }
 
 
 void Renderer::ApplySpecialEffects(Shader* shader,  ConstantBuffer* constantBuffer,EffectsBuffer& data)
 {
-	BindShader(shader);
-	Texture* src = GetCurrentColorTarget();
-	Texture* dst = m_activeColorTargetIndex == 0 ? m_activeColorTarget[1]  : m_activeColorTarget[0];
-	Texture* depth =  GetCurrentDepthTarget();
+	//BindShader(shader);
+	////Texture* src = GetCurrentColorTarget();
+	//Texture* dst = m_activeColorTargetIndex == 0 ? m_activeColorTarget[1]  : m_activeColorTarget[0];
+	////Texture* depth =  GetCurrentDepthTarget();
 
-	TextureView* rtv = dst->GetRenderTargetView();
-	m_deviceContext->OMSetRenderTargets(1, &rtv->m_rtv, nullptr);
-	m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	//TextureView* rtv = dst->GetRenderTargetView();
+	//m_deviceContext->OMSetRenderTargets(1, &rtv->m_rtv, nullptr);
+	//m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	float windowDimensionsX = static_cast<float>(src->m_dimensions.x);
-	float windowDimensionsY = static_cast<float>(src->m_dimensions.y);
-	D3D11_VIEWPORT viewport = { 0 };
-	viewport.TopLeftX = 0 ;
-	viewport.TopLeftY = 0 ;
-	viewport.Width = windowDimensionsX ;
-	viewport.Height = windowDimensionsY ;
-	viewport.MinDepth = 0.f;
-	viewport.MaxDepth = 1.f;
-	m_deviceContext->RSSetViewports(1, &viewport);
+	////float windowDimensionsX = static_cast<float>(src->m_dimensions.x);
+	////float windowDimensionsY = static_cast<float>(src->m_dimensions.y);
+	//D3D11_VIEWPORT viewport = { 0 };
+	//viewport.TopLeftX = 0 ;
+	//viewport.TopLeftY = 0 ;
+	//viewport.Width = windowDimensionsX ;
+	//viewport.Height = windowDimensionsY ;
+	//viewport.MinDepth = 0.f;
+	//viewport.MaxDepth = 1.f;
+	//m_deviceContext->RSSetViewports(1, &viewport);
 
-	CopyCPUToGPU(&data, sizeof(EffectsBuffer), constantBuffer);
-	BindConstantBuffer(1, constantBuffer);
-	BindTexture(src, 0);
-	BindTexture(depth, 1);
-	BindSampler();
-	m_deviceContext->Draw(3, 0);
-	m_activeColorTargetIndex = (m_activeColorTargetIndex + 1) % 2;
-	m_deviceContext->ClearState();
+	//CopyCPUToGPU(&data, sizeof(EffectsBuffer), constantBuffer);
+	//BindConstantBuffer(1, constantBuffer);
+	//BindTexture(src, 0);
+	//BindTexture(depth, 1);
+	//BindSampler();
+	//m_deviceContext->Draw(3, 0);
+	//m_activeColorTargetIndex = (m_activeColorTargetIndex + 1) % 2;
+	//m_deviceContext->ClearState();
 }
 
 void Renderer::CreateDepthStencilTextureAndView()
@@ -2004,8 +2004,8 @@ void Renderer::CreateBackBuffer()
 }
 void Renderer::ClearDepth(float value)
 {
-	TextureView* dsv = GetCurrentDepthTarget()->GetDepthStencilView();
-	m_deviceContext->ClearDepthStencilView(dsv->m_dsv, D3D11_CLEAR_DEPTH, value, 0);
+	//TextureView* dsv = GetCurrentDepthTarget()->GetDepthStencilView();
+	//m_deviceContext->ClearDepthStencilView(dsv->m_dsv, D3D11_CLEAR_DEPTH, value, 0);
 	/*if (m_depthStencilView)
 	{
 		m_deviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH, value, NULL);

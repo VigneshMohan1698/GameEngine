@@ -393,6 +393,7 @@
     <ClCompile Include="ECS\ECSTransformSystem.cpp" />
     <ClCompile Include="ECS\ECSUISystem.cpp" />
     <ClCompile Include="Editor\Editor.cpp" />
+    <ClCompile Include="Editor\EditorComponents.cpp" />
     <ClCompile Include="Editor\EditorImgui.cpp" />
     <ClCompile Include="Input\AnalogJoystick.cpp" />
     <ClCompile Include="Input\InputSystem.cpp" />
@@ -535,6 +536,7 @@
     <ClInclude Include="ECS\ECSUISystem.hpp" />
     <ClInclude Include="ECS\EngineData.hpp" />
     <ClInclude Include="Editor\Editor.hpp" />
+    <ClInclude Include="Editor\EditorComponents.hpp" />
     <ClInclude Include="Editor\EditorImgui.hpp" />
     <ClInclude Include="Input\AnalogJoystick.hpp" />
     <ClInclude Include="Input\InputSystem.hpp" />

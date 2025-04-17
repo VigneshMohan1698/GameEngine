@@ -101,4 +101,7 @@ struct LightComponent : public Component
 {
 	LightType       m_type = LightType::NotDefined;
 	bool			m_isShadowed = false;
+	float			m_fov = 60.0f;
+	float			znear = 0.01f;
+	float			zFar = 1000.0f;
 };

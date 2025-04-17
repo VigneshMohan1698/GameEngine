@@ -23,7 +23,7 @@ void D3D12ImGui::InitializeImGui()
 
 	m_color = new ImColor(255, 255, 255);
 	m_windowdim = g_theRenderer->GetRenderConfig().m_window->GetClientDimensions();
-	ImGui::GetIO().ImeWindowHandle = g_theRenderer->GetRenderConfig().m_window->GetHwnd();
+	//ImGui::GetIO().ImeWindowHandle = g_theRenderer->GetRenderConfig().m_window->GetHwnd();
 
 	m_relativeScale = g_theRenderer->m_dimensions.x / static_cast<float>(m_windowdim.x);
 	//ImGui::GetIO().DisplaySize =  ImVec2(windowdim.x, windowdim.y);

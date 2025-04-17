@@ -491,27 +491,30 @@ void Mesh::AddCubeMesh(const Cube& cube, const AABB2& uvs, const Vec4& color)
 
 void Mesh::AddGridLinesMesh()
 {
+	float m_thickness1 = 2.0f * 0.001f;
+	float m_thickness2 = 4.0f * 0.001f;
+	float m_thickness3 = 10.0f * 0.001f;
 	if (m_cpuMesh != nullptr)
 	{
 		ERROR_AND_DIE("Cpu mesh is not null!");
 	}
-	float thickness = 0.005f;
+	float thickness = m_thickness1;
 	m_cpuMesh = new CPUMesh();
 	m_cpuMesh->m_verticesWithTangent.reserve(100);
 	for (int i = -50; i < 49; i++)
 	{
-		thickness = 0.005f;
+		thickness = m_thickness1;
 		AABB3 redLinesBounds = AABB3(Vec3(-50.0f, i - thickness, -thickness), Vec3(49.0f, i + thickness, thickness));
 		Rgba8 color = Rgba8(125, 125, 125, 255);
 		
 		if (i == 0)
 		{
-			thickness = 0.04f;
+			thickness = m_thickness3;
 			color = Rgba8::RED;
 		} 
 		else if (i % 5 == 0.0f)
 		{
-			thickness = 0.01f;
+			thickness = m_thickness2;
 			color = Rgba8::WHITE;
 		}
 		float colorFloats[4];
@@ -520,17 +523,17 @@ void Mesh::AddGridLinesMesh()
 	}
 	for (int i = -50; i < 49; i++)
 	{
-		thickness = 0.005f;
+		thickness = m_thickness1;
 		AABB3 redLinesBounds = AABB3(Vec3(i - thickness, -50.0f , -thickness), Vec3(i + thickness, 49.0f, thickness));
 		Rgba8 color = Rgba8(125, 125, 125, 255);
 		if (i == 0)
 		{
-			thickness = 0.04f;
+			thickness = m_thickness3;
 			color = Rgba8::GREEN;
 		}
 		else if (i % 5 == 0.0f)
 		{
-			thickness = 0.01f;
+			thickness = m_thickness2;
 			color = Rgba8::WHITE;
 		}
 		float colorFloats[4];

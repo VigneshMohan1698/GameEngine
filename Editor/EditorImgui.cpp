@@ -45,6 +45,18 @@ void EditorImGui::InitializeImGui()
 	m_relativeScale = g_theRenderer->m_dimensions.x / static_cast<float>(m_windowdim.x);
 }
 
+void EditorImGui::UpdateEditor(float deltaSeconds)
+{
+	int index = m_currentFrameNumber % 100;
+	if (deltaSeconds == 0.0f) {
+		m_frameTimesData[index] = 0.0f;
+	} else {
+		m_frameTimesData[index] = 1.0f / deltaSeconds;
+	}
+	
+	m_currentFrameNumber++;
+}
+
 void EditorImGui::DrawEditor()
 {
 	ImGui_ImplDX12_NewFrame();
@@ -69,9 +81,24 @@ void EditorImGui::DrawEditor()
 
 	ImGui::PushFont(m_fonts[Fonts::SFBold14]);  ImGui::Begin("Profiler", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing); ImGui::PopFont();
 	ImGui::Text("Performance and memory information");
+	int currentFPS = m_frameTimesData[m_currentFrameNumber % 100];
+
+	if (currentFPS < 60.0f) {
+		ImGui::PushStyleColor(ImGuiCol_PlotLines, IM_COL32(255, 0, 0, 255)); // red
+	}
+	else {
+		ImGui::PushStyleColor(ImGuiCol_PlotLines, IM_COL32(0, 255, 0, 255)); // green
+	}
+
+	std::string overlay = "FPS: " + std::to_string(currentFPS);
+	ImGui::PlotLines("##fps", m_frameTimesData, IM_ARRAYSIZE(m_frameTimesData), m_currentFrameNumber % IM_ARRAYSIZE(m_frameTimesData),
+		overlay.c_str(), 0.0f, 144.0f, ImVec2(300, 150));
+
+	ImGui::PopStyleColor();
 	ImGui::End();
 
-	ImGui::PushFont(m_fonts[Fonts::SFBold14]);  ImGui::Begin("Additional Information", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing);  ImGui::PopFont();
+
+	ImGui::PushFont(m_fonts[Fonts::SFBold14]);  ImGui::Begin("Render Options", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing);  ImGui::PopFont();
 	ImGui::Text("Information about clicked entity?");
 	ImGui::End();
 

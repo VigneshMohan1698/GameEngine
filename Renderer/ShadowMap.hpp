@@ -31,6 +31,10 @@ class ShadowMap
 	void				 ClearShadows();
 	GpuBuffer*			 GetShaderResourceBuffer();
 	void				 UpdateCameraPosition(Vec3 position, EulerAngles orientation);
+	void				 UpdateCameraFov(float FOV);
+	void				 UpdateCameraNearAndFar(float znear, float zfar);
+	void				 UpdateCameraSettingsAndRecalculateProjection(float fov, float znear, float zfar);
+
 	public:
 	ID3D12Device*			m_device = nullptr;
 	D3D12_VIEWPORT			m_viewport;

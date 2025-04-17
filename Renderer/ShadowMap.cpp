@@ -152,6 +152,24 @@ GpuBuffer* ShadowMap::GetShaderResourceBuffer()
 }
 void ShadowMap::UpdateCameraPosition(Vec3 position, EulerAngles orientation)
 {
-	//Vec3& lightPosition = position;
 	m_shadowCamera.SetTransform(position, orientation);
+}
+
+void ShadowMap::UpdateCameraFov(float fov)
+{
+	m_shadowCamera.SetFov(fov);
+	m_shadowCamera.RecalculateCameraMatrix();
+}
+
+void ShadowMap::UpdateCameraSettingsAndRecalculateProjection(float fov, float znear, float zfar)
+{
+	m_shadowCamera.SetFov(fov);
+	m_shadowCamera.SetZnearAndFar(znear, zfar);
+	m_shadowCamera.RecalculateCameraMatrix();
+}
+
+void ShadowMap::UpdateCameraNearAndFar(float znear, float zfar)
+{
+	m_shadowCamera.SetZnearAndFar(znear, zfar);
+	m_shadowCamera.RecalculateCameraMatrix();
 }

@@ -32,9 +32,9 @@ struct EngineDataBuffer
 };
 
 
-class EngineState
+struct EngineState
 {
-	public: 
 	FeaturesEnabled m_enabledFeatures;
 	EngineDataBuffer m_engineDataBuffer;
+	float			m_frameTime;
 };

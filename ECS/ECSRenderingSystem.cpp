@@ -65,13 +65,20 @@ void ECSRenderingSystem::UpdateLightComponents()
 {
 	for (auto& pair : m_ecs->m_lightComponents)
 	{
-		TransformComponent* transformComponent = m_ecs->GetComponentOfType<TransformComponent>(pair.first);
-		if (!transformComponent)
-		{
-			ERROR_AND_DIE("Light needs a transform component");
+		LightComponent& lightComp = pair.second;
+		if (lightComp.m_isShadowed && lightComp.IsDirty()) {
+			TransformComponent* transformComponent = m_ecs->GetComponentOfType<TransformComponent>(pair.first);
+			if (!transformComponent)
+			{
+				ERROR_AND_DIE("Light needs a transform component");
+			}
+			m_engineShadowMap->m_isEnabled = true;
+			m_engineShadowMap->UpdateCameraSettingsAndRecalculateProjection(lightComp.m_fov, lightComp.znear, lightComp.zFar);
+			m_engineShadowMap->UpdateCameraPosition(transformComponent->m_position, transformComponent->m_orientationDegrees);
+			lightComp.ClearDirty();
+			break;
 		}
-		m_engineShadowMap->m_isEnabled = true;
-		m_engineShadowMap->UpdateCameraPosition(transformComponent->m_position, transformComponent->m_orientationDegrees);
+		
 	}
 }
 

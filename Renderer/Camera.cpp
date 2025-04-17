@@ -8,25 +8,25 @@ Camera::Camera(float bottomX, float bottomY, float topX, float topY)
 {
 	Vec2 bottomLeft = Vec2(bottomX, bottomY);
 	Vec2 topRight = Vec2(topX, topY);
-	SetOrthoView(bottomLeft, topRight);
 	SetCameraBounds(bottomLeft, topRight);
-	m_cameraView = Orthographic;
+	SetOrthoView(bottomLeft, topRight);
+	m_cameraSettings.viewType = Orthographic;
 	m_orientation = EulerAngles(0.0f, 0.0f, 0.0f);
 }
 void Camera::SetOrthoView(Vec2 const& bottomLeft, Vec2 const& topRight)
 {
-	this->m_bottomLeft = bottomLeft;
-	this->m_topRight = topRight;
-	m_cameraView = Orthographic;
+	m_cameraSettings.viewType = Orthographic;
+	m_orthogrphicCameraMatrix = Mat44::CreateOrthoProjection(cameraBounds.m_mins.x, cameraBounds.m_maxs.x, cameraBounds.m_mins.y, cameraBounds.m_maxs.y, 0.0f, 1.0f);
 }
 void Camera::SetOrthoView()
 {
-	m_cameraView = Orthographic;
+	m_cameraSettings.viewType = Orthographic;
+	m_orthogrphicCameraMatrix =  Mat44::CreateOrthoProjection(cameraBounds.m_mins.x, cameraBounds.m_maxs.x, cameraBounds.m_mins.y, cameraBounds.m_maxs.y, 0.0f, 1.0f);
 }
 void Camera::SetCameraBounds(Vec2 const& bottomLeft, Vec2 const& topRight)
 {
-	this->cameraBounds.m_mins = bottomLeft;
-	this->cameraBounds.m_maxs = topRight;
+	cameraBounds.m_mins = bottomLeft;
+	cameraBounds.m_maxs = topRight;
 }
 
 void Camera::SetCameraBounds(AABB2 bounds)
@@ -34,18 +34,7 @@ void Camera::SetCameraBounds(AABB2 bounds)
 	Bottomleft = bounds.m_mins;
 	TopRight = bounds.m_maxs;
 	
-	this->cameraBounds = bounds;
-}
-
-
-Vec2 Camera::GetOrthoBottomLeft() const
-{
-	return this->m_bottomLeft;
-}
-
-Vec2 Camera::GetOrthoTopRight() const
-{
-	return this->m_topRight;
+	cameraBounds = bounds;
 }
 
 AABB2 Camera::GetCameraBounds() const 
@@ -96,34 +85,50 @@ void Camera::RestrictCameraWithinBounds(Vec2 lowerBounds, Vec2 UpperBounds)
 		Translate2D(Vec2(0.0f, -distance));
 	}
 }
-
-void Camera::SetPerspectiveView(float aspect, float fov, float nearz, float farz)
+void Camera::SetFov(float fov) 
 {
-	m_cameraView = Perspective;
-	m_perspectiveCameraMatrix = Mat44::CreatePerspectiveProjection(fov, aspect, nearz, farz);
+	m_cameraSettings.fov = fov;
+}
+void Camera::SetZnearAndFar(float znear, float zfar) 
+{
+	m_cameraSettings.znear = znear;
+	m_cameraSettings.zFar = zfar;
+}
+void Camera::RecalculateCameraMatrix()
+{
+	switch (m_cameraSettings.viewType)
+	{
+	case Orthographic:
+		m_orthogrphicCameraMatrix = Mat44::CreateOrthoProjection(cameraBounds.m_mins.x, cameraBounds.m_maxs.x, cameraBounds.m_mins.y, cameraBounds.m_maxs.y, 0.0f, 1.0f);
+		break;
+	case Perspective:
+		m_perspectiveCameraMatrix = Mat44::CreatePerspectiveProjection(m_cameraSettings.fov, m_cameraSettings.aspect, m_cameraSettings.znear, m_cameraSettings.zFar);
+		break;
+	case Stereoscope:
+		break;
+	}
 }
 
-void Camera::SetStereoscopicView(Mat44 stereoScopicProjectionMatrix, Mat44 viewToRender)
+void Camera::SetPerspectiveView(float aspect, float fov, float znear, float zfar)
 {
-	UNUSED((void)stereoScopicProjectionMatrix);
-	m_cameraView = Stereoscope;
-	m_viewToRenderMatrix = viewToRender;
-	m_stereoScopicCameraMatrix = GetPerspectiveMatrix();
+	m_cameraSettings.viewType = Perspective;
+	m_cameraSettings.aspect = aspect;
+	m_cameraSettings.fov = fov;
+	m_cameraSettings.znear = znear;
+	m_cameraSettings.zFar = zfar;
+
+	m_perspectiveCameraMatrix = Mat44::CreatePerspectiveProjection(m_cameraSettings.fov, aspect, znear, zfar);
 }
-void Camera::SetStereoscopicView(float aspect, float fov, float nearz, float farz, float left, float right)
-{
-	m_cameraView = Stereoscope;
-	m_stereoScopicCameraMatrix = Mat44::CreateStereoscopicProjectionMatrix(fov, aspect, nearz, farz, left, right);
-};
+
 Mat44 Camera::GetOrthoMatrix() const
 {
-	return Mat44::CreateOrthoProjection(cameraBounds.m_mins.x, cameraBounds.m_maxs.x, cameraBounds.m_mins.y, cameraBounds.m_maxs.y, 0.0f, 1.0f);
+	return m_orthogrphicCameraMatrix;
 }
 
 Mat44 Camera::GetProjectionMatrix() const
 {
 	Mat44 projectionMatrix;
-	switch (m_cameraView)
+	switch (m_cameraSettings.viewType)
 	{
 	case Orthographic:
 		projectionMatrix = GetOrthoMatrix();
@@ -136,14 +141,6 @@ Mat44 Camera::GetProjectionMatrix() const
 		return projectionMatrix;
 		break;
 	case Stereoscope:
-		projectionMatrix = GetStereoScopicMatrix();
-		projectionMatrix.Append(m_viewToRenderMatrix);
-		//float leftEye;
-		//float rightEye;
-		//leftEye = g_theRenderer->m_leftStereoscope;
-		//rightEye = g_theRenderer->m_rightStereoscope;
-		//projectionMatrix.m_values[12] += (leftEye + rightEye);
-		return projectionMatrix;
 		break;
 	}
 	return Mat44();
@@ -198,10 +195,7 @@ Mat44 Camera::GetPerspectiveMatrix() const
 {
 	return m_perspectiveCameraMatrix;
 }
-Mat44 Camera::GetStereoScopicMatrix() const
-{
-	return m_stereoScopicCameraMatrix;
-}
+
 void Camera::SetViewToRenderTransform(Vec3 const& iBasis, Vec3 const& jBasis, Vec3 const& kBasis)
 {
 	m_viewToRenderMatrix = Mat44(iBasis, jBasis, kBasis, Vec3());
@@ -218,36 +212,6 @@ EulerAngles Camera::GetCameraOrientation()
 	return m_orientation;
 }
 
-void Camera::SetColorTarget(Texture* tex)
-{
-	m_colorTarget = tex;
-}
-
-void Camera::SetDepthTarget(Texture* tex)
-{
-	m_depthTarget = tex;
-}
-
-Texture* Camera::GetColorTarget()
-{
-	return m_colorTarget;
-}
-
-Texture* Camera::GetDepthTarget()
-{
-	return m_depthTarget;
-}
-void Camera::DestroyTextures()
-{
-	if (m_colorTarget)
-	{
-		m_owner->DestroyTexture(m_colorTarget);
-	}
-	if (m_depthTarget)
-	{
-		m_owner->DestroyTexture(m_depthTarget);
-	}
-}
 void Camera::SetRenderBasis(Vec3 const& iBasis, Vec3 const& jBasis, Vec3 const& kBasis)
 {
 	m_renderI = iBasis;
