@@ -1,6 +1,7 @@
 #pragma once
 #include "Engine/Renderer/RendererD12.hpp"
 #include "Engine/Math/IntVec2.hpp"
+#include "Engine/Renderer/RenderResources/RenderBuffers.hpp"
 
 enum class ShadowTechnique 
 {
@@ -29,7 +30,7 @@ class ShadowMap
 	public:
 	void				 BuildBuffer();
 	void				 ClearShadows();
-	GpuBuffer*			 GetShaderResourceBuffer();
+	GpuBuffer*		     GetShaderResourceBuffer();
 	void				 UpdateCameraPosition(Vec3 position, EulerAngles orientation);
 	void				 UpdateCameraFov(float FOV);
 	void				 UpdateCameraNearAndFar(float znear, float zfar);
@@ -40,6 +41,8 @@ class ShadowMap
 	D3D12_VIEWPORT			m_viewport;
 	D3D12_RECT				m_scissorRect;
 	GpuBuffer				m_shadowBuffer;
+	DepthStencilHandle		m_shadowDepthStencilHandle;
+	ShaderResourceHandle    m_shadowShaderResourceHandle;
 	UINT					m_shadowFenceValue = 0;
 	RendererD12*			m_renderer;
 	UINT					m_width = 0;

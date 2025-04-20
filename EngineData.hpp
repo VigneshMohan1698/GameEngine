@@ -4,8 +4,17 @@
 #include <Engine/Math/Vec4.hpp>
 #include <Engine/Math/Vec2.hpp>
 
-const static IntVec2 ShadowMapResolution = IntVec2(1024,1024);
-const static std::string EngineAssetsPath = "../../Engine/Code/Engine/Assets/";
+//-------------Library Headers---------------
+#include <d3d12.h>
+#include <dxgi1_4.h>
+#include <vector>
+#include <wrl.h>
+#include <string.h>
+#include <stdlib.h>
+
+
+const static IntVec2		ShadowMapResolution = IntVec2(1024,1024);
+const static std::string	EngineAssetsPath = "../../Engine/Code/Engine/Assets/";
 
 struct FeaturesEnabled
 {

@@ -13,14 +13,6 @@ Mesh::~Mesh()
 		m_cpuMesh->m_vertices.clear();
 		m_cpuMesh->m_indices.clear();
 	}
-	//if (m_gpuMesh)
-	//{
-	//	DX_SAFE_RELEASE(m_gpuMesh->m_vertexBuffer->m_buffer);
-	//}
-	//if (m_gpuMesh)
-	//{
-	//	DX_SAFE_RELEASE(m_gpuMesh->m_indexBuffer->m_buffer);
-	//}
 }
 
 bool Mesh::ImportFromOBJFile(char const* m_fileName, MeshImportOptions& importOptions)

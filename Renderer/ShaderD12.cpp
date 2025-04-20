@@ -190,7 +190,7 @@ void ShaderD12::CreateShadowPipelineStateObject()
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc;
 	ZeroMemory(&psoDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
 
-	D3D12_DEPTH_STENCIL_DESC depthDesc = m_renderer->m_depthStencilBuffer.depthDesc;
+	D3D12_DEPTH_STENCIL_DESC depthDesc = m_renderer->m_depthStencilHandle.m_depthDesc;
 	//depthDesc.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
 	D3D12_RASTERIZER_DESC rasterizerDesc;
 	rasterizerDesc = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
@@ -278,7 +278,7 @@ void ShaderD12::Create3DPipelineStateObject()
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc;
 	ZeroMemory(&psoDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
 
-	D3D12_DEPTH_STENCIL_DESC depthDesc = m_renderer->m_depthStencilBuffer.depthDesc;
+	D3D12_DEPTH_STENCIL_DESC depthDesc = m_renderer->m_depthStencilHandle.m_depthDesc;
 	//depthDesc.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
 	D3D12_RASTERIZER_DESC rasterizerDesc;
 	rasterizerDesc = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
@@ -412,7 +412,7 @@ void ShaderD12::CreatePBRPipelineStateObject()
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc;
 	ZeroMemory(&psoDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
 
-	D3D12_DEPTH_STENCIL_DESC depthDesc = m_renderer->m_depthStencilBuffer.depthDesc;
+	D3D12_DEPTH_STENCIL_DESC depthDesc = m_renderer->m_depthStencilHandle.m_depthDesc;
 	//depthDesc.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
 	D3D12_RASTERIZER_DESC rasterizerDesc;
 	rasterizerDesc = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
@@ -466,46 +466,6 @@ void ShaderD12::CreatePBRPipelineStateObject()
 	}
 	m_pipelineStateObject->SetName(L"3D Shadow Map pipeline state object");
 }
-void ShaderD12::CreateDFSRootSignature()
-{
-	//-------------------CREATING ROOT SIGNATURE-----------------------------
-	CD3DX12_DESCRIPTOR_RANGE ranges[(int)PBRRootSignatureParams::Count]; // Perfomance TIP: Order from most frequent to least frequent.
-
-		//---------------------------SRV---------------------------------------
-	ranges[(int)DFSRootSignatureParams::DiffuseTexture].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);  // 1 output texture
-	ranges[(int)DFSRootSignatureParams::NormalTexture].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 1);  // 1 output texture
-	ranges[(int)DFSRootSignatureParams::MetallicTexture].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 2);  // 1 output texture
-	ranges[(int)DFSRootSignatureParams::RoughnessTexture].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 3);  // 1 output texture
-	ranges[(int)DFSRootSignatureParams::ShadowMapTexture].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 4);  // 1 output texture
-	ranges[(int)DFSRootSignatureParams::HazardTexture].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 5);  // 1 output texture
-
-
-	CD3DX12_ROOT_PARAMETER rootParameters[(UINT)DFSRootSignatureParams::Count] = {};
-	rootParameters[(int)DFSRootSignatureParams::DiffuseTexture].InitAsDescriptorTable(1, &ranges[(int)DFSRootSignatureParams::DiffuseTexture]);
-	rootParameters[(int)DFSRootSignatureParams::NormalTexture].InitAsDescriptorTable(1, &ranges[(int)DFSRootSignatureParams::NormalTexture]);
-	rootParameters[(int)DFSRootSignatureParams::MetallicTexture].InitAsDescriptorTable(1, &ranges[(int)DFSRootSignatureParams::MetallicTexture]);
-	rootParameters[(int)DFSRootSignatureParams::RoughnessTexture].InitAsDescriptorTable(1, &ranges[(int)DFSRootSignatureParams::RoughnessTexture]);
-	rootParameters[(int)DFSRootSignatureParams::ShadowMapTexture].InitAsDescriptorTable(1, &ranges[(int)DFSRootSignatureParams::ShadowMapTexture]);
-	rootParameters[(int)DFSRootSignatureParams::HazardTexture].InitAsDescriptorTable(1, &ranges[(int)DFSRootSignatureParams::HazardTexture]);
-
-	rootParameters[(int)DFSRootSignatureParams::CameraConstantBuffer].InitAsConstantBufferView(0);
-	rootParameters[(int)DFSRootSignatureParams::GameConstantBuffer].InitAsConstantBufferView(1);
-	rootParameters[(int)DFSRootSignatureParams::RotHazardConstantBuffer].InitAsConstantBufferView(2);
-
-	CD3DX12_STATIC_SAMPLER_DESC samplerDesc = CD3DX12_STATIC_SAMPLER_DESC(D3D12_FILTER_ANISOTROPIC);
-	samplerDesc.MaxAnisotropy = 16;
-	samplerDesc.ShaderRegister = 0;
-
-	CD3DX12_STATIC_SAMPLER_DESC staticSamplers[] =
-	{
-		// LinearWrapSampler
-		samplerDesc
-		//CD3DX12_STATIC_SAMPLER_DESC(1, D3D12_FILTER_ANISOTROPIC),
-	};
-	CD3DX12_ROOT_SIGNATURE_DESC globalRootSignatureDesc(ARRAYSIZE(rootParameters), rootParameters, ARRAYSIZE(staticSamplers), staticSamplers, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
-	m_renderer->SerializeAndCreateRaytracingRootSignature(globalRootSignatureDesc, &m_rootSignature);
-	m_rootSignature->SetName(L"Vertex and pixel shader Root signature");
-}
 void ShaderD12::CreateDFSPipelineStateObject()
 {
 	//ComPtr<IDxcBlob> vsBlob = nullptr;
@@ -542,7 +502,7 @@ void ShaderD12::CreateDFSPipelineStateObject()
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc;
 	ZeroMemory(&psoDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
 
-	D3D12_DEPTH_STENCIL_DESC depthDesc = m_renderer->m_depthStencilBuffer.depthDesc;
+	D3D12_DEPTH_STENCIL_DESC depthDesc = m_renderer->m_depthStencilHandle.m_depthDesc;
 	//depthDesc.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
 	D3D12_RASTERIZER_DESC rasterizerDesc;
 	rasterizerDesc = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
@@ -645,7 +605,7 @@ void ShaderD12::CreatePipelineStateObject()
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc;
 	ZeroMemory(&psoDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
 
-	D3D12_DEPTH_STENCIL_DESC depthDesc = m_renderer->m_depthStencilBuffer.depthDesc;
+	D3D12_DEPTH_STENCIL_DESC depthDesc = m_renderer->m_depthStencilHandle.m_depthDesc;
 	//depthDesc.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
 	D3D12_RASTERIZER_DESC rasterizerDesc;
 	rasterizerDesc = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);

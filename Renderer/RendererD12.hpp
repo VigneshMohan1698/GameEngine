@@ -13,19 +13,20 @@
 #include "Engine/Renderer/TextureD12.hpp"
 #include "Engine/Core/EngineCommon.hpp"
 #include "Engine/Renderer/BitmapFont.hpp"
-#include "ThirdParty/D3D12DXR/d3dx12.h"
 //#include "ThirdParty/D3D12DXR/DDSTextureLoader.h"
-#include "ThirdParty/D3D12DXR/WICTextureLoader.h"
-#include "ThirdParty/D3D12DXR/ResourceUploadBatch.h"
 #include "Engine/Core/Model.hpp"
+#include <Engine/EngineData.hpp>
+
 #include <d3d12.h>
 #include <dxgi1_4.h>
 #include <vector>
 #include <wrl.h>
 #include <string.h>
 #include <stdlib.h>
-#include <DirectXMath.h>
-#include <Engine/ECS/EngineData.hpp>
+#include "ThirdParty/D3D12DXR/WICTextureLoader.h"
+#include "ThirdParty/D3D12DXR/d3dx12.h"
+#include "RenderResources\RenderBuffers.hpp"
+
 using namespace Microsoft::WRL;
 
 class ResourceManager;
@@ -42,15 +43,6 @@ struct IDxcLibrary;
 struct IDxcUtils;
 struct IDxcIncludeHandler;
 struct IDXGIDebug;
-//struct DataForChunkBuild
-//{
-//	std::vector<Vertex_PNCU> verts;
-//	std::vector<UINT> indices;
-//	GpuBuffer* vertexBuffer; 
-//	GpuBuffer* indexBuffer;
-//	int instanceIndex;
-//};
-
 
 struct RenderItems
 {
@@ -73,13 +65,6 @@ enum class CompiledShaderByteCodes
 	Raytracing3D = 0,
 	GaussianFilter,
 	Count
-};
-
-struct RaytracedPointLights
-{
-	Vec4 PointLightPosition[30];
-	int	 Counter = -1;
-	int  MaxLights = 30;
 };
 
 enum class DefaultRootSignatureParams {
@@ -118,22 +103,6 @@ enum class PBRRootSignatureParams {
 	Count
 };
 
-enum class DFSRootSignatureParams {
-
-	//----SRV---
-	DiffuseTexture = 0,
-	NormalTexture,
-	MetallicTexture,
-	RoughnessTexture,
-	ShadowMapTexture,
-	HazardTexture,
-
-	//---CBV-----
-	CameraConstantBuffer,
-	GameConstantBuffer,
-	RotHazardConstantBuffer,
-	Count
-};
 
 
 struct ModelConstantsD12
@@ -142,67 +111,12 @@ struct ModelConstantsD12
 	Vec4 Color;
 };
 
-struct SceneConstantBuffer
-{
-	Mat44 inversedProjectionMatrix;
-	Mat44 projectionMatrix;
-	Mat44 inversedViewMatrix;
-	Mat44 viewMatrix;
-	Mat44 _viewMatrix;
-	Mat44 inversedViewMatrixOrigin;
-	Vec4 cameraPosition;
-	Vec4 _cameraPosition;
-	Vec4 lightPosition;
-	Vec4 GIColor;
-	Vec4 samplingData;
-	Vec4  lightBools;
-	Vec4 textureMappings;
-	Vec4 lightfallOff_AmbientIntensity_CosineSampling_DayNight;
-};
-
-struct CubeConstantBuffer
-{
-	Vec4 albedo;
-};
-enum class GlobalRootSignatureParams {
-	GBufferVertexPositionSlot,
-	GBufferVertexNormalSlot,
-	GBufferVertexAlbedoSlot,
-	GBufferMotionVectorSlot,
-	GBufferDirectLightSlot,
-	GBufferDepthSlot,
-	GBufferOcclusionSlot,
-	GBufferVariance, // --------JUST TO CLEAR IT-----------
-	EmissivityTexture, 
-	VertexBuffersSlot,
-	TextureBufferSlot,
-	NormalMapBufferSlot,
-	MetalnessMapTextureSlot,
-	RougnessMapTextureSlot,
-	SkyboxTextureSlot,
-	SkyboxNightTextureSlot,
-	AccelerationStructureSlot,
-	SceneConstantSlot,
-	Count
-};
 enum class LocalRootSignatureParams
 {
 	IndexBuffer = 0,
 	VertexBuffer = 1,
 	Count
 };
-
-struct LocalRootArgumentsGeometry {
-	D3D12_GPU_DESCRIPTOR_HANDLE m_indexBufferGPUHandle;
-	D3D12_GPU_DESCRIPTOR_HANDLE m_vertexBufferGPUHandle;
-};
-
-struct BottomLevelAccelerationStructureInstanceDesc : public D3D12_RAYTRACING_INSTANCE_DESC
-{
-	void SetTransform(const DirectX::XMMATRIX& transform);
-	void GetTransform(DirectX::XMMATRIX* transform);
-};
-static_assert(sizeof(BottomLevelAccelerationStructureInstanceDesc) == sizeof(D3D12_RAYTRACING_INSTANCE_DESC), L"This is a wrapper used in place of the desc. It has to have the same size");
 
 
 namespace TextureRP {
@@ -213,48 +127,6 @@ namespace TextureRP {
 		RootParameterCount
 	};
 }
-
-enum class GBufferResources
-{
-	OutputResource,
-	VertexPosition,
-	VertexNormal,
-	VertexAlbedo,
-	MotionVector,
-	GI,
-	DirectLight,
-	HistoryLength,
-	Depth,
-	Moments,
-	DenoiserInput,
-	PartialDerivates,
-	OcclusionTexture,
-	VertexIndirectAlbedo,
-	CompositorOutput,
-	GBufferEmissivity,
-	Count
-};
-
-
-enum class GBufferResourcesPreviousFrame
-{
-	VertexNormal, 
-	Depth,
-	GI,
-	Moments,
-	History,
-	Count
-};
-
-struct AccelerationStructureBuffers
-{
-	ComPtr<ID3D12Resource> scratch;
-	ComPtr<ID3D12Resource> accelerationStructure;
-	ComPtr<ID3D12Resource> instanceDesc;    // Used only for top-level AS
-	UINT64                 ResultDataMaxSizeInBytes;
-	bool				   isValid;
-};
-
 
 enum class DepthTestD12
 {
@@ -293,14 +165,6 @@ struct Viewport
 	float bottom;
 };
 
-
-struct RayGenConstantBuffer
-{
-	Viewport viewport;
-	Viewport stencil;
-};
-
-
 class ShaderCompiler
 {
 
@@ -312,9 +176,6 @@ public:
 	ComPtr<ID3DBlob>  CompileVsPs(const char* filePath, const D3D_SHADER_MACRO* defines, const std::string& entryPoint, const std::string& target);
 	ComPtr<IDxcBlob>  CompileComputeShader(const char* ShaderFilePath);
 	IDxcBlob* Compile(IDxcBlobEncoding* sourceBlob, LPCWSTR* args, unsigned long long numargs);
-
-public:
-	//CD3DX12_SHADER_BYTECODE					m_shaderByteCodes[(int)CompiledShaderByteCodes::Count];
 
 private:
 	ComPtr<IDxcCompiler>					m_compiler;
@@ -365,21 +226,13 @@ class RendererD12
 		 std::wstring	GetAssetFullPath(LPCWSTR assetName);
 
 		 //-----------------TEXTURES-----------------------------
-		 UINT			CreateBufferSRV(GpuBuffer* buffer, UINT numElements, UINT elementSize, DXGI_FORMAT format, D3D12_BUFFER_SRV_FLAGS flags);
 		 void			CreateTextureSRV(TextureD12* texture);
 		 UINT			AllocateDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE* cpuDescriptor, UINT descriptorIndexToUse = UINT_MAX);
 		 UINT			AllocateDepthDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE* cpuDescriptor, UINT descriptorIndexToUse = UINT_MAX);
 		 UINT			AllocateRenderTargetDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE* cpuDescriptor, UINT descriptorIndexToUse = UINT_MAX);
 		 UINT			AllocateImguiDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE* cpuDescriptor, UINT descriptorIndexToUse = UINT_MAX);
 		 UINT			AllocateDescriptor(ID3D12DescriptorHeap* heap, D3D12_CPU_DESCRIPTOR_HANDLE* cpuDescriptor, UINT& allocatedDescriptors, UINT descriptorIndexToUse = UINT_MAX);
-		 void			CopyTextureResourceFromBuffer(GpuBuffer* source, GpuBuffer* dest);
-		 void			CopyTextureResourceFromBuffer(GpuBuffer* source, GpuBuffer* dest , IntVec2 dimensionsToCopy);
-		 void			TransitionBufferToSRV(GpuBuffer* buffer);
-		 void			TransitionResourceToDepthWrite(GpuBuffer* buffer);
-		 void			TransitionBufferToUAV(GpuBuffer* buffer);
-		 void			CreateGPUBuffer(GpuBuffer* buffer, DXGI_FORMAT format, IntVec2 resourceDimensions, LPCWSTR name = L"");
 
-		 TextureD12*	LoadTexture(std::string fileName, std::string filePath, TextureType type = TextureType::WICT);
 		 TextureD12*	GetTextureForFileName(char const* name);
 		 TextureD12*	GetTextureForFileNameOrPath(char const* fileName, char const* imageFilePath);
 		 TextureD12*	CreateTextureFromImage(const Image& image);;
@@ -391,9 +244,7 @@ class RendererD12
 		 void	     	BindTexture(int index, TextureD12* textureToBind);
 		 void	     	BindTexture(int bufferIndex, int textureIndex);
 		 void	     	BindComputeTexture(int index, TextureD12* textureToBind);
-		 void	     	BindComputeGpuBuffer(int index, GpuBuffer* buffer, bool isUAV = false);
 		 void	     	BindHandle(int index, D3D12_GPU_DESCRIPTOR_HANDLE& handle);
-		 void	     	WriteGpuBufferToFile(GpuBuffer* buffer, std::string filePath);
 
 		 //----------------SHADERS----------------------
 		 ShaderD12*		CreateOrGetShader(const char* shaderName, const char* shaderFilePath, bool isCompute = false, bool containsTesselation = false, bool isShadowShader = false);
@@ -426,8 +277,6 @@ class RendererD12
 		 ComPtr<ID3D12GraphicsCommandList>  GetCommandListComPtr();
 		 ID3D12Resource*					GetBackBuffer();
 		 D3D12_CPU_DESCRIPTOR_HANDLE*		GetBackBufferCPUHandle();
-		 D3D12_CPU_DESCRIPTOR_HANDLE*		GetImguiHandle();
-		 ID3D12Resource*					GetImGuiBackBuffer();
 		 ID3D12CommandAllocator*			GetCommandAllocator();
 		 void								ResetCommandAllocator();
 		 ID3D12DescriptorHeap*				GetDescriptorHeap();
@@ -436,7 +285,6 @@ class RendererD12
 		 D3D12_CPU_DESCRIPTOR_HANDLE		CreateAndGetImGuiCPUDescriptorHandle();
 		 D3D12_CPU_DESCRIPTOR_HANDLE		GetIMGUIRenderTarget();
 		 D3D12_GPU_DESCRIPTOR_HANDLE		GetGPUDescriptorHandle(ID3D12DescriptorHeap* heap, int offsetindex);
-		 D3D12_GPU_DESCRIPTOR_HANDLE		GetOutputResourceGPUHandle();
 		 int								GetFrameIndex();
 		 RendererD12Config					GetRenderConfig();
 		 IDXGISwapChain3*					GetSwapChain();
@@ -460,8 +308,6 @@ class RendererD12
 
 		D3D12_CPU_DESCRIPTOR_HANDLE		 m_imGUICpuHandle;
 		D3D12_GPU_DESCRIPTOR_HANDLE		 m_imGUIGpuHandle;
-
-		float							 m_dispatchRayRuntime;
 		float							 m_gpuWaitTime;
 
 		//-----------------------------RESOURCE MANAGEMENT---------------
@@ -498,17 +344,13 @@ class RendererD12
 		ComPtr<IDXGIAdapter1>            m_adapter;
 		std::wstring                     m_adapterDescription;
 		D3D_FEATURE_LEVEL                m_d3dMinFeatureLevel = D3D_FEATURE_LEVEL_11_0;
-		const static UINT               m_backBufferCount = 2;
+		const static UINT                m_backBufferCount = 2;
 		ComPtr<ID3D12CommandAllocator>   m_RcommandAllocator[m_backBufferCount];
 		
 		ComPtr<ID3D12CommandQueue>		 m_RcommandQueue;
 		ComPtr<ID3D12GraphicsCommandList>m_RcommandList;
 		bool							 m_isRendererPrepared = false;
 		ComPtr<ID3D12GraphicsCommandList4>m_dxrCommandList;
-		ComPtr<ID3D12Resource>			 m_RvertexBuffer;
-		D3D12_VERTEX_BUFFER_VIEW		 m_RvertexBufferView;
-		GpuBuffer						 m_indexBuffer;
-		GpuBuffer						 m_vertexBuffer;
 		std::vector<RenderItems>		 m_dynamicRenderItems;
 		D3D12_VIEWPORT                   m_screenViewport;
 		D3D12_RECT                       m_scissorRect;
@@ -516,7 +358,7 @@ class RendererD12
 
 		IDXGIDebug*						 m_dxgiDebug = nullptr;
 		void*							 m_dxgiDebugModule = nullptr;
-		GpuBuffer						 m_depthStencilBuffer;
+		DepthStencilHandle				 m_depthStencilHandle;
 		D3D12_RASTERIZER_DESC			 m_rasterizerDesc;
 		CD3DX12_CPU_DESCRIPTOR_HANDLE	 m_backBufferHeapCPUHandle[m_backBufferCount] = {};
 

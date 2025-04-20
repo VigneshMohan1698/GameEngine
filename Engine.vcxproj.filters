@@ -630,9 +630,6 @@
     <ClInclude Include="Core\VertexDefinitions.hpp">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="ECS\EngineData.hpp">
-      <Filter>ECS</Filter>
-    </ClInclude>
     <ClInclude Include="ECS\ECSInputSystem.hpp">
       <Filter>ECS</Filter>
     </ClInclude>
@@ -675,6 +672,7 @@
     <ClInclude Include="Renderer\SpriteSheet.hpp">
       <Filter>CoreRenderer</Filter>
     </ClInclude>
+    <ClInclude Include="EngineData.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Font Include="Assets\Fonts\SF.ttf">

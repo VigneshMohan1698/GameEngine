@@ -57,30 +57,32 @@ void ShadowMap::BuildBuffer()
 	m_renderer->ThrowIfFailed(device->CreateCommittedResource(&resource, D3D12_HEAP_FLAG_NONE, &depthStencilDesc,
 		D3D12_RESOURCE_STATE_DEPTH_WRITE,
 		&depthClear,
-		IID_PPV_ARGS(&m_shadowBuffer.resource)
+		IID_PPV_ARGS(&m_shadowBuffer.m_resource)
 	), "Failed while getting shadow buffer target");
 
 	//--------------------------------DSV------------------------------
+	m_shadowDepthStencilHandle.m_gpuBuffer  = &m_shadowBuffer;
 	D3D12_DEPTH_STENCIL_VIEW_DESC depthDesc = {};
 	depthDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 	depthDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
 	depthDesc.Flags = D3D12_DSV_FLAG_NONE;
-	m_shadowBuffer.m_UsageState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
+	m_shadowDepthStencilHandle.m_usageState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
 	UINT dsvheapIndex = UINT_MAX;
-	dsvheapIndex = m_renderer->AllocateDepthDescriptor(&m_shadowBuffer.cpuDescriptorHandleForDepth, dsvheapIndex);
-	device->CreateDepthStencilView(m_shadowBuffer.GetResource(), &depthDesc, m_shadowBuffer.cpuDescriptorHandleForDepth);
+	dsvheapIndex = m_renderer->AllocateDepthDescriptor(&m_shadowDepthStencilHandle.m_cpuDescriptorHandle, dsvheapIndex);
+	device->CreateDepthStencilView(m_shadowBuffer.GetResource(), &depthDesc, m_shadowDepthStencilHandle.m_cpuDescriptorHandle);
 	
 	//--------------------------------SRV------------------------------
+	m_shadowShaderResourceHandle.m_gpuBuffer = &m_shadowBuffer;
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 	srvDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Texture2D.MipLevels = 1;
 
-	m_shadowBuffer.srvHeapIndex = m_renderer->AllocateDescriptor(&m_shadowBuffer.cpuDescriptorHandle, m_shadowBuffer.srvHeapIndex);
-	device->CreateShaderResourceView(m_shadowBuffer.resource.Get(), &srvDesc, m_shadowBuffer.cpuDescriptorHandle);
+	m_shadowShaderResourceHandle.m_srvHeapIndex = m_renderer->AllocateDescriptor(&m_shadowShaderResourceHandle.m_cpuDescriptorHandle, m_shadowShaderResourceHandle.m_srvHeapIndex);
+	device->CreateShaderResourceView(m_shadowBuffer.GetResource(), &srvDesc, m_shadowShaderResourceHandle.m_cpuDescriptorHandle);
 	//m_shadowBuffer.m_UsageState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-	m_shadowBuffer.gpuReadDescriptorHandle = CD3DX12_GPU_DESCRIPTOR_HANDLE(m_renderer->m_descriptorHeap->GetGPUDescriptorHandleForHeapStart(), m_shadowBuffer.srvHeapIndex, m_renderer->m_descriptorSize);
+	m_shadowShaderResourceHandle.m_gpuReadDescriptorHandle = CD3DX12_GPU_DESCRIPTOR_HANDLE(m_renderer->m_descriptorHeap->GetGPUDescriptorHandleForHeapStart(), m_shadowShaderResourceHandle.m_srvHeapIndex, m_renderer->m_descriptorSize);
 
 	////------------------TRANSITION RESOURCE TO BE USED AS DEPTH BUFFER---------------
 	//CD3DX12_RESOURCE_BARRIER depthTransitionBarrier = CD3DX12_RESOURCE_BARRIER::Transition(m_shadowBuffer.GetResource(),
@@ -144,7 +146,7 @@ void ShadowMap::ClearShadows()
 	m_renderer->m_RcommandList.Get()->ResourceBarrier(1, &depthTransitionBarrier);
 
 	D3D12_CLEAR_FLAGS flags = D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL;
-	m_renderer->m_RcommandList.Get()->ClearDepthStencilView(m_shadowBuffer.cpuDescriptorHandleForDepth, flags, 1, 0, 0, nullptr);
+	m_renderer->m_RcommandList.Get()->ClearDepthStencilView(m_shadowDepthStencilHandle.m_cpuDescriptorHandle, flags, 1, 0, 0, nullptr);
 }
 GpuBuffer* ShadowMap::GetShaderResourceBuffer()
 {

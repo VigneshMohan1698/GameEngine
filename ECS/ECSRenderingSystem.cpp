@@ -167,7 +167,7 @@ void ECSRenderingSystem::RenderCameraPass()
 			m_renderer->BindTexture(0, albedoTextureIndex);
 		}
 
-		m_renderer->BindHandle(1, m_engineShadowMap->GetShaderResourceBuffer()->gpuReadDescriptorHandle);
+		m_renderer->BindHandle(1, m_engineShadowMap->m_shadowShaderResourceHandle.m_gpuReadDescriptorHandle);
 		m_renderer->DrawIndexedVertexArray((int)verts.size(), verts, meshComponent->m_mesh->m_cpuMesh->m_indices);
 	}
 	m_renderer->SetModelConstantData(Mat44(), Vec4(1.0f, 1.0f, 1.0f, 1.0f));

@@ -4,7 +4,7 @@
 #include "Engine/Core/ErrorWarningAssert.hpp"
 #include "Game/GameCommon.hpp"
 #include "ThirdParty/ImGui/imgui_impl_win32.h"
-#include <Engine/ECS/EngineData.hpp>
+#include <Engine/EngineData.hpp>
 
 
 Window* Window::s_mainWindow = nullptr;

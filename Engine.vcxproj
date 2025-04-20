@@ -521,10 +521,10 @@
     <ClInclude Include="ECS\ECSSystem.hpp" />
     <ClInclude Include="ECS\ECSTransformSystem.hpp" />
     <ClInclude Include="ECS\ECSUISystem.hpp" />
-    <ClInclude Include="ECS\EngineData.hpp" />
     <ClInclude Include="Editor\Editor.hpp" />
     <ClInclude Include="Editor\EditorComponents.hpp" />
     <ClInclude Include="Editor\EditorImgui.hpp" />
+    <ClInclude Include="EngineData.hpp" />
     <ClInclude Include="Input\AnalogJoystick.hpp" />
     <ClInclude Include="Input\InputSystem.hpp" />
     <ClInclude Include="Input\KeyButtonState.hpp" />
