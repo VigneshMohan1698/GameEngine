@@ -1,7 +1,6 @@
 #include "SpriteAnimDefinition.hpp"
 #include "Engine/Math/MathUtils.hpp"
 #include "Engine/Core/XmlUtils.hpp"
-#include "Engine/Renderer/Renderer.hpp"
 
 
 SpriteAnimDefinition::SpriteAnimDefinition(const SpriteSheet& sheet, int startSpriteIndex, int endSpriteIndex, SpriteAnimPlaybackType playbackMode): m_spriteSheet(sheet), m_endSpriteIndex(endSpriteIndex),
@@ -30,12 +29,6 @@ SpriteAnimDefinition::SpriteAnimDefinition(const SpriteSheet& sheet, int startSp
     m_durationSeconds(durationSeconds),m_startSpriteIndex(startSpriteIndex),m_playbackType(playbackType)
 {
     m_numberOfSpritesToPlay = endSpriteIndex - startSpriteIndex;
-}
-
-SpriteAnimDefinition::SpriteAnimDefinition(const SpriteSheet& sheet, int startSpriteIndex, int endSpriteIndex, float durationSeconds, Shader* shader, SpriteAnimPlaybackType playbackType) : m_spriteSheet(sheet), m_endSpriteIndex(endSpriteIndex),
-m_durationSeconds(durationSeconds), m_startSpriteIndex(startSpriteIndex),m_shader(shader), m_playbackType(playbackType)
-{
-
 }
 
 const SpriteDefinition& SpriteAnimDefinition::GetSpriteDefAtTime(float seconds) const
@@ -90,19 +83,4 @@ const float SpriteAnimDefinition::GetDuration() const
 const int SpriteAnimDefinition::GetTotalFramesInCycle() const
 {
     return 0;
-}
-
-void SpriteAnimDefinition::SetTotalDuration(float totalSeconds)
-{
-    UNUSED((void)totalSeconds);
-}
-
-void SpriteAnimDefinition::SetSecondsPerFrame(float secondsPerFrame)
-{
-    UNUSED((void)secondsPerFrame);
-}
-
-void SpriteAnimDefinition::SetFramesPerSecond(float fps)
-{
-    UNUSED((void)fps);
 }

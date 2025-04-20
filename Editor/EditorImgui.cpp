@@ -5,8 +5,10 @@
 #include "ThirdParty/ImGui/imgui_impl_win32.h"
 #include "ThirdParty/ImGui/imgui_internal.h"
 #include "Engine/Renderer/RendererD12.hpp"
+#include <Engine/ECS/ECS.hpp>
 
 extern RendererD12* g_theRenderer;
+extern ECS* g_theECS;
 
 EditorImGui::EditorImGui(Editor* editor)
 {
@@ -47,14 +49,19 @@ void EditorImGui::InitializeImGui()
 
 void EditorImGui::UpdateEditor(float deltaSeconds)
 {
-	int index = m_currentFrameNumber % 100;
+	EngineState& engineState = g_theECS->GetEngineState();
+	int index = engineState.m_currentFrameNumber % 100;
 	if (deltaSeconds == 0.0f) {
 		m_frameTimesData[index] = 0.0f;
 	} else {
-		m_frameTimesData[index] = 1.0f / deltaSeconds;
+		float roundedDelta = std::round(deltaSeconds * 1000.0f) / 1000.0f;
+		m_frameTimesData[index] = 1.0f / roundedDelta;
 	}
 	
-	m_currentFrameNumber++;
+	engineState.m_fps = m_frameTimesData[engineState.m_currentFrameNumber % 100];
+	engineState.m_frameTime = deltaSeconds;
+	engineState.m_currentFrameNumber++;
+	
 }
 
 void EditorImGui::DrawEditor()
@@ -81,17 +88,17 @@ void EditorImGui::DrawEditor()
 
 	ImGui::PushFont(m_fonts[Fonts::SFBold14]);  ImGui::Begin("Profiler", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing); ImGui::PopFont();
 	ImGui::Text("Performance and memory information");
-	int currentFPS = m_frameTimesData[m_currentFrameNumber % 100];
-
-	if (currentFPS < 60.0f) {
+	
+	EngineState& engineState = g_theECS->GetEngineState();
+	if (engineState.m_fps < 60.0f) {
 		ImGui::PushStyleColor(ImGuiCol_PlotLines, IM_COL32(255, 0, 0, 255)); // red
 	}
 	else {
 		ImGui::PushStyleColor(ImGuiCol_PlotLines, IM_COL32(0, 255, 0, 255)); // green
 	}
-
-	std::string overlay = "FPS: " + std::to_string(currentFPS);
-	ImGui::PlotLines("##fps", m_frameTimesData, IM_ARRAYSIZE(m_frameTimesData), m_currentFrameNumber % IM_ARRAYSIZE(m_frameTimesData),
+	
+	std::string overlay = "FPS: " + std::to_string(engineState.m_fps);
+	ImGui::PlotLines("##fps", m_frameTimesData, IM_ARRAYSIZE(m_frameTimesData), engineState.m_currentFrameNumber % IM_ARRAYSIZE(m_frameTimesData),
 		overlay.c_str(), 0.0f, 144.0f, ImVec2(300, 150));
 
 	ImGui::PopStyleColor();

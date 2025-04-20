@@ -1,8 +1,6 @@
 #include "Camera.hpp"
 #include "Engine/Math/MathUtils.hpp"
 #include "Game/GameCommon.hpp"
-#include "Engine/Renderer/Renderer.hpp"
-#include "Engine/Renderer/Texture.hpp"
 
 Camera::Camera(float bottomX, float bottomY, float topX, float topY)
 {

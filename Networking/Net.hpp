@@ -3,7 +3,7 @@
 #include <vector>
 #include <Engine/Math/AABB2.hpp>
 class DevConsole;
-class Renderer;
+class RendererD12;
 class TCPServer;
 class TCPConnection;
 struct DevConsoleLine;
@@ -76,7 +76,7 @@ public:
 	bool IsPlayerBanned(TCPConnection* conn);
 	void AddLine(Rgba8 const& color, std::string const& text);
 	void SendCommand(int connIndex , std::string const& command, bool isEcho);
-	void Render(AABB2 maxBounds, Renderer* renderer);
+	void Render(AABB2 maxBounds, RendererD12* rendererD12);
 	std::vector<TCPConnection*> GetConnections();
 private:
 	std::vector<RemoteConsoleLine>	m_lines;

@@ -1,9 +1,9 @@
 #include "Engine/Input/InputSystem.hpp"
 #include <Windows.h>
-#include "Engine/Core/EngineCommon.hpp"
-#include "Engine/Renderer/Renderer.hpp"
+#include "Engine/Core/EngineCommon.hpp" 
 #include <Engine/Core/ErrorWarningAssert.hpp>
 #include "Engine/Core/DevConsole.hpp"
+#include "Engine/Window/Window.hpp"
 
 const unsigned char KEYCODE_F1 = VK_F1;
 const unsigned char KEYCODE_F2 = VK_F2;

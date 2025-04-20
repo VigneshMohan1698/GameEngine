@@ -1,8 +1,6 @@
 #pragma once
 #include <vector>
 #include "Engine/Core/VertexDefinitions.hpp"
-#include "Engine/Renderer/VertexBuffer.hpp"
-#include "Engine/Renderer/IndexBuffer.hpp"
 #include <Engine/Core/StringUtils.hpp>
 #include "Engine/Math/Mat44.hpp"
 #include <string>
@@ -56,19 +54,19 @@ class GPUMesh
 		GPUMesh(){};
 		~GPUMesh();
 
-		GPUMesh(VertexBuffer* vertexBuffer, IndexBuffer* indexBuffer, ID3D11InputLayout* inputLayoutForVertex_PCU);
-		GPUMesh(VertexBuffer* vertexBuffer, IndexBuffer* indexBuffer, ID3D11InputLayout* inputLayoutForVertex_PCU, bool	useIndices, int	elementCount);
+	//	GPUMesh(VertexBuffer* vertexBuffer, IndexBuffer* indexBuffer, ID3D11InputLayout* inputLayoutForVertex_PCU);
+	//	GPUMesh(VertexBuffer* vertexBuffer, IndexBuffer* indexBuffer, ID3D11InputLayout* inputLayoutForVertex_PCU, bool	useIndices, int	elementCount);
 
-	public:
-		VertexBuffer* m_vertexBuffer = nullptr;
-		IndexBuffer*  m_indexBuffer = nullptr;
-		ID3D11InputLayout* m_inputLayoutForVertex_PCU = nullptr;
+	//public:
+	//	VertexBuffer* m_vertexBuffer = nullptr;
+	//	IndexBuffer*  m_indexBuffer = nullptr;
+	//	ID3D11InputLayout* m_inputLayoutForVertex_PCU = nullptr;
 
-		//-------------INFORMATION FOR DRAW CALL
-		bool		  m_useIndices = false;
-		int			  m_elementCount = 0;
-		int			  m_startIndex = 0;
-		int			  m_materialCount = 0;
+	//	//-------------INFORMATION FOR DRAW CALL
+	//	bool		  m_useIndices = false;
+	//	int			  m_elementCount = 0;
+	//	int			  m_startIndex = 0;
+	//	int			  m_materialCount = 0;
 };
 
 class Mesh

@@ -1,30 +1,24 @@
 #include "BitmapFont.hpp"
 #include "Engine/Math/VertexUtils.hpp"
 #include "Engine/Core/EngineCommon.hpp"
-#include "Engine/Renderer/Renderer.hpp"
+#include "Engine/Renderer/RendererD12.hpp"
 #include <Engine/Math/MathUtils.hpp>
 #include "Engine/Core/ErrorWarningAssert.hpp"
 
-extern Renderer* g_theRenderer;
 
 
-BitmapFont::BitmapFont(char const* fontFilePathNameWithNoExtension, Texture& fontTexture):
-	m_fontFilePathNameWithNoExtension(fontFilePathNameWithNoExtension),
-	m_fontGlyphsSpriteSheet(fontTexture, IntVec2(16, 16))
-{
+//BitmapFont::BitmapFont(char const* fontFilePathNameWithNoExtension):
+//	m_fontFilePathNameWithNoExtension(fontFilePathNameWithNoExtension),
+//	m_fontGlyphsSpriteSheet(IntVec2(16, 16))
+//{
+//
+//}
 
-}
-
-BitmapFont::BitmapFont(char const* fontFilePathNameWithNoExtension, Texture& fontTexture, IntVec2 const& textureDimensions):
+BitmapFont::BitmapFont(char const* fontFilePathNameWithNoExtension, IntVec2 const& textureDimensions):
 m_fontFilePathNameWithNoExtension(fontFilePathNameWithNoExtension),
-m_fontGlyphsSpriteSheet(fontTexture, textureDimensions,  IntVec2(16, 16))
+m_fontGlyphsSpriteSheet(textureDimensions,  IntVec2(16, 16))
 {
 
-}
-
-const Texture& BitmapFont::GetTexture() const
-{
-	return m_fontGlyphsSpriteSheet.GetTexture();
 }
 
 void BitmapFont::AddVertsForText2D(std::vector<Vertex_PCU>& vertexArray, Vec2 const& textMins, float cellHeight, std::string const& text, Rgba8 const& tint, float cellAspect, float letterWidth)

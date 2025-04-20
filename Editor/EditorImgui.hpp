@@ -38,7 +38,6 @@ class EditorImGui
 	private:
 	//static Vec4     m_colors[ImGuiColorIndexes::ImGuiColorsCount];
 	float			m_frameTimesData[100] = {};
-	long long		m_currentFrameNumber = 0;
 	float			m_relativeScale = 1.0f;
 	IntVec2			m_windowdim = IntVec2();
 	ImGuiContext*	m_context = nullptr;

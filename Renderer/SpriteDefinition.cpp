@@ -31,7 +31,7 @@ SpriteSheet const& SpriteDefinition::GetSpriteSheet() const
 
 float SpriteDefinition::GetAspect() const
 {
-	IntVec2 textureDimesnions = m_spriteSheet.GetTexture().GetDimensions();
+	IntVec2 textureDimesnions = m_spriteSheet.m_textureDimensions;
 	Vec2 UVsize = m_uvAtMaxs - m_uvAtMins;
 	float width = textureDimesnions.x * UVsize.x;
 	float length = textureDimesnions.y * UVsize.y;

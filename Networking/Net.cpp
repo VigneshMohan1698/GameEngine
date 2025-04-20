@@ -3,7 +3,7 @@
 #include "Engine/Core/ErrorWarningAssert.hpp"
 #include "Engine/Core/EventSystem.hpp"
 #include "Engine/Core/DevConsole.hpp"
-#include "Engine/Renderer/Renderer.hpp"
+#include "Engine/Renderer/RendererD12.hpp"
 #include "Engine/Networking/Socket.hpp"
 #include <WS2tcpip.h>
 #include <Engine/Math/VertexUtils.hpp>
@@ -372,13 +372,13 @@ void RemoteConsole::SendCommand(int connIndex, std::string const& command, bool 
 }
 
 
-void RemoteConsole::Render(AABB2 maxBounds, Renderer* renderer)
+void RemoteConsole::Render(AABB2 maxBounds, RendererD12* rendererD12)
 {
 	AABB2 bounds = maxBounds.GetFractionalAABB2(Vec2(0.4f, 0.4f), Vec2(0.98f, 0.98f));
 	AABB2 connectionBounds = bounds.GetFractionalAABB2(Vec2(0.7f, 0.1f), Vec2(0.95f, 0.92f));
 	std::vector<Vertex_PCU> devConsoleVerts;
 	std::vector<Vertex_PCU> devConsoleQuad;
-	BitmapFont* font = renderer->CreateOrGetBitmapFont("Data/Images/SquirrelFixedFont");
+	BitmapFont* font = rendererD12->CreateBitmapFont("Data/Images/SquirrelFixedFont");
 
 
 	AABB2 textBounds;
@@ -466,13 +466,13 @@ void RemoteConsole::Render(AABB2 maxBounds, Renderer* renderer)
 	connectionTextBounds.m_maxs.y = connectionBounds.m_mins.y + (connectionBounds.m_maxs.y - connectionBounds.m_mins.y) * 0.02f;
 	AddVertsForAABB2D(devConsoleQuad, connectionTextBounds, Rgba8::GREEN);
 
-	renderer->DrawVertexArray(int(devConsoleQuad.size()), devConsoleQuad.data());
+	rendererD12->DrawVertexArray(int(devConsoleQuad.size()), devConsoleQuad);
 
-	if (renderer != nullptr && font != nullptr)
+	if (rendererD12 != nullptr && font != nullptr)
 	{
-		renderer->BindTexture(&font->GetTexture());
-		renderer->DrawVertexArray(int(devConsoleVerts.size()), devConsoleVerts.data());
-		renderer->BindTexture(nullptr);
+		/*rendererD12->BindTexture(0, font->GetTexture());
+		rendererD12->DrawVertexArray(int(devConsoleVerts.size()), devConsoleVerts.data());
+		rendererD12->BindTexture(nullptr);*/
 	}
 }
 std::vector<TCPConnection*> RemoteConsole::GetConnections()

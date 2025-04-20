@@ -8,9 +8,6 @@
     <Filter Include="Math">
       <UniqueIdentifier>{dcdb01c7-9b08-488d-bfa4-7f81296c65f3}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Renderer">
-      <UniqueIdentifier>{7e6e0aea-58c5-4118-a68c-dcddf0f69f1f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Input">
       <UniqueIdentifier>{abf066e6-f17d-4d3c-baf4-5d84727a3e60}</UniqueIdentifier>
     </Filter>
@@ -74,6 +71,15 @@
     <Filter Include="Assets\Fonts">
       <UniqueIdentifier>{ca42e32c-5c9e-46b0-8a43-9795c19e82cd}</UniqueIdentifier>
     </Filter>
+    <Filter Include="RendererD12\RenderResources">
+      <UniqueIdentifier>{677c5583-29a0-4c38-be9b-f016d076979f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CoreRenderer">
+      <UniqueIdentifier>{3b64ce91-80d5-4296-b1e9-1d4105538a2b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Camera">
+      <UniqueIdentifier>{7deee378-5b35-4384-ac38-4d5a75fb351e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Math\Vec2.cpp">
@@ -84,12 +90,6 @@
     </ClCompile>
     <ClCompile Include="Math\Vec3.cpp">
       <Filter>Math</Filter>
-    </ClCompile>
-    <ClCompile Include="Renderer\Camera.cpp">
-      <Filter>Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="Renderer\Renderer.cpp">
-      <Filter>Renderer</Filter>
     </ClCompile>
     <ClCompile Include="Core\EngineCommon.cpp">
       <Filter>Core</Filter>
@@ -133,14 +133,8 @@
     <ClCompile Include="Audio\AudioSystem.cpp">
       <Filter>Audio</Filter>
     </ClCompile>
-    <ClCompile Include="Renderer\SimpleTriangleFont.cpp">
-      <Filter>Renderer</Filter>
-    </ClCompile>
     <ClCompile Include="Window\Window.cpp">
       <Filter>Window</Filter>
-    </ClCompile>
-    <ClCompile Include="Renderer\Texture.cpp">
-      <Filter>Renderer</Filter>
     </ClCompile>
     <ClCompile Include="Core\Image.cpp">
       <Filter>Core</Filter>
@@ -166,20 +160,11 @@
     <ClCompile Include="Math\Mat44.cpp">
       <Filter>Math</Filter>
     </ClCompile>
-    <ClCompile Include="Renderer\SpriteSheet.cpp">
-      <Filter>Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="Renderer\SpriteDefinition.cpp">
-      <Filter>Renderer</Filter>
-    </ClCompile>
     <ClCompile Include="..\ThirdParty\TinyXML2\tinyxml2.cpp">
       <Filter>ThirdParty\TinyXML2</Filter>
     </ClCompile>
     <ClCompile Include="Core\NamedStrings.cpp">
       <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Renderer\BitmapFont.cpp">
-      <Filter>Renderer</Filter>
     </ClCompile>
     <ClCompile Include="Core\TileHeatMap.cpp">
       <Filter>Core</Filter>
@@ -199,23 +184,11 @@
     <ClCompile Include="Core\EventSystem.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="Core\SpriteAnimDefinition.cpp">
-      <Filter>Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="Renderer\Shader.cpp">
-      <Filter>Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="Renderer\VertexBuffer.cpp">
-      <Filter>Renderer</Filter>
-    </ClCompile>
     <ClCompile Include="Math\EulerAngles.cpp">
       <Filter>Math</Filter>
     </ClCompile>
     <ClCompile Include="Core\FileUtils.cpp">
       <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Renderer\ConstantBuffer.cpp">
-      <Filter>Renderer</Filter>
     </ClCompile>
     <ClCompile Include="Core\Clock.cpp">
       <Filter>Core</Filter>
@@ -226,17 +199,8 @@
     <ClCompile Include="Math\AABB3.cpp">
       <Filter>Math</Filter>
     </ClCompile>
-    <ClCompile Include="Renderer\DebugRenderer.cpp">
-      <Filter>Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="Renderer\IndexBuffer.cpp">
-      <Filter>Renderer</Filter>
-    </ClCompile>
     <ClCompile Include="Core\RaycastResult3D.cpp">
       <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Renderer\SpriteAnimationGroupDefinition.cpp">
-      <Filter>Renderer</Filter>
     </ClCompile>
     <ClCompile Include="Math\Spline.cpp">
       <Filter>Math</Filter>
@@ -283,16 +247,10 @@
     <ClCompile Include="Networking\Socket.cpp">
       <Filter>Networking</Filter>
     </ClCompile>
-    <ClCompile Include="Renderer\TextureView.cpp">
-      <Filter>Renderer</Filter>
-    </ClCompile>
     <ClCompile Include="Renderer\RendererD12.cpp">
       <Filter>RendererD12</Filter>
     </ClCompile>
     <ClCompile Include="Renderer\TextureD12.cpp">
-      <Filter>RendererD12</Filter>
-    </ClCompile>
-    <ClCompile Include="Renderer\AccelerationStructureHelper.cpp">
       <Filter>RendererD12</Filter>
     </ClCompile>
     <ClCompile Include="Renderer\RaytracingHelpers.cpp">
@@ -310,26 +268,11 @@
     <ClCompile Include="Renderer\ResourceManager.cpp">
       <Filter>RendererD12</Filter>
     </ClCompile>
-    <ClCompile Include="Renderer\Composition.cpp">
-      <Filter>RendererD12</Filter>
-    </ClCompile>
     <ClCompile Include="..\ThirdParty\Mikkt\mikktspace.cpp">
       <Filter>ThirdParty\Mikkt</Filter>
     </ClCompile>
     <ClCompile Include="..\ThirdParty\Mikkt\weldmesh.cpp">
       <Filter>ThirdParty\Mikkt</Filter>
-    </ClCompile>
-    <ClCompile Include="Renderer\Denoiser.cpp">
-      <Filter>RenderPasses</Filter>
-    </ClCompile>
-    <ClCompile Include="Renderer\GlobalIllumination.cpp">
-      <Filter>RenderPasses</Filter>
-    </ClCompile>
-    <ClCompile Include="Renderer\Sampler.cpp">
-      <Filter>RenderPasses</Filter>
-    </ClCompile>
-    <ClCompile Include="Renderer\PostProcess.cpp">
-      <Filter>RenderPasses</Filter>
     </ClCompile>
     <ClCompile Include="Math\ConvexShapes.cpp">
       <Filter>Math</Filter>
@@ -382,6 +325,30 @@
     <ClCompile Include="Editor\EditorComponents.cpp">
       <Filter>Editor</Filter>
     </ClCompile>
+    <ClCompile Include="Renderer\RenderResources\RenderBuffers.cpp">
+      <Filter>RendererD12\RenderResources</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\BitmapFont.cpp">
+      <Filter>CoreRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Camera.cpp">
+      <Filter>Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\SpriteAnimationGroupDefinition.cpp">
+      <Filter>CoreRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\SpriteAnimDefinition.cpp">
+      <Filter>CoreRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\SpriteDefinition.cpp">
+      <Filter>CoreRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\SpriteSheet.cpp">
+      <Filter>CoreRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\SimpleTriangleFont.cpp">
+      <Filter>CoreRenderer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Math\Vec2.hpp">
@@ -392,12 +359,6 @@
     </ClInclude>
     <ClInclude Include="Math\Vec3.hpp">
       <Filter>Math</Filter>
-    </ClInclude>
-    <ClInclude Include="Renderer\Camera.hpp">
-      <Filter>Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="Renderer\Renderer.hpp">
-      <Filter>Renderer</Filter>
     </ClInclude>
     <ClInclude Include="Core\EngineCommon.hpp">
       <Filter>Core</Filter>
@@ -465,14 +426,8 @@
     <ClInclude Include="..\ThirdParty\fmod_output.h">
       <Filter>ThirdParty\Fmod</Filter>
     </ClInclude>
-    <ClInclude Include="Renderer\SimpleTriangleFont.hpp">
-      <Filter>Renderer</Filter>
-    </ClInclude>
     <ClInclude Include="Window\Window.hpp">
       <Filter>Window</Filter>
-    </ClInclude>
-    <ClInclude Include="Renderer\Texture.hpp">
-      <Filter>Renderer</Filter>
     </ClInclude>
     <ClInclude Include="..\ThirdParty\stb\stb_image.h">
       <Filter>ThirdParty\stb</Filter>
@@ -501,20 +456,11 @@
     <ClInclude Include="Math\Mat44.hpp">
       <Filter>Math</Filter>
     </ClInclude>
-    <ClInclude Include="Renderer\SpriteSheet.hpp">
-      <Filter>Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="Renderer\SpriteDefinition.hpp">
-      <Filter>Renderer</Filter>
-    </ClInclude>
     <ClInclude Include="..\ThirdParty\TinyXML2\tinyxml2.h">
       <Filter>ThirdParty\TinyXML2</Filter>
     </ClInclude>
     <ClInclude Include="Core\NamedStrings.hpp">
       <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Renderer\BitmapFont.hpp">
-      <Filter>Renderer</Filter>
     </ClInclude>
     <ClInclude Include="Core\TileHeatMap.hpp">
       <Filter>Core</Filter>
@@ -534,26 +480,11 @@
     <ClInclude Include="Core\EventSystem.hpp">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="Core\SpriteAnimDefinition.hpp">
-      <Filter>Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="Renderer\Shader.hpp">
-      <Filter>Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="Renderer\VertexBuffer.hpp">
-      <Filter>Renderer</Filter>
-    </ClInclude>
     <ClInclude Include="Math\EulerAngles.hpp">
       <Filter>Math</Filter>
     </ClInclude>
     <ClInclude Include="Core\FileUtils.hpp">
       <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Renderer\ConstantBuffer.hpp">
-      <Filter>Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="Renderer\DefaultShader.hpp">
-      <Filter>Renderer</Filter>
     </ClInclude>
     <ClInclude Include="Core\Clock.hpp">
       <Filter>Core</Filter>
@@ -564,17 +495,8 @@
     <ClInclude Include="Math\AABB3.hpp">
       <Filter>Math</Filter>
     </ClInclude>
-    <ClInclude Include="Renderer\DebugRenderer.hpp">
-      <Filter>Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="Renderer\IndexBuffer.hpp">
-      <Filter>Renderer</Filter>
-    </ClInclude>
     <ClInclude Include="Core\RaycastResult3D.hpp">
       <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Renderer\SpriteAnimationGroupDefinition.hpp">
-      <Filter>Renderer</Filter>
     </ClInclude>
     <ClInclude Include="Math\Spline.hpp">
       <Filter>Math</Filter>
@@ -645,16 +567,10 @@
     <ClInclude Include="..\ThirdParty\D3D12DXR\WICTextureLoader.h">
       <Filter>ThirdParty\D3D12DXR</Filter>
     </ClInclude>
-    <ClInclude Include="Renderer\TextureView.hpp">
-      <Filter>Renderer</Filter>
-    </ClInclude>
     <ClInclude Include="Renderer\RendererD12.hpp">
       <Filter>RendererD12</Filter>
     </ClInclude>
     <ClInclude Include="Renderer\TextureD12.hpp">
-      <Filter>RendererD12</Filter>
-    </ClInclude>
-    <ClInclude Include="Renderer\AccelerationStructureHelper.hpp">
       <Filter>RendererD12</Filter>
     </ClInclude>
     <ClInclude Include="Renderer\RaytracingHelpers.hpp">
@@ -672,26 +588,11 @@
     <ClInclude Include="Renderer\ResourceManager.hpp">
       <Filter>RendererD12</Filter>
     </ClInclude>
-    <ClInclude Include="Renderer\Composition.hpp">
-      <Filter>RendererD12</Filter>
-    </ClInclude>
     <ClInclude Include="..\ThirdParty\Mikkt\mikktspace.h">
       <Filter>ThirdParty\Mikkt</Filter>
     </ClInclude>
     <ClInclude Include="..\ThirdParty\Mikkt\weldmesh.h">
       <Filter>ThirdParty\Mikkt</Filter>
-    </ClInclude>
-    <ClInclude Include="Renderer\Denoiser.hpp">
-      <Filter>RenderPasses</Filter>
-    </ClInclude>
-    <ClInclude Include="Renderer\GlobalIllumination.hpp">
-      <Filter>RenderPasses</Filter>
-    </ClInclude>
-    <ClInclude Include="Renderer\Sampler.hpp">
-      <Filter>RenderPasses</Filter>
-    </ClInclude>
-    <ClInclude Include="Renderer\PostProcess.hpp">
-      <Filter>RenderPasses</Filter>
     </ClInclude>
     <ClInclude Include="Math\ConvexShapes.hpp">
       <Filter>Math</Filter>
@@ -749,6 +650,30 @@
     </ClInclude>
     <ClInclude Include="Editor\EditorComponents.hpp">
       <Filter>Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\RenderResources\RenderBuffers.hpp">
+      <Filter>RendererD12\RenderResources</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\BitmapFont.hpp">
+      <Filter>CoreRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Camera.hpp">
+      <Filter>Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\SimpleTriangleFont.hpp">
+      <Filter>CoreRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\SpriteAnimationGroupDefinition.hpp">
+      <Filter>CoreRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\SpriteAnimDefinition.hpp">
+      <Filter>CoreRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\SpriteDefinition.hpp">
+      <Filter>CoreRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\SpriteSheet.hpp">
+      <Filter>CoreRenderer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

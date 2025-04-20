@@ -30,6 +30,7 @@ public:
 	void ShutDown();
 
 	void ChangeTitle(std::string title);
+	void SetWindowIcon();
 
 	WindowConfig const& GetConfig() const;
 	static Window* GetWindowContext();

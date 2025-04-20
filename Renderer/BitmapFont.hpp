@@ -1,5 +1,4 @@
 #pragma once
-#include "Engine/Renderer/Texture.hpp"
 #include <vector>
 #include "Engine/Renderer/SpriteSheet.hpp"
 #include "Engine/Core/Rgba8.hpp"
@@ -16,12 +15,10 @@ class BitmapFont
 	friend class RendererD12;
 
 private:
-	BitmapFont(char const* fontFilePathNameWithNoExtension, Texture& fontTexture);
-	BitmapFont(char const* fontFilePathNameWithNoExtension, Texture& fontTexture, IntVec2 const& textureDimensions);
+	//BitmapFont(char const* fontFilePathNameWithNoExtension);
+	BitmapFont(char const* fontFilePathNameWithNoExtension, IntVec2 const& textureDimensions);
 
 public:
-	const Texture& GetTexture() const;
-
 	void AddVertsForText2D(std::vector<Vertex_PCU>& vertexArray, Vec2 const& textMins,
 		float cellHeight, std::string const& text, Rgba8 const& tint = Rgba8::WHITE, float cellAspect = 1.f, float letterWidth =1.0f);
 	float GetTextWidth(float cellHeight, std::string const& text, float cellAspect = 1.f);

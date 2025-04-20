@@ -1,6 +1,5 @@
 //#include "Engine/Core/EnginePCH.hpp"
 #include "Engine/Renderer/SimpleTriangleFont.hpp"
-#include "Engine/Renderer/Renderer.hpp"
 //#include "Engine/Core/MeshUtils.hpp"
 #include "Engine/Core/VertexDefinitions.hpp"
 #include "Engine/Core/Rgba8.hpp"

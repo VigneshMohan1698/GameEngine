@@ -1,7 +1,6 @@
 #pragma once
 #include "Engine/Renderer/SpriteDefinition.hpp"
 #include "Engine/Renderer/SpriteSheet.hpp"
-#include "Engine/Renderer/Shader.hpp"
 #include <ThirdParty/TinyXML2/tinyxml2.h>
 
 
@@ -23,9 +22,6 @@ public:
 	SpriteAnimDefinition(const SpriteSheet& sheet, int startSpriteIndex, int endSpriteIndex,
 		float durationSeconds, SpriteAnimPlaybackType playbackType = SpriteAnimPlaybackType::LOOP);
 
-	SpriteAnimDefinition(const SpriteSheet& sheet, int startSpriteIndex, int endSpriteIndex,
-		float durationSeconds,Shader* shader, SpriteAnimPlaybackType playbackType = SpriteAnimPlaybackType::LOOP);
-
 	SpriteAnimDefinition(const SpriteSheet& sheet, int startSpriteIndex, int endSpriteIndex, SpriteAnimPlaybackType playbackMode);
 
 	const SpriteDefinition& GetSpriteDefAtTime(float seconds) const;
@@ -45,7 +41,6 @@ private:
 	int										m_endSpriteIndex = -1;
 	float									m_durationSeconds = 1.f;
 	SpriteAnimPlaybackType					m_playbackType = SpriteAnimPlaybackType::LOOP;
-	Shader*									m_shader = nullptr;
 	float									m_fps = 1.f;
 	std::string								m_name;
 };

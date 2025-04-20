@@ -4,6 +4,7 @@
 #include "Engine/Core/ErrorWarningAssert.hpp"
 #include "Game/GameCommon.hpp"
 #include "ThirdParty/ImGui/imgui_impl_win32.h"
+#include <Engine/ECS/EngineData.hpp>
 
 
 Window* Window::s_mainWindow = nullptr;
@@ -219,6 +220,7 @@ void Window::CreateOSWindow()
 	g_displayDeviceContext = GetDC(hwnd);
 	HCURSOR cursor = LoadCursor(NULL, IDC_ARROW);
 	SetCursor(cursor);
+	SetWindowIcon();
 }
 
 Vec2 Window::GetNormalizedCursorPosition() const
@@ -260,6 +262,24 @@ void Window::ChangeTitle(std::string title)
 	SetWindowTextA(windowHandle, (LPCSTR) title.c_str());
 }
 
+void Window::SetWindowIcon() 
+{
+	std::string AlbusLogo = EngineAssetsPath + "Images/AlbusLogo.ico";
+	std::wstring LogoInput(AlbusLogo.begin(), AlbusLogo.end());
+
+	HICON hIcon = static_cast<HICON>(LoadImage(
+		NULL,
+		LogoInput.c_str(),         // Path to your .ico file
+		IMAGE_ICON,
+		256, 256,
+		LR_LOADFROMFILE | LR_DEFAULTSIZE
+	));
+
+	if (hIcon) {
+		SendMessage((HWND)m_OswindowHandle, WM_SETICON, ICON_BIG, (LPARAM)hIcon);    // Title bar
+		SendMessage((HWND)m_OswindowHandle, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);  // Taskbar
+	}
+}
 WindowConfig const& Window::GetConfig() const
 {
 	return m_config;

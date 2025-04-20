@@ -1,6 +1,5 @@
 #pragma  once
 #include "Engine/Math/AABB2.hpp"
-#include "Engine/Renderer/Texture.hpp"
 
 class SpriteSheet;
 class SpriteDefinition
@@ -10,7 +9,6 @@ public:
 	void							GetUVs(Vec2& out_uvAtMins, Vec2& out_uvAtMaxs) const;
 	AABB2							GetUVs() const;
 	SpriteSheet const&				GetSpriteSheet() const;
-	Texture&						GetTexture() const;
 	float							GetAspect() const;
 	int								m_spriteIndex = -1;
 protected:

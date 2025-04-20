@@ -21,7 +21,7 @@ inline UINT Align(UINT size, UINT alignment)
 {
     return (size + (alignment - 1)) & ~(alignment - 1);
 }
-class GpuUploadBuffer
+class GpuUploadBufferRTX
 {
 public:
     Microsoft::WRL::ComPtr<ID3D12Resource> GetResource() { return m_resource; }
@@ -31,8 +31,8 @@ public:
     Microsoft::WRL::ComPtr<ID3D12Resource> m_resource; // This is the upload buffer for Vertex buffer
     Microsoft::WRL::ComPtr<ID3D12Resource> m_defaultBuffer;
 
-    GpuUploadBuffer() {}
-    ~GpuUploadBuffer()
+    GpuUploadBufferRTX() {}
+    ~GpuUploadBufferRTX()
     {
         if (m_resource.Get())
         {
@@ -133,7 +133,7 @@ public:
     PointerWithSize localRootArguments;
 };
 
-class ShaderTable : public GpuUploadBuffer
+class ShaderTable : public GpuUploadBufferRTX
 {
 public:
     ShaderTable() {}
@@ -153,17 +153,13 @@ public:
 };
 
 template <class T>
-class StructuredBuffer : public GpuUploadBuffer
+class StructuredBuffer : public GpuUploadBufferRTX
 {
-    T* m_mappedBuffers;
-    std::vector<T> m_staging;
-    UINT m_numInstances;
-
 public:
     
     StructuredBuffer() : m_mappedBuffers(nullptr), m_numInstances(0) {}
 
-    void Create(ID3D12Device* device, UINT numElements, UINT numInstances = 1, LPCWSTR resourceName = nullptr)
+    void                        Create(ID3D12Device* device, UINT numElements, UINT numInstances = 1, LPCWSTR resourceName = nullptr)
     {
         m_numInstances = numInstances;
         m_staging.resize(numElements);
@@ -171,34 +167,36 @@ public:
         Allocate(device, bufferSize, resourceName);
         m_mappedBuffers = reinterpret_cast<T*>(MapCpuWriteOnly());
     }
-    void CopyFromCPUToGPU(UINT instanceIndex = 0)
+    void                        CopyFromCPUToGPU(UINT instanceIndex = 0)
     {
         memcpy(m_mappedBuffers + instanceIndex * NumElements(), &m_staging[0], InstanceSize());
     }
-    D3D12_GPU_VIRTUAL_ADDRESS GpuVirtualAddress(UINT instanceIndex = 0, UINT elementIndex = 0)
+    D3D12_GPU_VIRTUAL_ADDRESS   GpuVirtualAddress(UINT instanceIndex = 0, UINT elementIndex = 0)
     {
         return m_resource->GetGPUVirtualAddress() + instanceIndex * InstanceSize() + elementIndex * ElementSize();
     }
 
-    T& operator[](UINT elementIndex) { return m_staging[elementIndex]; }
-    const T& operator[](UINT elementIndex) const { return m_staging[elementIndex]; }
-    size_t NumElements() const { return m_staging.size(); }
-    size_t InstanceSize() const { return NumElements() * ElementSize(); }
-    UINT ElementSize() const { return sizeof(T); }
-    UINT NumInstances() const { return m_numInstances; }
+    T&                          operator[](UINT elementIndex) { return m_staging[elementIndex]; }
+    const T&                    operator[](UINT elementIndex) const { return m_staging[elementIndex]; }
+    size_t                      NumElements() const { return m_staging.size(); }
+    size_t                      InstanceSize() const { return NumElements() * ElementSize(); }
+    UINT                        ElementSize() const { return sizeof(T); }
+    UINT                        NumInstances() const { return m_numInstances; }
+
+public:
+    T*                          m_mappedBuffers;
+    std::vector<T>              m_staging;
+    UINT                        m_numInstances;
+
 };
 
 template <class T>
-class ConstantBufferD12 : public GpuUploadBuffer
+class ConstantBufferD12 : public GpuUploadBufferRTX
 {
-    uint8_t* m_mappedConstantData;
-    UINT m_alignedInstanceSize;
-    UINT m_numInstances;
-
 public:
     ConstantBufferD12() : m_alignedInstanceSize(0), m_numInstances(0), m_mappedConstantData(nullptr) {}
-
-    void Create(ID3D12Device* device, UINT numInstances = 1, LPCWSTR resourceName = nullptr)
+public:
+    void                        Create(ID3D12Device* device, UINT numInstances = 1, LPCWSTR resourceName = nullptr)
     {
         m_numInstances = numInstances;
         m_alignedInstanceSize = Align(sizeof(T), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
@@ -206,36 +204,32 @@ public:
         Allocate(device, bufferSize, resourceName);
         m_mappedConstantData = MapCpuWriteOnly();
     }
-
-    void CopyStagingToGpu(UINT instanceIndex = 0)
+    void                        CopyStagingToGpu(UINT instanceIndex = 0)
     {
         memcpy(m_mappedConstantData + instanceIndex * m_alignedInstanceSize, &staging, sizeof(T));
     }
-
-    // Accessors
-    // Align staging object on 16B boundary for faster mempcy to the memory returned by Map()
-    //alignas(16) T staging;
-    T staging;
-    T* operator->() { return &staging; }
-    UINT NumInstances() { return m_numInstances; }
-    D3D12_GPU_VIRTUAL_ADDRESS GpuVirtualAddress(UINT instanceIndex = 0)
+    T*                          operator->() { return &staging; }
+    UINT                        NumInstances() { return m_numInstances; }
+    D3D12_GPU_VIRTUAL_ADDRESS   GpuVirtualAddress(UINT instanceIndex = 0)
     {
         return m_resource->GetGPUVirtualAddress() + instanceIndex * m_alignedInstanceSize;
     }
+
+public:
+    uint8_t*                 m_mappedConstantData;
+    UINT                     m_alignedInstanceSize;
+    UINT                     m_numInstances;
+    alignas(16) T            staging;
 };
 
 
 template <class T>
-class VertexBufferD12 : public GpuUploadBuffer
+class VertexBufferD12 : public GpuUploadBufferRTX
 {
-    public:
-    uint8_t* m_mappedConstantData;
-    UINT m_alignedInstanceSize;
-    UINT m_numInstances;
-
-     VertexBufferD12() : m_alignedInstanceSize(0), m_numInstances(0), m_mappedConstantData(nullptr) {}
+public:
+    VertexBufferD12() : m_alignedInstanceSize(0), m_numInstances(0), m_mappedConstantData(nullptr) {}
      
-    void CreateDefaultBuffer(ID3D12Device* device,ID3D12GraphicsCommandList* cmdList, void* vertexData, UINT bufferSize, UINT numInstances = 1)
+    void                       CreateDefaultBuffer(ID3D12Device* device,ID3D12GraphicsCommandList* cmdList, void* vertexData, UINT bufferSize, UINT numInstances = 1)
     {
 		m_numInstances = numInstances;
 		//m_alignedInstanceSize = Align(sizeof(T), D3D12_VERTEX_BUFFER_VIEW);
@@ -289,17 +283,14 @@ class VertexBufferD12 : public GpuUploadBuffer
 		memcpy(m_mappedConstantData, vertexData, bufferSize);
 		m_resource.Get()->Unmap(0, nullptr);
     }
-
-    T staging;
-    T* operator->() { return &staging; }
-    UINT NumInstances() { return m_numInstances; }
-    D3D12_GPU_VIRTUAL_ADDRESS GpuVirtualAddress(UINT instanceIndex = 0)
+    T*                         operator->() { return &staging; }
+    UINT                       NumInstances() { return m_numInstances; }
+    D3D12_GPU_VIRTUAL_ADDRESS  GpuVirtualAddress(UINT instanceIndex = 0)
     {
         return m_resource->GetGPUVirtualAddress() + instanceIndex * m_alignedInstanceSize;
     }
-    UINT ElementSize() const { return sizeof(T); }
-
-    D3D12_VERTEX_BUFFER_VIEW CreateAndGetVertexBufferView(const UINT vByteSize)
+    UINT                       ElementSize() const { return sizeof(T); }
+    D3D12_VERTEX_BUFFER_VIEW   CreateAndGetVertexBufferView(const UINT vByteSize)
     {
         //--------------CREATING VERTEX BUFFER VIEW------------
         D3D12_VERTEX_BUFFER_VIEW vbv;
@@ -322,19 +313,22 @@ class VertexBufferD12 : public GpuUploadBuffer
 		memcpy(m_mappedConstantData + instanceIndex * m_alignedInstanceSize, &staging, sizeof(T));
 	}
 
+public:
+    uint8_t*            m_mappedConstantData;
+    UINT                m_alignedInstanceSize;
+    UINT                m_numInstances;
+    T                   staging;
+
 };
 
 template <class T>
-class IndexBufferD12 : public GpuUploadBuffer
+class IndexBufferD12 : public GpuUploadBufferRTX
 {
 public:
-    uint8_t* m_mappedConstantData;
-    UINT m_alignedInstanceSize;
-    UINT m_numInstances;
-
     IndexBufferD12() : m_alignedInstanceSize(0), m_numInstances(0), m_mappedConstantData(nullptr) {}
 
-    void CreateDefaultBuffer(ID3D12Device* device, ID3D12GraphicsCommandList* cmdList, void* data, UINT bufferSize, UINT numInstances = 1)
+ public:
+    void                      CreateDefaultBuffer(ID3D12Device* device, ID3D12GraphicsCommandList* cmdList, void* data, UINT bufferSize, UINT numInstances = 1)
     {
         m_numInstances = numInstances;
         //m_alignedInstanceSize = Align(sizeof(T), D3D12_VERTEX_BUFFER_VIEW);
@@ -389,16 +383,15 @@ public:
         m_resource.Get()->Unmap(0, nullptr);
     }
 
-    T staging;
-    T* operator->() { return &staging; }
-    UINT NumInstances() { return m_numInstances; }
+    T*                        operator->() { return &staging; }
+    UINT                      NumInstances() { return m_numInstances; }
     D3D12_GPU_VIRTUAL_ADDRESS GpuVirtualAddress(UINT instanceIndex = 0)
     {
         return m_resource->GetGPUVirtualAddress() + instanceIndex * m_alignedInstanceSize;
     }
-    UINT ElementSize() const { return sizeof(T); }
+    UINT                      ElementSize() const { return sizeof(T); }
 
-    D3D12_INDEX_BUFFER_VIEW CreateAndGetIndexBufferView(const UINT iByteSize)
+    D3D12_INDEX_BUFFER_VIEW   CreateAndGetIndexBufferView(const UINT iByteSize)
     {
         //--------------CREATING VERTEX BUFFER VIEW------------
         D3D12_INDEX_BUFFER_VIEW ibv;
@@ -407,6 +400,12 @@ public:
         ibv.SizeInBytes = iByteSize;
         return ibv;
     }
+public:
+    uint8_t*            m_mappedConstantData;
+    UINT                m_alignedInstanceSize;
+    UINT                m_numInstances;
+    T                   staging;
+
 };
 
 void PrintStateObjectDesc(const D3D12_STATE_OBJECT_DESC* desc);

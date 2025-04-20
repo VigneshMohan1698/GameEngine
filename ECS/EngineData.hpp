@@ -5,6 +5,7 @@
 #include <Engine/Math/Vec2.hpp>
 
 const static IntVec2 ShadowMapResolution = IntVec2(1024,1024);
+const static std::string EngineAssetsPath = "../../Engine/Code/Engine/Assets/";
 
 struct FeaturesEnabled
 {
@@ -37,4 +38,6 @@ struct EngineState
 	FeaturesEnabled m_enabledFeatures;
 	EngineDataBuffer m_engineDataBuffer;
 	float			m_frameTime;
+	int				m_fps;
+	long long		m_currentFrameNumber;
 };

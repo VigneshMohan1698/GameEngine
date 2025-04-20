@@ -1,7 +1,7 @@
 #include "DevConsole.hpp"
-#include "Engine/Renderer/Renderer.hpp"
+#include "Engine/Renderer/RendererD12.hpp"
 #include "Engine/Math/VertexUtils.hpp"
-#include "Engine/Renderer/DebugRenderer.hpp"
+
 #include "Engine/Core/XmlUtils.hpp"
 
 RemoteConsole* g_remoteConsole = nullptr;
@@ -225,17 +225,17 @@ void DevConsole::AddLine(Rgba8 const& color, std::string const& text)
 	m_lines.push_back(line);
 }
 
-void DevConsole::Render(AABB2 const& bounds, Renderer* rendererOverride) const
+void DevConsole::Render(AABB2 const& bounds) const
 {
-	m_config.m_renderer->BindTexture(nullptr);
-	m_config.m_renderer->BindShader(m_config.m_renderer->GetDefaultShader());
-	m_config.m_renderer->SetBlendMode(BlendMode::ALPHA);
-	m_config.m_renderer->SetDepthStencilState(DepthTest::ALWAYS, false);
-	m_config.m_renderer->SetRasterizerState(CullMode::NONE, FillMode::SOLID, WindingOrder::COUNTERCLOCKWISE);
-	m_config.m_renderer->SetSamplerMode(SamplerMode::POINTCLAMP);
-	std::vector<Vertex_PCU> devConsoleVerts;
-	std::vector<Vertex_PCU> devConsoleQuad;
-	BitmapFont* font = m_config.m_renderer->CreateOrGetBitmapFont("Data/Images/SquirrelFixedFont");
+	//m_config.m_rendererD12->BindTexture(nullptr);
+	//m_config.m_rendererD12->BindShader(m_config.m_renderer->GetDefaultShader());
+	//m_config.m_rendererD12->SetBlendMode(BlendMode::ALPHA);
+	//m_config.m_rendererD12->SetDepthStencilState(DepthTest::ALWAYS, false);
+	//m_config.m_rendererD12->SetRasterizerState(CullMode::NONE, FillMode::SOLID, WindingOrder::COUNTERCLOCKWISE);
+	//m_config.m_rendererD12->SetSamplerMode(SamplerMode::POINTCLAMP);
+	VertexArray devConsoleVerts;
+	VertexArray devConsoleQuad;
+	BitmapFont* font = m_config.m_rendererD12->CreateBitmapFont("Data/Images/SquirrelFixedFont");
 
 
 	AABB2 textBounds = bounds.GetFractionalAABB2(Vec2(0.002f, 0.005f), Vec2(0.998f, 0.995f));
@@ -297,22 +297,10 @@ void DevConsole::Render(AABB2 const& bounds, Renderer* rendererOverride) const
 	borderBounds.m_maxs.y = bounds.m_maxs.y * 0.005f;
 	AddVertsForAABB2D(devConsoleQuad, borderBounds, Rgba8::CYAN);
 
-	m_config.m_renderer->DrawVertexArray(int(devConsoleQuad.size()), devConsoleQuad.data());
+	m_config.m_rendererD12->DrawVertexArray(int(devConsoleQuad.size()), devConsoleQuad);
 
-	if (rendererOverride != nullptr && font != nullptr)
-	{
-		rendererOverride->BindTexture(&font->GetTexture());
-		rendererOverride->DrawVertexArray(int(devConsoleVerts.size()), devConsoleVerts.data());
-		rendererOverride->BindTexture(nullptr);
-	}
-	else
-	{
-		m_config.m_renderer->BindTexture(&font->GetTexture());
-		m_config.m_renderer->DrawVertexArray(int(devConsoleVerts.size()), devConsoleVerts.data());
-		m_config.m_renderer->BindTexture(nullptr);
-	}
 
-	g_remoteConsole->Render(bounds, m_config.m_renderer);
+	g_remoteConsole->Render(bounds, m_config.m_rendererD12);
 	font = nullptr;
 	devConsoleVerts.clear();
 	devConsoleQuad.clear();
@@ -522,11 +510,11 @@ bool DevConsole::Command_Controls(EventArgs& args)
 bool DevConsole::Command_DebugRenderClear(EventArgs& args)
 {
 	UNUSED((void)args);
-	DebugRenderClear();
+	//DebugRenderClear();
 	return false;
 }
 
-void DevConsole::Render_OpenFull(AABB2 const& bounds, Renderer& renderer, BitmapFont& font, float fontAspect) const
+void DevConsole::Render_OpenFull(AABB2 const& bounds, RendererD12& renderer, BitmapFont& font, float fontAspect) const
 {
 	UNUSED((void)bounds);
 	UNUSED((void)renderer);

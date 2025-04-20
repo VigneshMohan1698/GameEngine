@@ -9,12 +9,9 @@
 #include "Engine/Core/Image.hpp"
 #include "Engine/Math/IntVec2.hpp"
 #include "Engine/Renderer/BitmapFont.hpp"
-#include "Engine/Renderer/ConstantBuffer.hpp"
 #include "Engine/Renderer/RaytracingHelpers.hpp"
 #include "Engine/Renderer/TextureD12.hpp"
 #include "Engine/Core/EngineCommon.hpp"
-#include "Engine/Renderer/AccelerationStructureHelper.hpp"
-#include "Engine/Renderer/Sampler.hpp"
 #include "Engine/Renderer/BitmapFont.hpp"
 #include "ThirdParty/D3D12DXR/d3dx12.h"
 //#include "ThirdParty/D3D12DXR/DDSTextureLoader.h"
@@ -239,12 +236,6 @@ enum class GBufferResources
 };
 
 
-enum class Scenes
-{
-	Minecraft,
-	Bunny
-};
-
 enum class GBufferResourcesPreviousFrame
 {
 	VertexNormal, 
@@ -345,62 +336,33 @@ class RendererD12
 		 void			ShutDown();
 		 void			RenderFrame();
 
-		 //-----------------DXR  RAYTRACING FUNCTIONS----------------------------------------
 		 void			D3D12InterfaceInitialization();
-		 void			InitializeDenoising();
-		 void			CreateRootSignatures();
-		 void			InitializeComposition();
-		 void			InitializePostProcess();
 		 void			InitializeAdapterAndCheckRaytracingSupport();
-		 void			CreateRaytracingInterfaces();
-		 void	    	CompileShaders();
-		 void			CreateRaytracingPipelineStateObject();
-		 void			InitializeBasicBottomLevelAS();
-		 //void			InitializeSampler();
-		 void			InitializeGlobalIllumination();
-		 //void			InitializeIrradianceCaching();
-		 void			BuildGeometryAndAS(std::vector<Vertex_PNCUTB>& verts, std::vector<UINT>& indices, int index = 0);
-		 void			BuildModelGeometryAndAS(std::vector<Vertex_PNCUTB>& verts, std::vector<UINT>& indices, int index);
-		 void			BuildBLAS(std::vector<Vertex_PNCUTB>& verts, std::vector<UINT>& indices, int index);
-		 void			BuildASInstances();
-		 void			BuildTLAS();
-		 void			AddPointLights(Vec4 pointLightPosition);
-		 void			BuildGeometryAndASForChunk(std::vector<Vertex_PNCUTB>& verts, std::vector<UINT>& indices,  ComPtr<ID3D12Resource>& topLevel,
-		 ComPtr<ID3D12Resource>& bottomLevel, GpuBuffer& vertexBuffer, GpuBuffer& indexBuffer, int instanceIndex);
-		 void			BuildAS(D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC ASDesc, D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC topASDesc,
-						ID3D12Resource* bottomLevelAS);
-		 void			BuildShaderTables();
-		 void			CreateRaytracingOutputResources();
-		 void			CreateIMGUIRenderTarget();
-		 void			SetupImGuiRenderTarget();
-
-		 //----------------------------MESH FUNCTIONS--------------------------
-		 Mesh*   GetMesh(const char* filePath);
-		 Mesh*   GetMeshForName(const char* name);
-		 Mesh*	GetMeshAtIndex(int index);
-		 Mesh*   CreateMesh(const char* filePath);
-		 Mesh*	CreateOrGetMesh(const char* filePath);
-		 Mesh*	CreateMeshFromSavedFile(const char* filePath);
-
-		 void			BuildBunny();
-		 void			PopulateCommandList();
-		 void			WaitForPreviousFrame();
-		 void			GetHardwareAdapter(IDXGIFactory2* pFactory, IDXGIAdapter1** ppAdapter);
-		 std::wstring	GetAssetFullPath(LPCWSTR assetName);
-		 void			RaytracingAssets();
-
-		 //---------------------DXR FUNCTIONS----------------------
 		 void			Prepare();
-		 void			RunRaytracer();
-		 void			RunGI();
-		 void			RunDenoiser(bool temporalSamplerOn,bool denoiserOn);
-		 void			RunCompositor(bool denoiserOn, bool godRaysOn = true);
-		 void		    CopyRaytracingOutputToBackbuffer();
-		 void		    FinishRaytraceCopyToBackBuffer();
 		 void		    SerializeAndCreateRaytracingRootSignature(D3D12_ROOT_SIGNATURE_DESC& desc, ComPtr<ID3D12RootSignature>* rootSig);
 		 void		    SerializeAndCreateRaytracingRootSignature(ID3D12Device5* device, D3D12_ROOT_SIGNATURE_DESC& desc, ComPtr<ID3D12RootSignature>* rootSig);
 		 void			Present();
 		 void			MoveToNextFrame();
+		 void			InitializeRasterization();
+		 void			BeginShadowMapRender(ShadowMap* shadowMap);
+		 void			EndShadowMapRender(ShadowMap* shadowMap);
+		 void			FinishUpGPUWork();
+
+		 //---------------------- IMGUI ------------------------------
+		 void			CreateIMGUIRenderTarget();
+		 void			SetupImGuiRenderTarget();
+
+		 //----------------------------MESH FUNCTIONS--------------------------
+		 Mesh*			GetMesh(const char* filePath);
+		 Mesh*			GetMeshForName(const char* name);
+		 Mesh*			GetMeshAtIndex(int index);
+		 Mesh*			CreateMesh(const char* filePath);
+		 Mesh*			CreateOrGetMesh(const char* filePath);
+		 Mesh*		    CreateMeshFromSavedFile(const char* filePath);
+
+		 void			PopulateCommandList();
+		 void			GetHardwareAdapter(IDXGIFactory2* pFactory, IDXGIAdapter1** ppAdapter);
+		 std::wstring	GetAssetFullPath(LPCWSTR assetName);
 
 		 //-----------------TEXTURES-----------------------------
 		 UINT			CreateBufferSRV(GpuBuffer* buffer, UINT numElements, UINT elementSize, DXGI_FORMAT format, D3D12_BUFFER_SRV_FLAGS flags);
@@ -448,23 +410,14 @@ class RendererD12
 		 void			BeginRasterizerCamera(const Camera& camera, ShadowMap* shadowMap = nullptr);
 		 void			SetModelConstantData(Mat44 modelMatrix, Vec4 color);
 		 void			EndCamera(const Camera& camera);
-		 void			SetRaytraceQuadCamera(Vec3 topLeft, Vec3 bottomLeft, Vec3 topRight, Vec3 bottomRight);
 
 		 //---------------------MAIN RENDER FUNCTIONS------------------------------
 		 void			ClearScreen(Rgba8 color);
-		 void			Present(Rgba8 color);
 		 void			DrawVertexArray(int size, VertexNormalArray array);
 		 void			DrawIndexedVertexArray(int numberOfVertices, std::vector<Vertex_PNCUTB>& verticesToDraw, std::vector<unsigned int>& indexes);
 		 void			DrawVertexArray(int numberOfVertices, std::vector<Vertex_PNCUTB>& verticesToDraw);
-		 void			DrawVertexArray(int size, VertexArray array);
+		 void			DrawVertexArray(int size, VertexArray& array);
 		 void			SetDepthStencilState(DepthTestD12 depthTest, bool writeDepth);
-
-		 //---------------------RASTERIZATION FUNCTIONS--------------
-		 void				InitializeRasterization();
-		 void				BeginShadowMapRender(ShadowMap* shadowMap);
-		 void				EndShadowMapRender(ShadowMap* shadowMap);
-		 void				FinishUpGPUWork();
-		// void				SetRasterizationState(CullModeD12 cullMode, FillModeD12 fillMode, WindingOrderD12 windingOrder);
 
 		 //----------------GET FUNCTIONS----------------
 		 RenderingPipeline					m_renderingPipeline = RenderingPipeline::Raytracing;
@@ -499,47 +452,30 @@ class RendererD12
 
 	//--------------------SCENE VARIABLES-----------------------
 	public:	
-		Scenes							 m_currentScene = Scenes::Minecraft;
-		const static unsigned int		 MINECRAFTCHUNKS = 500;
+		RendererD12Config				 m_renderConfig = {};
 		bool							 m_isFirstFrame = true;
 		IntVec2							 m_dimensions;
 		IntVec2							 m_windowDimensions;
 		Camera							 m_currentCamera;
-		SceneConstantBuffer				 m_gameValues;
-		Vec4							 m_lightPosition;
-		float							 angleToRotateBy  = 20.0f;
-		ConstantBufferD12<SceneConstantBuffer>	m_sceneCB;
-		ConstantBufferD12<RaytracedPointLights>	 m_lightCB;
-		CubeConstantBuffer				 m_cubeCB;
 
 		D3D12_CPU_DESCRIPTOR_HANDLE		 m_imGUICpuHandle;
 		D3D12_GPU_DESCRIPTOR_HANDLE		 m_imGUIGpuHandle;
 
-		TextureD12						 m_minecraftTexture;
-		float							m_dispatchRayRuntime;
-		float							m_gpuWaitTime;
-		std::vector<Vertex_PNCUTB>		m_DXRverts;
-		std::vector<unsigned int>		m_DXRindexes;
-
-		//----------------------------SAMPLING VARIABLES--------------------
-		StructuredBuffer<AlignedHemisphereSample> m_hemisphereSamplesGPUBuffer;
-		GlobalIllumination*						  m_globalIllumination = nullptr;
+		float							 m_dispatchRayRuntime;
+		float							 m_gpuWaitTime;
 
 		//-----------------------------RESOURCE MANAGEMENT---------------
-		ResourceManager*						 m_resourceManager = nullptr;
-		//----------------------------DENOISING VARIABLES-------------------
-		Denoiser*								  m_denoiser = nullptr;
-		Composition*						      m_compositor = nullptr;
-		PostProcess*						      m_postProcess = nullptr;
+		ResourceManager*				 m_resourceManager = nullptr;
+
 	public:
 		//------------------VARIABLES SPECIFIC TO DX12 DXR---------------------------
 		std::vector<TextureD12*>		 m_loadedTextures;
-		std::vector<Mesh*>		 m_loadedMeshes;
+		std::vector<Mesh*>				 m_loadedMeshes;
 		std::vector<ShaderD12*>		     m_loadedShaders;
 		ShaderD12*						 m_currentShader;
 		ShaderCompiler*					 m_shaderCompiler = nullptr;
 		UINT							 m_frameIndex;
-		float							 m_temporalFade = 0.0f;
+
 		//-----DESCRIPTOR VARIABLES------------------
 		UINT							 m_descriptorsAllocated;
 		UINT							 m_depthDescriptorsAllocated;
@@ -556,7 +492,6 @@ class RendererD12
 
 		ComPtr<IDXGISwapChain3>			 m_RswapChain;
 		ComPtr<ID3D12Device>			 m_Rdevice;
-		ComPtr<ID3D12Device5>			 m_dxrDevice;
 		ComPtr<IDXGIFactory4>            m_dxgiFactory;
 		UINT                             m_adapterIDoverride;
 		UINT                             m_adapterID;
@@ -574,18 +509,13 @@ class RendererD12
 		D3D12_VERTEX_BUFFER_VIEW		 m_RvertexBufferView;
 		GpuBuffer						 m_indexBuffer;
 		GpuBuffer						 m_vertexBuffer;
-		VertexBufferD12<Vertex_PNCU>	 m_rasterizedVertices;
-		std::vector<RenderItems>		 m_staticRenderItems;
 		std::vector<RenderItems>		 m_dynamicRenderItems;
-		GpuBuffer						 m_bunnyVertexBuffer;
-		GpuBuffer						 m_bunnyIndexBuffer;
 		D3D12_VIEWPORT                   m_screenViewport;
 		D3D12_RECT                       m_scissorRect;
 		ComPtr<ID3D12Resource>			 m_backBufferRenderTarget[m_backBufferCount] = {};
-		GpuBuffer						 m_uselessRenderTarget;
 
-		IDXGIDebug*						m_dxgiDebug = nullptr;
-		void*								m_dxgiDebugModule = nullptr;
+		IDXGIDebug*						 m_dxgiDebug = nullptr;
+		void*							 m_dxgiDebugModule = nullptr;
 		GpuBuffer						 m_depthStencilBuffer;
 		D3D12_RASTERIZER_DESC			 m_rasterizerDesc;
 		CD3DX12_CPU_DESCRIPTOR_HANDLE	 m_backBufferHeapCPUHandle[m_backBufferCount] = {};
@@ -594,69 +524,21 @@ class RendererD12
 		DXGI_FORMAT                      m_backBufferFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 		DXGI_FORMAT                      m_depthBufferFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
 		
-		
-
-		//------------------ACCELERATION STRUCTURE VARIABLES------------------------
-		//RaytracingASManager*			 m_raytracingASManager = nullptr;
-		//std::vector<BLASGeometry>		 m_geomtries;
+	
 		//------------------VARIABLES SPECIFIC TO D3D12---------------------------								
 		D3D12_CPU_DESCRIPTOR_HANDLE		m_renderTargetViewHandle;
 		D3D12_CPU_DESCRIPTOR_HANDLE		m_ImguirenderTargetViewHandle;
 		D3D12_RESOURCE_STATES			m_beforeState;
-		HANDLE							m_fenceEventHandle;
-		unsigned long long				m_fenceValue;
-		D3D_FEATURE_LEVEL				m_featureLevel = D3D_FEATURE_LEVEL_12_1;
 
 		//----------------PRESENTATION FENCE OBJECTS-----------------------
 		ComPtr<ID3D12Fence>								 m_fence;
 		UINT64                                           m_fenceValues[m_backBufferCount];
 		Microsoft::WRL::Wrappers::Event                  m_fenceEvent;
 
-		//------------------------DXR RAYTRACING VARIABLES-----------------
-		ComPtr<ID3D12RootSignature>				m_raytracingGlobalRootSignature;
-		ComPtr<ID3D12RootSignature> 			m_raytracingLocalRootSignature;
-		ComPtr<ID3D12StateObject>				m_dxrStateObject;
-		ComPtr<ID3D12Resource>					m_bottomLevelAccelerationStructure;
-		ComPtr<ID3D12Resource>					m_topLevelAccelerationStructure;
-
-		ComPtr<ID3D12Resource>					m_bunnyBlas;
-		ComPtr<ID3D12Resource>					m_bunnyTlas;
-
-		bool									m_isTopLevelASRebuildRequired= false;
-		AccelerationStructureBuffers			m_bottomLevelAccelerationStructureBuffers[MINECRAFTCHUNKS];
-		//D3D12_GPU_DESCRIPTOR_HANDLE				m_raytracingOutputResourceUAVGpuDescriptor;
-		//D3D12_CPU_DESCRIPTOR_HANDLE				m_raytracingOutputResourceUAVCpuDescriptor;
-		//UINT									m_raytracingOutputResourceUAVDescriptorHeapIndex = UINT_MAX;
-
-		//-------------------------SHADER TABLE VARIABLES------------------------
-		bool									m_isShaderTableBuilt = false;
-		static const wchar_t*					c_hitGroupName;
-		static const wchar_t*					c_raygenShaderName;
-		static const wchar_t*					c_closestHitShaderName;
-		static const wchar_t*					c_anyHitShaderName;
-		static const wchar_t*					c_missShaderName;
-		ShaderTable                             HitShaderTable;
-		ShaderTable                             RaygenShaderTable;
-		ShaderTable                             MissShaderTable;
-		UINT									m_hitGroupShaderTableStrideInBytes = UINT_MAX;
-		UINT									m_raygenGroupShaderTableStrideInBytes = UINT_MAX;
-		void*									rayGenShaderID = nullptr;
-		void*								    missShaderID = nullptr;
-		void*									hitGroupShaderID = nullptr;
-		StructuredBuffer<BottomLevelAccelerationStructureInstanceDesc> m_bottomLevelASInstanceDescs;
-
-
 		//------------------------RASTERIZATION VARIABLES-----------------
 		ConstantBufferD12<CameraConstantBuffer>	m_cameraCB;
 		ConstantBufferD12<EngineDataBuffer>		m_gameDataCB;
-		
 		ConstantBufferD12<ModelConstantsD12>	m_modelConstantsCB;
-
-	private:
-		RayGenConstantBuffer					m_rayGenCB;
-		RendererD12Config						m_renderConfig;
-
-
 
 };
 

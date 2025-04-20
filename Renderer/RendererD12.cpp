@@ -8,19 +8,11 @@
 #include "Engine/Core/Image.hpp"
 #include "Engine/Core/StringUtils.hpp"
 #include "Game/EngineBuildPreferences.hpp"
-#include "Engine/Renderer/VertexBuffer.hpp"
 #include "Engine/Core/FileUtils.hpp"
-#include "Engine/Renderer/ConstantBuffer.hpp"
-#include "Engine/Renderer/IndexBuffer.hpp"
 #include "Engine/Core/Clock.hpp"
-#include "Engine/Renderer/DebugRenderer.hpp"
 #include "ThirdParty/D3D12DXR/d3dx12.h"
 #include "Engine/Core/EngineCommon.hpp"
 #include "Engine/Renderer/RaytracingHelpers.hpp"
-#include "Engine/Renderer/Denoiser.hpp"
-#include "Engine/Renderer/GlobalIllumination.hpp"
-#include "Engine/Renderer/Composition.hpp"
-#include "Engine/Renderer/PostProcess.hpp"
 #include "Engine/Renderer/ResourceManager.hpp"
 #include "Engine/Renderer/ShaderD12.hpp"
 #include <dxgidebug.h>
@@ -66,12 +58,6 @@ namespace
 		}
 	}
 };
-
-const wchar_t* RendererD12::c_hitGroupName = L"MyHitGroup";
-const wchar_t* RendererD12::c_raygenShaderName = L"MyRaygenShader";
-const wchar_t* RendererD12::c_closestHitShaderName = L"MyClosestHitShader";
-const wchar_t* RendererD12::c_anyHitShaderName = L"MyAnyHitShader";
-const wchar_t* RendererD12::c_missShaderName = L"MyMissShader";
 
 
 //-----------------------------CONSTRUCTORS--------------------------
@@ -120,10 +106,7 @@ void RendererD12::ShutDown()
 		m_loadedTextures[i] = nullptr;
 	}
 	m_loadedTextures.clear();
-	m_hemisphereSamplesGPUBuffer.ResetResources();
-	m_raytracingGlobalRootSignature.Reset();
-	m_raytracingLocalRootSignature.Reset();
-	m_bottomLevelASInstanceDescs.ResetResources();
+
 	m_fence.Reset();
 	for (int i = 0; i < m_backBufferCount; i++)
 	{
@@ -134,44 +117,18 @@ void RendererD12::ShutDown()
 	delete m_resourceManager;
 	m_resourceManager = nullptr;
 
-	delete m_denoiser;
-	m_denoiser = nullptr;
-
-	delete m_globalIllumination;
-	m_globalIllumination = nullptr;
-
-	delete m_postProcess;
-	m_postProcess = nullptr;
-
-	delete m_compositor;
-	m_compositor = nullptr;
-
-	m_bunnyTlas.Reset();
-	m_bunnyBlas.Reset();
-	m_sceneCB.ResetResources();
-	m_lightCB.ResetResources();
 	m_rtvDescriptorHeap.Reset();
 	m_dsvDescriptorHeap.Reset();
 	m_imguiDescriptorHeap.Reset();
-	m_dxrDevice.Reset();
-	m_dxrCommandList.Reset();
-	m_dxrStateObject.Reset();
 	m_cameraCB.ResetResources();
 	m_modelConstantsCB.ResetResources();
 	m_descriptorHeap.Reset();
-	m_uselessRenderTarget.ResetResource();
 	m_descriptorsAllocated = 0;
 	m_imguiDescriptorsAllocated = 0;
 	m_adapter.Reset();
 	m_indexBuffer.ResetResource();
 	m_vertexBuffer.ResetResource();
-	m_bottomLevelAccelerationStructure.Reset();
-	m_topLevelAccelerationStructure.Reset();
 	m_dxgiFactory.Reset();
-
-	RaygenShaderTable.ResetResources();
-	MissShaderTable.ResetResources();
-	HitShaderTable.ResetResources();
 
 	m_depthStencilBuffer.ResetResource();
 	m_RcommandList.Reset();
@@ -194,40 +151,41 @@ void RendererD12::EndFrame()
 	MoveToNextFrame();
 }
 
+
 //----------------------------CAMERA FUNCTIONS-----------------------------
 void RendererD12::BeginCamera(const Camera& camera)
 {
-	m_currentCamera = camera;
+	//m_currentCamera = camera;
 
-	Mat44 game = camera.GetViewToRenderMatrix();
-	Mat44 model = Mat44();
-	Mat44 proj = camera.GetProjectionMatrix();
-	Mat44 view = camera.GetViewMatrix();
-	Mat44 viewOrigin = camera.GetViewMatrixAtOrigin();
-	Mat44 invProj, invView, invViewOrigin;
-	if (!m_isFirstFrame)
-	{
-		m_sceneCB->_cameraPosition = m_sceneCB->cameraPosition;
-		m_sceneCB->_viewMatrix = m_sceneCB->viewMatrix;
-	}
-	//------------GETTING INVERSE TO CONVERT FROM NDC TO WORLD--------------------
-	invProj = proj.GetNonOrthonormalInverse();
-	invView = view.GetNonOrthonormalInverse();
-	invViewOrigin = viewOrigin.GetNonOrthonormalInverse();
-	Vec3 ibasis, jbasis, kbasis;
-	m_sceneCB->inversedProjectionMatrix = invProj;
-	m_sceneCB->projectionMatrix = proj;
-	m_sceneCB->viewMatrix = view;
-	m_sceneCB->inversedViewMatrix = invView;
-	m_sceneCB->inversedViewMatrixOrigin = invViewOrigin;
-	m_sceneCB->cameraPosition = Vec4(camera.m_position, 1.0f);
-	m_sceneCB->lightPosition = m_lightPosition;
-	m_sceneCB->samplingData = m_gameValues.samplingData;
-	m_sceneCB->GIColor = m_gameValues.GIColor;
-	m_sceneCB->lightBools = m_gameValues.lightBools;
-	m_sceneCB->lightfallOff_AmbientIntensity_CosineSampling_DayNight = m_gameValues.lightfallOff_AmbientIntensity_CosineSampling_DayNight;
-	m_sceneCB->textureMappings = m_gameValues.textureMappings;
-	m_isFirstFrame = false;
+	//Mat44 game = camera.GetViewToRenderMatrix();
+	//Mat44 model = Mat44();
+	//Mat44 proj = camera.GetProjectionMatrix();
+	//Mat44 view = camera.GetViewMatrix();
+	//Mat44 viewOrigin = camera.GetViewMatrixAtOrigin();
+	//Mat44 invProj, invView, invViewOrigin;
+	//if (!m_isFirstFrame)
+	//{
+	//	m_sceneCB->_cameraPosition = m_sceneCB->cameraPosition;
+	//	m_sceneCB->_viewMatrix = m_sceneCB->viewMatrix;
+	//}
+	////------------GETTING INVERSE TO CONVERT FROM NDC TO WORLD--------------------
+	//invProj = proj.GetNonOrthonormalInverse();
+	//invView = view.GetNonOrthonormalInverse();
+	//invViewOrigin = viewOrigin.GetNonOrthonormalInverse();
+	//Vec3 ibasis, jbasis, kbasis;
+	//m_sceneCB->inversedProjectionMatrix = invProj;
+	//m_sceneCB->projectionMatrix = proj;
+	//m_sceneCB->viewMatrix = view;
+	//m_sceneCB->inversedViewMatrix = invView;
+	//m_sceneCB->inversedViewMatrixOrigin = invViewOrigin;
+	//m_sceneCB->cameraPosition = Vec4(camera.m_position, 1.0f);
+	//m_sceneCB->lightPosition = m_lightPosition;
+	//m_sceneCB->samplingData = m_gameValues.samplingData;
+	//m_sceneCB->GIColor = m_gameValues.GIColor;
+	//m_sceneCB->lightBools = m_gameValues.lightBools;
+	//m_sceneCB->lightfallOff_AmbientIntensity_CosineSampling_DayNight = m_gameValues.lightfallOff_AmbientIntensity_CosineSampling_DayNight;
+	//m_sceneCB->textureMappings = m_gameValues.textureMappings;
+	//m_isFirstFrame = false;
 
 }
 void RendererD12::BeginRasterizerCamera(const Camera& camera, ShadowMap* shadowMap)
@@ -302,17 +260,7 @@ void RendererD12::SetModelConstantData(Mat44 modelMatrix, Vec4 color)
 	m_modelConstantsCB->Color = color;
 	m_modelConstantsCB.CopyStagingToGpu(m_frameIndex);
 }
-void RendererD12::SetRaytraceQuadCamera( Vec3 topLeft, Vec3 bottomLeft,Vec3 topRight, Vec3 bottomRight)
-{
-UNUSED((void)topLeft);
-UNUSED((void)bottomLeft);
-UNUSED((void)topRight);
-UNUSED((void)bottomRight);
-//	m_sceneCB[m_frameIndex].quadCornerPositions[0] = Vec4(topLeft);
-//	m_sceneCB[m_frameIndex].quadCornerPositions[1] = Vec4(bottomLeft);
-//	m_sceneCB[m_frameIndex].quadCornerPositions[2] = Vec4(topRight);
-//	m_sceneCB[m_frameIndex].quadCornerPositions[3] = Vec4(bottomRight);
-}
+
 void RendererD12::EndCamera(const Camera& camera)
 {
 	UNUSED((void)camera);
@@ -433,34 +381,7 @@ void RendererD12::D3D12InterfaceInitialization()
 		Rgba8::BLACK.GetAsFloats(colorfloats);
 		//m_RcommandList->ClearRenderTargetView(m_backBufferHeapCPUHandle[n], colorfloats, 0, NULL);
 	}
-	//m_rtvDescriptorsAllocated++;  // For Imgui
-	//D3D12_RENDER_TARGET_VIEW_DESC rtvDesc = {};
-	//rtvDesc.Format = m_backBufferFormat;
-	//rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
-	//rtvDesc.Texture2D.MipSlice = 0;
 
-	//// Create the dummy render target.
-	//D3D12_CLEAR_VALUE clearValue = {};
-	//clearValue.Format = m_backBufferFormat;
-	//clearValue.DepthStencil.Depth = 1.0f;
-	//clearValue.DepthStencil.Stencil = 0;
-
-	//CD3DX12_HEAP_PROPERTIES heapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-	//CD3DX12_RESOURCE_DESC texDesc = CD3DX12_RESOURCE_DESC::Tex2D(rtvDesc.Format, 1024, 1024, 1, 0, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
-	//HRESULT hr = m_Rdevice->CreateCommittedResource(&heapProps,
-	//	D3D12_HEAP_FLAG_NONE,
-	//	&texDesc,
-	//	D3D12_RESOURCE_STATE_RENDER_TARGET,
-	//	&clearValue,
-	//	IID_PPV_ARGS(&m_uselessRenderTarget.resource));
-	//
-	/*if (m_renderingPipeline == RenderingPipeline::Rasterization)
-	{
-		UINT heapIndexRtv = UINT_MAX;
-		AllocateRenderTargetDescriptor(&m_uselessRenderTarget.cpuDescriptorHandle, heapIndexRtv);
-		m_Rdevice->CreateRenderTargetView(m_uselessRenderTarget.resource.Get(), &rtvDesc, m_uselessRenderTarget.cpuDescriptorHandle);
-	}
-	*/
 	//---------------CREATING DEPTH STENCIL BUFFER AND VIEW-----------------------
 	D3D12_RESOURCE_DESC depthStencilDesc;
 	depthStencilDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
@@ -545,782 +466,6 @@ void RendererD12::InitializeRasterization()
 	m_cameraCB.Create(m_Rdevice.Get(), m_backBufferCount, L"Camera Constant Buffer");
 	m_gameDataCB.Create(m_Rdevice.Get(), m_backBufferCount, L"Game Constant Buffer");
 	m_modelConstantsCB.Create(m_Rdevice.Get(), m_backBufferCount, L"Model Constants Buffer");
-}
-void RendererD12::FinishUpGPUWork()
-{
-	ExecuteCommandList(m_RcommandList);
-	WaitForGpu();
-	m_RcommandList->Reset(m_RcommandAllocator[m_frameIndex].Get(), nullptr);
-}
-
-//void RendererD12::SetRasterizationState(CullModeD12 cullMode, FillModeD12 fillMode,WindingOrderD12 windingOrder )
-//{
-//	switch (fillMode)
-//	{
-//	case FillModeD12::SOLID:
-//		m_rasterizerDesc.FillMode = D3D12_FILL_MODE_SOLID;
-//		break;
-//	case FillModeD12::WIREFRAME:
-//		m_rasterizerDesc.FillMode = D3D12_FILL_MODE_WIREFRAME;
-//		break;
-//	default:
-//		break;
-//	}
-//	switch (cullMode)
-//	{
-//	case CullModeD12::NONE:
-//		m_rasterizerDesc.CullMode = D3D12_CULL_MODE_NONE;
-//		break;
-//	case CullModeD12::FRONT:
-//		m_rasterizerDesc.CullMode = D3D12_CULL_MODE_FRONT;
-//		break;
-//	case CullModeD12::BACK:
-//		m_rasterizerDesc.CullMode = D3D12_CULL_MODE_BACK;
-//		break;
-//	default:
-//		break;
-//	}
-//	switch (windingOrder)
-//	{
-//	case WindingOrderD12::CLOCKWISE:
-//		m_rasterizerDesc.FrontCounterClockwise= false;
-//		break;
-//	case WindingOrderD12::COUNTERCLOCKWISE:
-//		m_rasterizerDesc.FrontCounterClockwise = true;
-//		break;
-//	default:
-//		break;
-//	}
-//}
-void RendererD12::CreateRaytracingInterfaces()
-{
-	auto device = m_Rdevice.Get();
-	auto commandList = m_RcommandList.Get();
-
-	ThrowIfFailed(device->QueryInterface(IID_PPV_ARGS(&m_dxrDevice)), "Couldn't get DirectX Raytracing interface for the device.\n");
-	ThrowIfFailed(commandList->QueryInterface(IID_PPV_ARGS(&m_dxrCommandList)), "Couldn't get DirectX Raytracing interface for the command list.\n");
-
-
-	//m_indexBuffer.resize(3);
-	//m_vertexBuffer.resize(3);
-	//m_bottomLevelAccelerationStructure.resize(3);
-	//m_topLevelAccelerationStructure.resize(3);
-}
-void RendererD12::CompileShaders()
-{
-	
-
-}
-void RendererD12::CreateRaytracingPipelineStateObject()
-{
-	ComPtr<IDxcBlob> mainShaderBlob;
-	CD3DX12_SHADER_BYTECODE mainRaytracer;
-	mainShaderBlob = m_shaderCompiler->Compile("Data/Shaders/Raytracing3D.hlsl");
-	mainRaytracer.BytecodeLength = mainShaderBlob->GetBufferSize();
-	mainRaytracer.pShaderBytecode = mainShaderBlob->GetBufferPointer();
-
-	//CREATING PSO
-	CD3DX12_STATE_OBJECT_DESC raytracingPipeline{ D3D12_STATE_OBJECT_TYPE_RAYTRACING_PIPELINE };
-
-	auto lib = raytracingPipeline.CreateSubobject<CD3DX12_DXIL_LIBRARY_SUBOBJECT>();
-	lib->SetDXILLibrary(&mainRaytracer);
-	lib->DefineExport(c_raygenShaderName);
-	lib->DefineExport(c_closestHitShaderName);
-	//lib->DefineExport(c_anyHitShaderName);
-	lib->DefineExport(c_missShaderName);
-
-	auto hitGroup = raytracingPipeline.CreateSubobject<CD3DX12_HIT_GROUP_SUBOBJECT>();
-	hitGroup->SetClosestHitShaderImport(c_closestHitShaderName);
-	//hitGroup->SetAnyHitShaderImport(c_anyHitShaderName);
-	hitGroup->SetHitGroupExport(c_hitGroupName);
-	hitGroup->SetHitGroupType(D3D12_HIT_GROUP_TYPE_TRIANGLES);
-
-	auto shaderConfig = raytracingPipeline.CreateSubobject<CD3DX12_RAYTRACING_SHADER_CONFIG_SUBOBJECT>();
-	UINT payloadSize =sizeof(RaytracerPayload);
-	UINT attributeSize = 2 * sizeof(Vec2);
-	shaderConfig->Config(payloadSize, attributeSize);
-
-	// Local root signature and shader association
-	/*auto localRootSignature = raytracingPipeline.CreateSubobject<CD3DX12_LOCAL_ROOT_SIGNATURE_SUBOBJECT>();
-	localRootSignature->SetRootSignature(m_raytracingLocalRootSignature.Get());
-
-	auto rootSignatureAssociation = raytracingPipeline.CreateSubobject<CD3DX12_SUBOBJECT_TO_EXPORTS_ASSOCIATION_SUBOBJECT>();
-	rootSignatureAssociation->SetSubobjectToAssociate(*localRootSignature);
-	rootSignatureAssociation->AddExport(c_hitGroupName);*/
-	//rootSignatureAssociation->AddExport(c_closestHitShaderName);
-
-	auto globalRootSignature = raytracingPipeline.CreateSubobject<CD3DX12_GLOBAL_ROOT_SIGNATURE_SUBOBJECT>();
-	globalRootSignature->SetRootSignature(m_raytracingGlobalRootSignature.Get());
-
-	auto pipelineConfig = raytracingPipeline.CreateSubobject<CD3DX12_RAYTRACING_PIPELINE_CONFIG_SUBOBJECT>();
-	UINT maxRecursionDepth = 30;
-	pipelineConfig->Config(maxRecursionDepth);
-
-#ifdef ENGINE_DEBUG_RENDER
-	PrintStateObjectDesc(raytracingPipeline);
-#endif
-	// Create the state object.
-	ThrowIfFailed(m_dxrDevice->CreateStateObject(raytracingPipeline, IID_PPV_ARGS(&m_dxrStateObject)), "Couldn't create DirectX Raytracing state object.\n");
-
-	auto device = m_Rdevice.Get();
-	auto frameCount = m_backBufferCount;
-
-	m_sceneCB.Create(device, frameCount, L"Scene Constant buffer");
-	m_lightCB.Create(device, frameCount, L"Light Constant buffer");
-}
-void RendererD12::InitializeBasicBottomLevelAS()
-{
-	/*int maxBLAS = 1000;
-	auto* device = m_dxrDevice.Get();
-	m_raytracingASManager = new RaytracingASManager(device, maxBLAS, m_frameIndex);
-
-	D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE;
-	for (auto& geom : m_geomtries)
-	{
-		m_raytracingASManager->AddBottomLevelAS(device, buildFlags, geom, false, false);
-	}*/
-}
-//void RendererD12::InitializeSampler()
-//{
-//	//UINT maxPixelsInSampleSet1D = 8;
-//	UINT maxSamplesPerSet = 65536;
-//	UINT numSampleSets = 83;
-//	auto device = m_Rdevice.Get();
-//	m_sampler = new Sampler(SamplerType::Cosine, 64, numSampleSets);
-//
-//	m_hemisphereSamplesGPUBuffer.Create(device, maxSamplesPerSet * numSampleSets,m_backBufferCount, L"GPU buffer: Random hemisphere samples");
-//	UINT numSamples = m_sampler->m_numSamples * m_sampler->m_numSampleSets;
-//	for (UINT i = 0; i < numSamples; i++)
-//	{
-//		UINT sampleindex = m_sampler->GetSampleIndex();
-//		Vec3 sampleDataPoint = m_sampler->m_hemisphereSampleData[sampleindex];
-//		// Convert [-1,1] to [0,1].
-//		//m_samplesGPUBuffer[i].value = XMFLOAT2(p.x * 0.5f + 0.5f, p.y * 0.5f + 0.5f);
-//		m_hemisphereSamplesGPUBuffer[i].sampleValue = sampleDataPoint;
-//	}
-//}
-void RendererD12::InitializeDenoising()
-{
-	m_denoiser = new Denoiser();
-	m_denoiser->InitializeDenoiser(m_dxrDevice.Get(), m_backBufferCount);
-}
-void RendererD12::InitializeGlobalIllumination()
-{
-	m_globalIllumination = new GlobalIllumination();
-	m_globalIllumination->Initialize(m_dxrDevice.Get(), m_backBufferCount);
-}
-//void RendererD12::InitializeIrradianceCaching()
-//{
-//	//UINT maxPixelsInSampleSet1D = 8;
-//	UINT maxSamplesPerSet = 65536;
-//	UINT numSampleSets = 83;
-//	auto device = m_Rdevice.Get();
-//
-//	m_irradianceCacheGPUBuffer.Create(device, maxSamplesPerSet * numSampleSets, m_backBufferCount, L"GPU buffer: Irradiance Cache");
-//}
-
-//--------------------------------------ACCELERATION STRUCTURE BUILDS-----------------------------
-void RendererD12::BuildGeometryAndAS(std::vector<Vertex_PNCUTB>& verts,std::vector<UINT>& indices, int index)
-{	
-	UNUSED((void) index);
-	WaitForGpu();
-	//m_bottomLevelAccelerationStructure.Reset();
-	//m_topLevelAccelerationStructure.Reset();
-
-	//----------------CREATING UPLOAD BUFFER FOR VERTS AND INDICES-------------
-	auto device = m_Rdevice.Get();
-	AllocateUploadBuffer(device, indices.data(), indices.size() * sizeof(UINT), &m_indexBuffer.resource, nullptr);
-	AllocateUploadBuffer(device, verts.data(), verts.size() * sizeof(Vertex_PNCUTB), &m_vertexBuffer.resource, nullptr);
-
-	UINT descriptorIndexIB = CreateBufferSRV(&m_indexBuffer, (UINT)(indices.size()), 0, DXGI_FORMAT_R32_TYPELESS, D3D12_BUFFER_SRV_FLAG_RAW);
-	UINT descriptorIndexVB = CreateBufferSRV(&m_vertexBuffer, ((UINT)verts.size()), (UINT)sizeof(Vertex_PNCUTB), DXGI_FORMAT_UNKNOWN, D3D12_BUFFER_SRV_FLAG_NONE);
-
-	if (descriptorIndexVB != descriptorIndexIB + 1) { ERROR_AND_DIE("Vertex Buffer descriptor index must follow that of Index Buffer descriptor index!"); }
-	
-	//-----------------BUILDING THE ACTUAL STRUCTURE---------------------
-	auto commandList = m_RcommandList.Get();
-	//auto commandQueue = m_RcommandQueue.Get();
-	auto commandAllocator = m_RcommandAllocator[m_frameIndex].Get();
-
-	// Reset the command list for the acceleration structure construction.
-	commandList->Reset(commandAllocator, nullptr);
-
-
-	//---------------------------------------GEOMETRY DESCRIPTION BUILD-----------------------------
-	D3D12_RAYTRACING_GEOMETRY_DESC geometryDesc = {};
-	geometryDesc.Type = D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;
-	geometryDesc.Triangles.IndexBuffer = m_indexBuffer.resource->GetGPUVirtualAddress();
-	geometryDesc.Triangles.IndexCount = static_cast<unsigned int>(m_indexBuffer.resource->GetDesc().Width) / sizeof(unsigned int);
-	geometryDesc.Triangles.IndexFormat = DXGI_FORMAT_R32_UINT;
-	geometryDesc.Triangles.Transform3x4 = 0;
-	geometryDesc.Triangles.VertexFormat = DXGI_FORMAT_R32G32B32_FLOAT;
-	geometryDesc.Triangles.VertexCount = static_cast<unsigned int>(m_vertexBuffer.resource->GetDesc().Width) / sizeof(Vertex_PNCUTB);
-	geometryDesc.Triangles.VertexBuffer.StartAddress = m_vertexBuffer.resource->GetGPUVirtualAddress();
-	geometryDesc.Triangles.VertexBuffer.StrideInBytes = sizeof(Vertex_PNCUTB);
-	geometryDesc.Flags = D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE;
-
-	//------------------------------------BOTTOM LEVEL BUILD-----------------------
-	D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS bottomLevelbuildFlags  = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_NONE;
-	
-	//topLevelbuildFlags |= D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_BUILD;
-
-	D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC bottomLevelBuildDesc = {};
-	D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS& bottomLevelInputs = bottomLevelBuildDesc.Inputs;
-	bottomLevelInputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
-	bottomLevelInputs.Flags = bottomLevelbuildFlags;
-	bottomLevelInputs.NumDescs = 1;
-	bottomLevelInputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL;
-	bottomLevelInputs.pGeometryDescs = &geometryDesc;
-
-
-	D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO bottomLevelPrebuildInfo = {};
-	m_dxrDevice->GetRaytracingAccelerationStructurePrebuildInfo(&bottomLevelInputs, &bottomLevelPrebuildInfo);
-	ThrowIfFalse(bottomLevelPrebuildInfo.ResultDataMaxSizeInBytes > 0, "");
-
-	ComPtr<ID3D12Resource> scratchResource;
-	AllocateUAVBuffer(device, bottomLevelPrebuildInfo.ScratchDataSizeInBytes, &scratchResource, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, L"ScratchResource");
-	{
-		D3D12_RESOURCE_STATES initialResourceState = D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE;
-		AllocateUAVBuffer(device, bottomLevelPrebuildInfo.ResultDataMaxSizeInBytes, &m_bottomLevelAccelerationStructure, initialResourceState, L"BottomLevelAccelerationStructure");
-		// Bottom Level Acceleration Structure desc
-
-		bottomLevelBuildDesc.ScratchAccelerationStructureData = scratchResource->GetGPUVirtualAddress();
-		bottomLevelBuildDesc.DestAccelerationStructureData = m_bottomLevelAccelerationStructure->GetGPUVirtualAddress();
-	}
-
-	auto* raytracingCommandList = m_dxrCommandList.Get();
-
-	CD3DX12_RESOURCE_BARRIER bar = CD3DX12_RESOURCE_BARRIER::UAV(m_bottomLevelAccelerationStructure.Get());
-	raytracingCommandList->BuildRaytracingAccelerationStructure(&bottomLevelBuildDesc, 0, nullptr);
-	commandList->ResourceBarrier(1, &bar);
-
-
-	//-------------------------TOP LEVEL----------------------------------
-	D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS topLevelbuildFlags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_BUILD;
-	D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC topLevelBuildDesc = {};
-	D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS& topLevelInputs = topLevelBuildDesc.Inputs;
-	topLevelInputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
-	topLevelInputs.Flags = topLevelbuildFlags;
-	topLevelInputs.NumDescs = 1;
-	topLevelInputs.pGeometryDescs = nullptr;
-	topLevelInputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL;
-
-	D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO topLevelPrebuildInfo = {};
-	m_dxrDevice->GetRaytracingAccelerationStructurePrebuildInfo(&topLevelInputs, &topLevelPrebuildInfo);
-	ThrowIfFalse(topLevelPrebuildInfo.ResultDataMaxSizeInBytes > 0, "");
-
-	
-	{
-		D3D12_RESOURCE_STATES initialResourceState = D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE;
-		AllocateUAVBuffer(device, topLevelPrebuildInfo.ResultDataMaxSizeInBytes, &m_topLevelAccelerationStructure, initialResourceState, L"TopLevelAccelerationStructure");
-	}
-
-	// Create an instance desc for the bottom-level acceleration structure.
-	ComPtr<ID3D12Resource> instanceDescs;
-	D3D12_RAYTRACING_INSTANCE_DESC instanceDesc = {};
-	instanceDesc.Transform[0][0] = instanceDesc.Transform[1][1] = instanceDesc.Transform[2][2] = 1;
-	instanceDesc.InstanceMask = 1;
-	instanceDesc.AccelerationStructure = m_bottomLevelAccelerationStructure->GetGPUVirtualAddress();
-	AllocateUploadBuffer(device, &instanceDesc, sizeof(instanceDesc), &instanceDescs, L"InstanceDescs");
-
-
-	// Top Level Acceleration Structure desc
-	{
-		topLevelBuildDesc.DestAccelerationStructureData = m_topLevelAccelerationStructure->GetGPUVirtualAddress();
-		topLevelBuildDesc.ScratchAccelerationStructureData = scratchResource->GetGPUVirtualAddress();
-		topLevelBuildDesc.Inputs.InstanceDescs = instanceDescs->GetGPUVirtualAddress();
-	}
-	raytracingCommandList->BuildRaytracingAccelerationStructure(&topLevelBuildDesc, 0, nullptr);
-
-	// Kick off acceleration structure construction.
-	ExecuteCommandList(m_RcommandList);
-
-	// Wait for GPU to finish 
-	WaitForGpu();
-}
-
-void RendererD12::BuildModelGeometryAndAS(std::vector<Vertex_PNCUTB>& verts, std::vector<UINT>& indices, int index)
-{
-	UNUSED((void) index);
-	WaitForGpu();
-	//m_bottomLevelAccelerationStructure.Reset();
-	//m_topLevelAccelerationStructure.Reset();
-
-	//----------------CREATING UPLOAD BUFFER FOR VERTS AND INDICES-------------
-	auto device = m_Rdevice.Get();
-	AllocateUploadBuffer(device, indices.data(), indices.size() * sizeof(UINT), &m_bunnyIndexBuffer.resource, nullptr);
-	AllocateUploadBuffer(device, verts.data(), verts.size() * sizeof(Vertex_PNCUTB), &m_bunnyVertexBuffer.resource, nullptr);
-
-	UINT descriptorIndexIB = CreateBufferSRV(&m_bunnyIndexBuffer, (UINT)(indices.size()), 0, DXGI_FORMAT_R32_TYPELESS, D3D12_BUFFER_SRV_FLAG_RAW);
-	UINT descriptorIndexVB = CreateBufferSRV(&m_bunnyVertexBuffer, ((UINT)verts.size()), (UINT)sizeof(Vertex_PNCUTB), DXGI_FORMAT_UNKNOWN, D3D12_BUFFER_SRV_FLAG_NONE);
-
-	if (descriptorIndexVB != descriptorIndexIB + 1) { ERROR_AND_DIE("Vertex Buffer descriptor index must follow that of Index Buffer descriptor index!"); }
-
-	//-----------------BUILDING THE ACTUAL STRUCTURE---------------------
-	auto commandList = m_RcommandList.Get();
-	//auto commandQueue = m_RcommandQueue.Get();
-	auto commandAllocator = m_RcommandAllocator[m_frameIndex].Get();
-
-	// Reset the command list for the acceleration structure construction.
-	commandList->Reset(commandAllocator, nullptr);
-
-
-	//---------------------------------------GEOMETRY DESCRIPTION BUILD-----------------------------
-	D3D12_RAYTRACING_GEOMETRY_DESC geometryDesc = {};
-	geometryDesc.Type = D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;
-	geometryDesc.Triangles.IndexBuffer = m_bunnyIndexBuffer.resource->GetGPUVirtualAddress();
-	geometryDesc.Triangles.IndexCount = static_cast<UINT>(m_bunnyIndexBuffer.resource->GetDesc().Width) / sizeof(UINT);
-	geometryDesc.Triangles.IndexFormat = DXGI_FORMAT_R32_UINT;
-	geometryDesc.Triangles.Transform3x4 = 0;
-	geometryDesc.Triangles.VertexFormat = DXGI_FORMAT_R32G32B32_FLOAT;
-	geometryDesc.Triangles.VertexCount = static_cast<UINT>(m_bunnyVertexBuffer.resource->GetDesc().Width) / sizeof(Vertex_PNCUTB);
-	geometryDesc.Triangles.VertexBuffer.StartAddress = m_bunnyVertexBuffer.resource->GetGPUVirtualAddress();
-	geometryDesc.Triangles.VertexBuffer.StrideInBytes = sizeof(Vertex_PNCUTB);
-	geometryDesc.Flags = D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE;
-
-	//------------------------------------BOTTOM LEVEL BUILD-----------------------
-	D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS bottomLevelbuildFlags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_NONE;
-
-	//topLevelbuildFlags |= D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_BUILD;
-
-	D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC bottomLevelBuildDesc = {};
-	D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS& bottomLevelInputs = bottomLevelBuildDesc.Inputs;
-	bottomLevelInputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
-	bottomLevelInputs.Flags = bottomLevelbuildFlags;
-	bottomLevelInputs.NumDescs = 1;
-	bottomLevelInputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL;
-	bottomLevelInputs.pGeometryDescs = &geometryDesc;
-
-
-	D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO bottomLevelPrebuildInfo = {};
-	m_dxrDevice->GetRaytracingAccelerationStructurePrebuildInfo(&bottomLevelInputs, &bottomLevelPrebuildInfo);
-	ThrowIfFalse(bottomLevelPrebuildInfo.ResultDataMaxSizeInBytes > 0, "");
-
-	ComPtr<ID3D12Resource> scratchResource;
-	AllocateUAVBuffer(device, bottomLevelPrebuildInfo.ScratchDataSizeInBytes, &scratchResource, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, L"ScratchResource");
-	{
-		D3D12_RESOURCE_STATES initialResourceState = D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE;
-		AllocateUAVBuffer(device, bottomLevelPrebuildInfo.ResultDataMaxSizeInBytes, &m_bunnyBlas, initialResourceState, L"Bunny BottomLevelAccelerationStructure");
-		// Bottom Level Acceleration Structure desc
-
-		bottomLevelBuildDesc.ScratchAccelerationStructureData = scratchResource->GetGPUVirtualAddress();
-		bottomLevelBuildDesc.DestAccelerationStructureData = m_bunnyBlas->GetGPUVirtualAddress();
-	}
-
-	auto* raytracingCommandList = m_dxrCommandList.Get();
-
-	CD3DX12_RESOURCE_BARRIER bar = CD3DX12_RESOURCE_BARRIER::UAV(m_bunnyBlas.Get());
-	raytracingCommandList->BuildRaytracingAccelerationStructure(&bottomLevelBuildDesc, 0, nullptr);
-	commandList->ResourceBarrier(1, &bar);
-
-
-	//-------------------------TOP LEVEL----------------------------------
-	D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS topLevelbuildFlags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_BUILD;
-	D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC topLevelBuildDesc = {};
-	D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS& topLevelInputs = topLevelBuildDesc.Inputs;
-	topLevelInputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
-	topLevelInputs.Flags = topLevelbuildFlags;
-	topLevelInputs.NumDescs = 1;
-	topLevelInputs.pGeometryDescs = nullptr;
-	topLevelInputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL;
-
-	D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO topLevelPrebuildInfo = {};
-	m_dxrDevice->GetRaytracingAccelerationStructurePrebuildInfo(&topLevelInputs, &topLevelPrebuildInfo);
-	ThrowIfFalse(topLevelPrebuildInfo.ResultDataMaxSizeInBytes > 0, "");
-	{
-		D3D12_RESOURCE_STATES initialResourceState = D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE;
-		AllocateUAVBuffer(device, topLevelPrebuildInfo.ResultDataMaxSizeInBytes, &m_bunnyTlas, initialResourceState, L"Bunny TopLevelAccelerationStructure");
-	}
-
-	// Create an instance desc for the bottom-level acceleration structure.
-	ComPtr<ID3D12Resource> instanceDescs;
-	D3D12_RAYTRACING_INSTANCE_DESC instanceDesc = {};
-	instanceDesc.Transform[0][0] = instanceDesc.Transform[1][1] = instanceDesc.Transform[2][2] = 1;
-	instanceDesc.InstanceMask = 1;
-	instanceDesc.AccelerationStructure = m_bunnyBlas->GetGPUVirtualAddress();
-	AllocateUploadBuffer(device, &instanceDesc, sizeof(instanceDesc), &instanceDescs, L"InstanceDescs");
-
-
-	// Top Level Acceleration Structure desc
-	{
-		topLevelBuildDesc.DestAccelerationStructureData = m_bunnyTlas->GetGPUVirtualAddress();
-		topLevelBuildDesc.ScratchAccelerationStructureData = scratchResource->GetGPUVirtualAddress();
-		topLevelBuildDesc.Inputs.InstanceDescs = instanceDescs->GetGPUVirtualAddress();
-	}
-	raytracingCommandList->BuildRaytracingAccelerationStructure(&topLevelBuildDesc, 0, nullptr);
-
-	// Kick off acceleration structure construction.
-	ExecuteCommandList(m_RcommandList);
-
-	// Wait for GPU to finish 
-	WaitForGpu();
-}
-void RendererD12::BuildBLAS(std::vector<Vertex_PNCUTB>& verts, std::vector<UINT>& indices, int index)
-{
-
-	//m_bottomLevelAccelerationStructure.Reset();
-	//m_topLevelAccelerationStructure.Reset();
-	//----------------CREATING UPLOAD BUFFER FOR VERTS AND INDICES-------------
-	GpuBuffer indexDataBuffer;
-	GpuBuffer vertexDataBuffer;
-	auto device = m_Rdevice.Get();
-	AllocateUploadBuffer(device, indices.data(), indices.size() * sizeof(UINT), &indexDataBuffer.resource, nullptr);
-	AllocateUploadBuffer(device, verts.data(), verts.size() * sizeof(Vertex_PNCUTB), &vertexDataBuffer.resource, nullptr);
-	UINT descriptorIndexIB = CreateBufferSRV(&indexDataBuffer, (UINT)(indices.size()), 0, DXGI_FORMAT_R32_TYPELESS, D3D12_BUFFER_SRV_FLAG_RAW);
-	UINT descriptorIndexVB = CreateBufferSRV(&vertexDataBuffer, ((UINT)verts.size()), (UINT)sizeof(Vertex_PNCUTB), DXGI_FORMAT_UNKNOWN, D3D12_BUFFER_SRV_FLAG_NONE);
-	if (descriptorIndexVB != descriptorIndexIB + 1) { ERROR_AND_DIE("Vertex Buffer descriptor index must follow that of Index Buffer descriptor index!"); }
-	//-----------------BUILDING THE ACTUAL STRUCTURE---------------------
-	auto commandList = m_RcommandList.Get();
-	//auto commandQueue = m_RcommandQueue.Get();
-	auto commandAllocator = m_RcommandAllocator[m_frameIndex].Get();
-	// Reset the command list for the acceleration structure construction.
-	commandList->Reset(commandAllocator, nullptr);
-
-	//---------------------------------------GEOMETRY DESCRIPTION BUILD-----------------------------
-	D3D12_RAYTRACING_GEOMETRY_DESC geometryDesc = {};
-	geometryDesc.Type = D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;
-	geometryDesc.Triangles.IndexBuffer = indexDataBuffer.resource->GetGPUVirtualAddress();
-	geometryDesc.Triangles.IndexCount = static_cast<UINT>(indexDataBuffer.resource->GetDesc().Width) / sizeof(UINT);
-	geometryDesc.Triangles.IndexFormat = DXGI_FORMAT_R32_UINT;
-	geometryDesc.Triangles.Transform3x4 = 0;
-	geometryDesc.Triangles.VertexFormat = DXGI_FORMAT_R32G32B32_FLOAT;
-	geometryDesc.Triangles.VertexCount = static_cast<UINT>(vertexDataBuffer.resource->GetDesc().Width) / sizeof(Vertex_PNCUTB);
-	geometryDesc.Triangles.VertexBuffer.StartAddress = vertexDataBuffer.resource->GetGPUVirtualAddress();
-	geometryDesc.Triangles.VertexBuffer.StrideInBytes = sizeof(Vertex_PNCUTB);
-	geometryDesc.Flags = D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE;
-
-	LocalRootArgumentsGeometry rs = {};
-	UINT shaderIdentifierSize = D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES;
-	memcpy(&rs.m_indexBufferGPUHandle, &indexDataBuffer.gpuReadDescriptorHandle, sizeof(indexDataBuffer.gpuReadDescriptorHandle));
-	memcpy(&rs.m_vertexBufferGPUHandle, &vertexDataBuffer.gpuReadDescriptorHandle, sizeof(vertexDataBuffer.gpuReadDescriptorHandle));
-	//UINT shaderRecordSize = shaderIdentifierSize + sizeof(rs);
-	ShaderRecord chunkRecord = ShaderRecord(hitGroupShaderID, shaderIdentifierSize, &rs, sizeof(rs));
-	HitShaderTable.AddShaderRecordAtIndex(chunkRecord, index);
-
-	//-------------------------------------BOTTOM LEVEL BUILD----------------------------
-	AccelerationStructureBuffers& bottomLevelASBuffers = m_bottomLevelAccelerationStructureBuffers[index];
-	D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS bottomLevelbuildFlags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_NONE;
-	//topLevelbuildFlags |= D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_BUILD;
-	D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC bottomLevelBuildDesc = {};
-	D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS& bottomLevelInputs = bottomLevelBuildDesc.Inputs;
-	bottomLevelInputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
-	bottomLevelInputs.Flags = bottomLevelbuildFlags;
-	bottomLevelInputs.NumDescs = 1;
-	bottomLevelInputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL;
-	bottomLevelInputs.pGeometryDescs = &geometryDesc;
-	D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO bottomLevelPrebuildInfo = {};
-	m_dxrDevice->GetRaytracingAccelerationStructurePrebuildInfo(&bottomLevelInputs, &bottomLevelPrebuildInfo);
-	ThrowIfFalse(bottomLevelPrebuildInfo.ResultDataMaxSizeInBytes > 0, "");
-	ComPtr<ID3D12Resource> scratchResource;
-	//ComPtr<ID3D12Resource> blasResource;
-	AllocateUAVBuffer(device, bottomLevelPrebuildInfo.ScratchDataSizeInBytes, &scratchResource, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, L"ScratchResource");
-	{
-		D3D12_RESOURCE_STATES initialResourceState = D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE;
-		AllocateUAVBuffer(device, bottomLevelPrebuildInfo.ResultDataMaxSizeInBytes, &bottomLevelASBuffers.accelerationStructure, initialResourceState, L"BottomLevelAccelerationStructure");
-		// Bottom Level Acceleration Structure desc
-		bottomLevelBuildDesc.ScratchAccelerationStructureData = scratchResource->GetGPUVirtualAddress();
-		bottomLevelBuildDesc.DestAccelerationStructureData = bottomLevelASBuffers.accelerationStructure->GetGPUVirtualAddress();
-	}
-	auto* raytracingCommandList = m_dxrCommandList.Get();
-	CD3DX12_RESOURCE_BARRIER bar = CD3DX12_RESOURCE_BARRIER::UAV(bottomLevelASBuffers.accelerationStructure.Get());
-	raytracingCommandList->BuildRaytracingAccelerationStructure(&bottomLevelBuildDesc, 0, nullptr);
-	commandList->ResourceBarrier(1, &bar);
-
-	ExecuteCommandList(m_RcommandList);
-	WaitForGpu();
-
-	//commandList->CopyResource(bottomLevelASBuffers.accelerationStructure.Get(), blasResource.Get());
-	//commandList->CopyResource(bottomLevelASBuffers.scratch.Get(), scratchResource.Get());
-	//bottomLevelASBuffers.accelerationStructure = blasResource;
-	bottomLevelASBuffers.scratch = scratchResource;
-	bottomLevelASBuffers.ResultDataMaxSizeInBytes = bottomLevelPrebuildInfo.ResultDataMaxSizeInBytes;
-	bottomLevelASBuffers.isValid = true;
-	m_isTopLevelASRebuildRequired = true;
-
-
-}
-void RendererD12::BuildTLAS()
-{
-	auto device = m_Rdevice.Get();
-	auto commandList = m_RcommandList.Get();
-	auto commandAllocator = m_RcommandAllocator[m_frameIndex].Get();
-	commandList->Reset(commandAllocator, nullptr);
-	ComPtr<ID3D12Resource> scratch;
-
-	// Get required sizes for an acceleration structure.
-	D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC topLevelBuildDesc = {};
-	D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS& topLevelInputs = topLevelBuildDesc.Inputs;
-	topLevelInputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL;
-	topLevelInputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
-	topLevelInputs.Flags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_BUILD;
-	topLevelInputs.NumDescs = (UINT)HitShaderTable.m_shaderRecords.size();
-
-	D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO topLevelPrebuildInfo = {};
-	m_dxrDevice->GetRaytracingAccelerationStructurePrebuildInfo(&topLevelInputs, &topLevelPrebuildInfo);
-	ThrowIfFalse(topLevelPrebuildInfo.ResultDataMaxSizeInBytes > 0, "");
-
-	AllocateUAVBuffer(device, topLevelPrebuildInfo.ScratchDataSizeInBytes, &scratch, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, L"ScratchResource");
-
-	// Allocate resources for acceleration structures.
-	// Acceleration structures can only be placed in resources that are created in the default heap (or custom heap equivalent). 
-	// Default heap is OK since the application doesn’t need CPU read/write access to them. 
-	// The resources that will contain acceleration structures must be created in the state D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE, 
-	// and must have resource flag D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS. The ALLOW_UNORDERED_ACCESS requirement simply acknowledges both: 
-	//  - the system will be doing this type of access in its implementation of acceleration structure builds behind the scenes.
-	//  - from the app point of view, synchronization of writes/reads to acceleration structures is accomplished using UAV barriers.
-	{
-		D3D12_RESOURCE_STATES initialResourceState = D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE;
-		AllocateUAVBuffer(device, topLevelPrebuildInfo.ResultDataMaxSizeInBytes, &m_topLevelAccelerationStructure, initialResourceState, L"TopLevelAccelerationStructure");
-	}
-
-
-	BuildASInstances();
-	m_bottomLevelASInstanceDescs.CopyFromCPUToGPU(m_frameIndex);
-	topLevelBuildDesc.DestAccelerationStructureData = m_topLevelAccelerationStructure->GetGPUVirtualAddress();
-	topLevelInputs.InstanceDescs = m_bottomLevelASInstanceDescs.GpuVirtualAddress(m_frameIndex);
-	topLevelBuildDesc.ScratchAccelerationStructureData = scratch->GetGPUVirtualAddress();
-	//D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BYTE_ALIGNMENT
-	m_dxrCommandList->BuildRaytracingAccelerationStructure(&topLevelBuildDesc, 0, nullptr);
-	
-	ExecuteCommandList(m_RcommandList);
-	WaitForGpu();
-	m_isTopLevelASRebuildRequired = false;
-
-}
-void RendererD12::BuildASInstances()
-{
-//	ThrowIfFalse(m_numBottomLevelASInstances < m_bottomLevelASInstanceDescs.NumElements(), L"Not enough instance desc buffer size.");
-	//UINT64 bufferSize = 0;
-	for(int i =0 ; i < MINECRAFTCHUNKS; i++)
-	{
-		if(m_bottomLevelAccelerationStructureBuffers[i].isValid)
-		{
-			D3D12_RAYTRACING_INSTANCE_DESC& instanceDesc = m_bottomLevelASInstanceDescs[i];
-			instanceDesc.Transform[0][0] = instanceDesc.Transform[1][1] = instanceDesc.Transform[2][2] = 1;
-			instanceDesc.InstanceMask = 1;
-			instanceDesc.AccelerationStructure = m_bottomLevelAccelerationStructureBuffers[i].accelerationStructure->GetGPUVirtualAddress();
-			instanceDesc.InstanceContributionToHitGroupIndex = i;
-			//bufferSize += static_cast <UINT64>(sizeof(instanceDesc));
-		}	
-	}
-
-	//bufferSize = static_cast<UINT64>(instanceDescriptions.size() * sizeof(instanceDescriptions[0]));
-	//AllocateUploadBuffer(device, m_bottomLevelASInstanceDescs.data(), bufferSize, &(*instanceDescsResource), L"InstanceDescs");
-}
-
-void RendererD12::BuildAS(D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC bottomASDesc, D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC topASDesc,ID3D12Resource* bottomLevelAS)
-{
-	auto commandList = m_RcommandList.Get();
-	auto* raytracingCommandList = m_dxrCommandList.Get();
-	CD3DX12_RESOURCE_BARRIER bar = CD3DX12_RESOURCE_BARRIER::UAV(bottomLevelAS);
-	raytracingCommandList->BuildRaytracingAccelerationStructure(&bottomASDesc, 0, nullptr);
-	commandList->ResourceBarrier(1, &bar);
-	raytracingCommandList->BuildRaytracingAccelerationStructure(&topASDesc, 0, nullptr);
-}
-void RendererD12::BuildGeometryAndASForChunk(std::vector<Vertex_PNCUTB>& verts, std::vector<UINT>& indices,
-	ComPtr<ID3D12Resource>& topLevelAS, ComPtr<ID3D12Resource>& bottomLevelAS,
-	GpuBuffer& vertexBuffer, GpuBuffer& indexBuffer, int instanceIndex)
-{
-	UNUSED((void)instanceIndex);
-	//----------------CREATING UPLOAD BUFFER FOR VERTS AND INDICES-------------
-	auto device = m_Rdevice.Get();
-	AllocateUploadBuffer(device, indices.data(), indices.size() * sizeof(UINT), &indexBuffer.resource, nullptr);
-	AllocateUploadBuffer(device, verts.data(), verts.size() * sizeof(Vertex_PNCUTB), &vertexBuffer.resource, nullptr);
-
-	UINT descriptorIndexIB = CreateBufferSRV(&indexBuffer, (UINT)(indices.size()), 0, DXGI_FORMAT_R32_TYPELESS, D3D12_BUFFER_SRV_FLAG_RAW);
-	UINT descriptorIndexVB = CreateBufferSRV(&vertexBuffer, ((UINT)verts.size()), (UINT)sizeof(Vertex_PNCUTB), DXGI_FORMAT_UNKNOWN, D3D12_BUFFER_SRV_FLAG_NONE);
-
-	if (descriptorIndexVB != descriptorIndexIB + 1) { ERROR_AND_DIE("Vertex Buffer descriptor index must follow that of Index Buffer descriptor index!"); }
-
-	//-----------------BUILDING THE ACTUAL STRUCTURE---------------------
-	auto commandList = m_RcommandList.Get();
-	//auto commandQueue = m_RcommandQueue.Get();
-	auto commandAllocator = m_RcommandAllocator[m_frameIndex].Get();
-
-	// Reset the command list for the acceleration structure construction.
-	commandList->Reset(commandAllocator, nullptr);
-
-	D3D12_RAYTRACING_GEOMETRY_DESC geometryDesc = {};
-	geometryDesc.Type = D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;
-	geometryDesc.Triangles.IndexBuffer = indexBuffer.resource->GetGPUVirtualAddress();
-	geometryDesc.Triangles.IndexCount = static_cast<UINT>(indexBuffer.resource->GetDesc().Width) / sizeof(UINT);
-	geometryDesc.Triangles.IndexFormat = DXGI_FORMAT_R32_UINT;
-	geometryDesc.Triangles.Transform3x4 = 0;
-	geometryDesc.Triangles.VertexFormat = DXGI_FORMAT_R32G32B32_FLOAT;
-	geometryDesc.Triangles.VertexCount = static_cast<UINT>(vertexBuffer.resource->GetDesc().Width) / sizeof(Vertex_PNCUTB);
-	geometryDesc.Triangles.VertexBuffer.StartAddress = vertexBuffer.resource->GetGPUVirtualAddress();
-	geometryDesc.Triangles.VertexBuffer.StrideInBytes = sizeof(Vertex_PNCUTB);
-	geometryDesc.Flags = D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE;
-
-
-	//--------------------BUILD TOP LEVEL INFO--------------------------------------
-	// Get required sizes for an acceleration structure.
-	D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_ALLOW_UPDATE;
-
-	D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC bottomLevelBuildDesc = {};
-	D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS& bottomLevelInputs = bottomLevelBuildDesc.Inputs;
-	bottomLevelInputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
-	bottomLevelInputs.Flags = buildFlags;
-	bottomLevelInputs.NumDescs = 1;
-	bottomLevelInputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL;
-	bottomLevelInputs.pGeometryDescs = &geometryDesc;
-
-	D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC topLevelBuildDesc = {};
-	D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS& topLevelInputs = topLevelBuildDesc.Inputs;
-	topLevelInputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
-	topLevelInputs.Flags = buildFlags;
-	topLevelInputs.NumDescs = 1;
-	topLevelInputs.pGeometryDescs = nullptr;
-	topLevelInputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL;
-
-	D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO topLevelPrebuildInfo = {};
-	m_dxrDevice->GetRaytracingAccelerationStructurePrebuildInfo(&topLevelInputs, &topLevelPrebuildInfo);
-	ThrowIfFalse(topLevelPrebuildInfo.ResultDataMaxSizeInBytes > 0, "");
-
-	D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO bottomLevelPrebuildInfo = {};
-	m_dxrDevice->GetRaytracingAccelerationStructurePrebuildInfo(&bottomLevelInputs, &bottomLevelPrebuildInfo);
-	ThrowIfFalse(bottomLevelPrebuildInfo.ResultDataMaxSizeInBytes > 0, "");
-
-	ComPtr<ID3D12Resource> scratchResource;
-	AllocateUAVBuffer(device, max(topLevelPrebuildInfo.ScratchDataSizeInBytes, bottomLevelPrebuildInfo.ScratchDataSizeInBytes), &scratchResource, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, L"ScratchResource");
-
-	{
-		D3D12_RESOURCE_STATES initialResourceState = D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE;
-
-		AllocateUAVBuffer(device, bottomLevelPrebuildInfo.ResultDataMaxSizeInBytes, &bottomLevelAS, initialResourceState, L"BottomLevelAccelerationStructure");
-		AllocateUAVBuffer(device, topLevelPrebuildInfo.ResultDataMaxSizeInBytes, &topLevelAS, initialResourceState, L"TopLevelAccelerationStructure");
-	}
-
-	// Create an instance desc for the bottom-level acceleration structure.
-	ComPtr<ID3D12Resource> instanceDescs;
-	D3D12_RAYTRACING_INSTANCE_DESC instanceDesc = {};
-	instanceDesc.Transform[0][0] = instanceDesc.Transform[1][1] = instanceDesc.Transform[2][2] = 1;
-	instanceDesc.InstanceMask = 1;
-	instanceDesc.AccelerationStructure = bottomLevelAS->GetGPUVirtualAddress();
-	AllocateUploadBuffer(device, &instanceDesc, sizeof(instanceDesc), &instanceDescs, L"InstanceDescs");
-
-	// Bottom Level Acceleration Structure desc
-	{
-		bottomLevelBuildDesc.ScratchAccelerationStructureData = scratchResource->GetGPUVirtualAddress();
-		bottomLevelBuildDesc.DestAccelerationStructureData = bottomLevelAS->GetGPUVirtualAddress();
-	}
-
-	// Top Level Acceleration Structure desc
-	{
-		topLevelBuildDesc.DestAccelerationStructureData = topLevelAS->GetGPUVirtualAddress();
-		topLevelBuildDesc.ScratchAccelerationStructureData = scratchResource->GetGPUVirtualAddress();
-		topLevelBuildDesc.Inputs.InstanceDescs = instanceDescs->GetGPUVirtualAddress();
-	}
-
-	BuildAS(bottomLevelBuildDesc, topLevelBuildDesc, bottomLevelAS.Get());
-
-	// Kick off acceleration structure construction.
-	ExecuteCommandList(m_RcommandList);
-
-	// Wait for GPU to finish 
-	WaitForGpu();
-
-	//After building add shader record to Raygen and HitGroup Shader Tables
-	//LocalRootArgumentsGeometry rs = {};
-	//UINT shaderIdentifierSize = D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES;
-	//rs.indexBufferGPUHandle = indexBuffer.gpuDescriptorHandle;
-	//rs.vertexBufferGPUHandle = vertexBuffer.gpuDescriptorHandle;
-	//UINT shaderRecordSize = shaderIdentifierSize + sizeof(rs);
-	//ShaderRecord chunkRecord = ShaderRecord(hitGroupShaderID, shaderIdentifierSize, &rs, sizeof(rs));
-	//HitShaderTable.AddShaderRecordAtIndex(chunkRecord, instanceIndex);
-
-
-}
-//------------------------------------SHADER TABLES AND OUTPUT RESOURCES----------------------------
-void RendererD12::BuildShaderTables()
-{
-	auto device = m_Rdevice.Get();
-	ComPtr<ID3D12StateObjectProperties> stateObjectProps;
-	ThrowIfFailed(m_dxrStateObject.As(&stateObjectProps), "Failed to create properties for shader table");
-	rayGenShaderID = stateObjectProps->GetShaderIdentifier(c_raygenShaderName);
-	missShaderID = stateObjectProps->GetShaderIdentifier(c_missShaderName);
-	hitGroupShaderID = stateObjectProps->GetShaderIdentifier(c_hitGroupName);
-	
-	UINT shaderIdentifierSize = D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES;
-	UINT numShaderRecords = 1;
-	UINT shaderRecordSize = shaderIdentifierSize;
-
-	// Ray gen shader table
-	{
-		shaderRecordSize = shaderIdentifierSize;
-		RaygenShaderTable = ShaderTable(device, numShaderRecords, shaderRecordSize, L"Raytracer RayGenShaderTable");
-		RaygenShaderTable.push_back(ShaderRecord(rayGenShaderID, shaderIdentifierSize, nullptr, 0));
-		m_raygenGroupShaderTableStrideInBytes = RaygenShaderTable.GetShaderRecordSize();
-	}
-
-	// Miss shader table
-	{
-		MissShaderTable = ShaderTable(device, numShaderRecords, shaderRecordSize, L"Raytracer MissShaderTable");
-		MissShaderTable.push_back(ShaderRecord(missShaderID, shaderIdentifierSize, nullptr, 0));
-	}
-
-	// Hit group shader table
-	{
-		LocalRootArgumentsGeometry rs = {};
-		//numShaderRecords = MINECRAFTCHUNKS;
-		//shaderRecordSize = shaderIdentifierSize + sizeof(LocalRootArgumentsGeometry);
-		HitShaderTable = ShaderTable(device, 2, shaderRecordSize, L"Raytracer HitGroupShaderTable");
-		HitShaderTable.push_back(ShaderRecord(hitGroupShaderID, shaderIdentifierSize));
-		HitShaderTable.push_back(ShaderRecord(hitGroupShaderID, shaderIdentifierSize));
-		//for (int i = 0; i < MINECRAFTCHUNKS; i++)
-		//{
-		//	HitShaderTable.push_back(ShaderRecord(hitGroupShaderID, shaderIdentifierSize, &rs, sizeof(rs)));
-		//}
-		 
-		m_hitGroupShaderTableStrideInBytes = HitShaderTable.GetShaderRecordSize();
-	}
-
-	//m_bottomLevelASInstanceDescs.Create(device, MINECRAFTCHUNKS, m_backBufferCount, L"Bottom-Level Acceleration Structure Instance descs.");
-}
-void RendererD12::CreateRaytracingOutputResources()
-{
-	// Create the output resource. The dimensions and format should match the swap-chain.
-	IntVec2 gbufferDimensions = m_dimensions;
-	D3D12_RESOURCE_STATES startingState = D3D12_RESOURCE_STATE_COMMON;
-	m_resourceManager->CreateGBufferResource(m_backBufferFormat, gbufferDimensions, startingState, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, (UINT)GBufferResources::OutputResource, L"Output Resource");
-	m_resourceManager->CreateGBufferResource(m_backBufferFormat, gbufferDimensions, startingState, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, (UINT)GBufferResources::CompositorOutput, L"Compistor Output Resource");
-	m_resourceManager->CreateGBufferResource(DXGI_FORMAT_R32G32B32A32_FLOAT, gbufferDimensions, startingState, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, (UINT)GBufferResources::VertexPosition, L"VertexPosition Resource");
-	m_resourceManager->CreateGBufferResource(DXGI_FORMAT_R32G32B32A32_FLOAT, gbufferDimensions, startingState, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, (UINT)GBufferResources::VertexNormal, L"Vertex normal Resource");
-	m_resourceManager->CreateGBufferResource(DXGI_FORMAT_R32G32B32A32_FLOAT, gbufferDimensions, startingState, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, (UINT)GBufferResources::VertexAlbedo, L"Vertex Albedo Resource");
-	m_resourceManager->CreateGBufferResource(m_backBufferFormat, gbufferDimensions, startingState, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, (UINT)GBufferResources::VertexIndirectAlbedo, L"Vertex Indirect Albedo Resource");
-	m_resourceManager->CreateGBufferResource(DXGI_FORMAT_R32G32_FLOAT, gbufferDimensions, startingState, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, (UINT)GBufferResources::MotionVector, L"Motion Vector Resource");
-	m_resourceManager->CreateGBufferResource(m_backBufferFormat, gbufferDimensions, startingState, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, (UINT)GBufferResources::GI, L"Global Illumination  Resource");
-	m_resourceManager->CreateGBufferResource(m_backBufferFormat, gbufferDimensions, startingState, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, (UINT)GBufferResources::DirectLight, L"Direct Light Resource");
-	m_resourceManager->CreateGBufferResource(DXGI_FORMAT_R32_FLOAT, gbufferDimensions, startingState, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, (UINT)GBufferResources::Depth, L"Depth Resource");
-	m_resourceManager->CreateGBufferResource(DXGI_FORMAT_R16_FLOAT, gbufferDimensions, startingState, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, (UINT)GBufferResources::HistoryLength, L"History Length Resource");
-	m_resourceManager->CreateGBufferResource(DXGI_FORMAT_R16G16_FLOAT, gbufferDimensions, startingState, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, (UINT)GBufferResources::Moments, L"Moments Resource");
-	m_resourceManager->CreateGBufferResource(m_backBufferFormat, gbufferDimensions, startingState, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, (UINT)GBufferResources::DenoiserInput, L"Denoiser output Resource");
-	m_resourceManager->CreateGBufferResource(DXGI_FORMAT_R16G16_FLOAT, gbufferDimensions, startingState, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, (UINT)GBufferResources::PartialDerivates, L" Partial Derivatives Resource");
-	m_resourceManager->CreateGBufferResource(m_backBufferFormat, gbufferDimensions, startingState, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, (UINT)GBufferResources::OcclusionTexture, L" Occlusion Texture Resource");
-	m_resourceManager->CreateGBufferResource(DXGI_FORMAT_R32G32B32A32_FLOAT, gbufferDimensions, startingState, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, (UINT)GBufferResources::GBufferEmissivity, L" Occlusion Texture Resource");
-	//m_resourceManager->CreateGBufferResource(m_backBufferFormat, m_windowDimensions, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, (UINT)GBufferResources::Count);
-
-	//PREVIOUS FRAME RESOURCES
-	m_resourceManager->CreateGBufferResource(DXGI_FORMAT_R32G32B32A32_FLOAT, gbufferDimensions, startingState, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, (UINT)GBufferResourcesPreviousFrame::VertexNormal, L"PreviousFrame Normal resource", true);
-	m_resourceManager->CreateGBufferResource(DXGI_FORMAT_R32_FLOAT, gbufferDimensions, startingState, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, (UINT)GBufferResourcesPreviousFrame::Depth, L"PreviousFrame Depth resource", true);
-	m_resourceManager->CreateGBufferResource(m_backBufferFormat, gbufferDimensions, startingState, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, (UINT)GBufferResourcesPreviousFrame::GI, L"PreviousFrame GI resource", true);
-	m_resourceManager->CreateGBufferResource(DXGI_FORMAT_R16G16_FLOAT, gbufferDimensions, startingState, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, (UINT)GBufferResourcesPreviousFrame::Moments, L"PreviousFrame Moments resource", true);
-	m_resourceManager->CreateGBufferResource(DXGI_FORMAT_R16_FLOAT, gbufferDimensions, startingState, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, (UINT)GBufferResourcesPreviousFrame::History, L"PreviousFrame Moments resource", true);
-
-	//DENOISER RESOURCE
-	m_resourceManager->CreateDenoiserGBufferResource(m_backBufferFormat, gbufferDimensions, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, L"Denoiser Resource");
-}
-
-//-----------------------------COMPOSITION---------------------
-void RendererD12::InitializePostProcess()
-{
-	m_postProcess = new PostProcess();
-	m_postProcess->InitializeGodRays(m_dxrDevice.Get(), m_backBufferCount);
-}
-void RendererD12::InitializeComposition()
-{
-	m_compositor = new Composition();
-	m_compositor->Initialize(m_dxrDevice.Get(), m_backBufferCount);
 }
 void RendererD12::InitializeAdapterAndCheckRaytracingSupport()
 {
@@ -1426,87 +571,13 @@ void RendererD12::InitializeAdapterAndCheckRaytracingSupport()
 	factory6.Reset();
 	adapter.Reset();
 }
-void RendererD12::CreateRootSignatures()
+void RendererD12::FinishUpGPUWork()
 {
-	//D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
-	//	D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
-	//	D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
-	//	D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS |
-	//	D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS;
+	ExecuteCommandList(m_RcommandList);
+	WaitForGpu();
+	m_RcommandList->Reset(m_RcommandAllocator[m_frameIndex].Get(), nullptr);
+}
 
-	{
-		CD3DX12_DESCRIPTOR_RANGE ranges[(int)GlobalRootSignatureParams::Count]; // Perfomance TIP: Order from most frequent to least frequent.
-		ranges[(int)GlobalRootSignatureParams::GBufferVertexPositionSlot].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0);  // 1 texture buffer.
-		ranges[(int)GlobalRootSignatureParams::GBufferVertexNormalSlot].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 1);  // 1 texture buffer.
-		ranges[(int)GlobalRootSignatureParams::GBufferVertexAlbedoSlot].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 2);  // 1 texture buffer.
-		ranges[(int)GlobalRootSignatureParams::GBufferMotionVectorSlot].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 3);  // 1 texture buffer.
-		ranges[(int)GlobalRootSignatureParams::GBufferDirectLightSlot].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1,4);  // 1 texture buffer.
-		ranges[(int)GlobalRootSignatureParams::GBufferDepthSlot].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1,5);  // 1 texture buffer.
-		ranges[(int)GlobalRootSignatureParams::GBufferOcclusionSlot].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1,6);  // 1 texture buffer.
-		ranges[(int)GlobalRootSignatureParams::GBufferVariance].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1,7);  // 1 texture buffer.
-		ranges[(int)GlobalRootSignatureParams::EmissivityTexture].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1,8);  // 1 texture buffer.
-	
-
-		ranges[(int)GlobalRootSignatureParams::VertexBuffersSlot].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 2, 1);  // Index Buffer
-		ranges[(int)GlobalRootSignatureParams::TextureBufferSlot].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 3);  // 1 texture buffer.
-		ranges[(int)GlobalRootSignatureParams::NormalMapBufferSlot].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 5);  // 1 texture buffer.
-		ranges[(int)GlobalRootSignatureParams::MetalnessMapTextureSlot].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 6);  // 1 texture buffer.
-		ranges[(int)GlobalRootSignatureParams::RougnessMapTextureSlot].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 7);  // 1 texture buffer.
-		ranges[(int)GlobalRootSignatureParams::SkyboxTextureSlot].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1,8);  // 1 texture buffer.
-		ranges[(int)GlobalRootSignatureParams::SkyboxNightTextureSlot].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1,9);  // 1 texture buffer.
-
-
-		CD3DX12_ROOT_PARAMETER rootParameters[(UINT)GlobalRootSignatureParams::Count] = {};
-		rootParameters[(UINT)GlobalRootSignatureParams::GBufferVertexPositionSlot].InitAsDescriptorTable(1, &ranges[(int)GlobalRootSignatureParams::GBufferVertexPositionSlot]);
-		rootParameters[(UINT)GlobalRootSignatureParams::GBufferVertexNormalSlot].InitAsDescriptorTable(1, &ranges[(int)GlobalRootSignatureParams::GBufferVertexNormalSlot]);
-		rootParameters[(UINT)GlobalRootSignatureParams::GBufferVertexAlbedoSlot ].InitAsDescriptorTable(1, &ranges[(int)GlobalRootSignatureParams::GBufferVertexAlbedoSlot]);
-		rootParameters[(UINT)GlobalRootSignatureParams::GBufferMotionVectorSlot].InitAsDescriptorTable(1, &ranges[(int)GlobalRootSignatureParams::GBufferMotionVectorSlot]);
-		rootParameters[(UINT)GlobalRootSignatureParams::GBufferDirectLightSlot].InitAsDescriptorTable(1, &ranges[(int)GlobalRootSignatureParams::GBufferDirectLightSlot]);
-		rootParameters[(UINT)GlobalRootSignatureParams::GBufferDepthSlot].InitAsDescriptorTable(1, &ranges[(int)GlobalRootSignatureParams::GBufferDepthSlot]);
-		rootParameters[(UINT)GlobalRootSignatureParams::GBufferOcclusionSlot].InitAsDescriptorTable(1, &ranges[(int)GlobalRootSignatureParams::GBufferOcclusionSlot]);
-		rootParameters[(UINT)GlobalRootSignatureParams::GBufferVariance].InitAsDescriptorTable(1, &ranges[(int)GlobalRootSignatureParams::GBufferVariance]);
-		rootParameters[(UINT)GlobalRootSignatureParams::EmissivityTexture].InitAsDescriptorTable(1, &ranges[(int)GlobalRootSignatureParams::EmissivityTexture]);
-
-		rootParameters[(UINT)GlobalRootSignatureParams::VertexBuffersSlot].InitAsDescriptorTable(1, &ranges[(UINT)GlobalRootSignatureParams::VertexBuffersSlot]);
-		rootParameters[(UINT)GlobalRootSignatureParams::TextureBufferSlot].InitAsDescriptorTable(1, &ranges[(UINT)GlobalRootSignatureParams::TextureBufferSlot]);
-		rootParameters[(UINT)GlobalRootSignatureParams::NormalMapBufferSlot].InitAsDescriptorTable(1, &ranges[(UINT)GlobalRootSignatureParams::NormalMapBufferSlot]);
-		rootParameters[(UINT)GlobalRootSignatureParams::MetalnessMapTextureSlot].InitAsDescriptorTable(1, &ranges[(UINT)GlobalRootSignatureParams::MetalnessMapTextureSlot]);
-		rootParameters[(UINT)GlobalRootSignatureParams::RougnessMapTextureSlot].InitAsDescriptorTable(1, &ranges[(UINT)GlobalRootSignatureParams::RougnessMapTextureSlot]);
-		rootParameters[(UINT)GlobalRootSignatureParams::SkyboxTextureSlot].InitAsDescriptorTable(1, &ranges[(UINT)GlobalRootSignatureParams::SkyboxTextureSlot]);
-		rootParameters[(UINT)GlobalRootSignatureParams::SkyboxNightTextureSlot].InitAsDescriptorTable(1, &ranges[(UINT)GlobalRootSignatureParams::SkyboxNightTextureSlot]);
-		rootParameters[(UINT)GlobalRootSignatureParams::SceneConstantSlot].InitAsConstantBufferView(0);
-		rootParameters[(UINT)GlobalRootSignatureParams::AccelerationStructureSlot].InitAsShaderResourceView(0);
-		CD3DX12_STATIC_SAMPLER_DESC staticSamplers[] =
-		{
-			// LinearWrapSampler
-			CD3DX12_STATIC_SAMPLER_DESC(0, D3D12_FILTER_COMPARISON_MIN_MAG_MIP_POINT),
-		};
-
-		CD3DX12_ROOT_SIGNATURE_DESC globalRootSignatureDesc(ARRAYSIZE(rootParameters), rootParameters, ARRAYSIZE(staticSamplers), staticSamplers);
-		SerializeAndCreateRaytracingRootSignature(globalRootSignatureDesc, &m_raytracingGlobalRootSignature);
-	}
-
-	// Local Root Signature
-	// This is a root signature that enables a shader to have unique arguments that come from shader tables.
-	// TO DO :: Fix the shader space from 5/6 to 1/2 after fixing infinite generation. Since there will be no vertex Buffer coming from Global Root signatures
-	// Shader space 0 will be for Acceleration strucure
-	// 3 will be for the diffuse texture
-	// 4  will be sample buffers slot
-	{
-		//CD3DX12_DESCRIPTOR_RANGE range[(UINT)LocalRootSignatureParams::Count] = {};
-		//range[(UINT)LocalRootSignatureParams::IndexBuffer].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,1, 15, 1);
-		//range[(UINT)LocalRootSignatureParams::VertexBuffer].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 16, 1);
-
-		//CD3DX12_ROOT_PARAMETER localRootParameters[(UINT)LocalRootSignatureParams::Count] = {};
-		////localRootParameters[(UINT)LocalRootSignatureParams::AccelerationStructure].InitAsDescriptorTable(1, &range[(UINT)LocalRootSignatureParams::AccelerationStructure]);
-		//localRootParameters[(UINT)LocalRootSignatureParams::IndexBuffer].InitAsDescriptorTable(1, &range[(UINT)LocalRootSignatureParams::IndexBuffer]);
-		//localRootParameters[(UINT)LocalRootSignatureParams::VertexBuffer].InitAsDescriptorTable(1, &range[(UINT)LocalRootSignatureParams::VertexBuffer]);
-
-		//CD3DX12_ROOT_SIGNATURE_DESC localRSdesc(ARRAYSIZE(localRootParameters), localRootParameters);
-		//localRSdesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE;
-		//SerializeAndCreateRaytracingRootSignature(localRSdesc, &m_raytracingLocalRootSignature);
-	}
- }
 void RendererD12::SerializeAndCreateRaytracingRootSignature(D3D12_ROOT_SIGNATURE_DESC& desc, ComPtr<ID3D12RootSignature>* rootSig)
 {
 	ID3DBlob* blob;
@@ -1515,6 +586,7 @@ void RendererD12::SerializeAndCreateRaytracingRootSignature(D3D12_ROOT_SIGNATURE
 	result = D3D12SerializeRootSignature(&desc, D3D_ROOT_SIGNATURE_VERSION_1, &blob, &error);
 	m_Rdevice->CreateRootSignature(1, blob->GetBufferPointer(), blob->GetBufferSize(), IID_PPV_ARGS(&(*rootSig)));
 }
+
 void RendererD12::SerializeAndCreateRaytracingRootSignature(ID3D12Device5* device, D3D12_ROOT_SIGNATURE_DESC& desc, ComPtr<ID3D12RootSignature>* rootSig)
 {
 	ID3DBlob* blob;
@@ -1523,6 +595,74 @@ void RendererD12::SerializeAndCreateRaytracingRootSignature(ID3D12Device5* devic
 	result = D3D12SerializeRootSignature(&desc, D3D_ROOT_SIGNATURE_VERSION_1, &blob, &error);
 	device->CreateRootSignature(1, blob->GetBufferPointer(), blob->GetBufferSize(), IID_PPV_ARGS(&(*rootSig)));
 }
+
+//void RendererD12::SetRasterizationState(CullModeD12 cullMode, FillModeD12 fillMode,WindingOrderD12 windingOrder )
+//{
+//	switch (fillMode)
+//	{
+//	case FillModeD12::SOLID:
+//		m_rasterizerDesc.FillMode = D3D12_FILL_MODE_SOLID;
+//		break;
+//	case FillModeD12::WIREFRAME:
+//		m_rasterizerDesc.FillMode = D3D12_FILL_MODE_WIREFRAME;
+//		break;
+//	default:
+//		break;
+//	}
+//	switch (cullMode)
+//	{
+//	case CullModeD12::NONE:
+//		m_rasterizerDesc.CullMode = D3D12_CULL_MODE_NONE;
+//		break;
+//	case CullModeD12::FRONT:
+//		m_rasterizerDesc.CullMode = D3D12_CULL_MODE_FRONT;
+//		break;
+//	case CullModeD12::BACK:
+//		m_rasterizerDesc.CullMode = D3D12_CULL_MODE_BACK;
+//		break;
+//	default:
+//		break;
+//	}
+//	switch (windingOrder)
+//	{
+//	case WindingOrderD12::CLOCKWISE:
+//		m_rasterizerDesc.FrontCounterClockwise= false;
+//		break;
+//	case WindingOrderD12::COUNTERCLOCKWISE:
+//		m_rasterizerDesc.FrontCounterClockwise = true;
+//		break;
+//	default:
+//		break;
+//	}
+//}
+//void RendererD12::InitializeSampler()
+//{
+//	//UINT maxPixelsInSampleSet1D = 8;
+//	UINT maxSamplesPerSet = 65536;
+//	UINT numSampleSets = 83;
+//	auto device = m_Rdevice.Get();
+//	m_sampler = new Sampler(SamplerType::Cosine, 64, numSampleSets);
+//
+//	m_hemisphereSamplesGPUBuffer.Create(device, maxSamplesPerSet * numSampleSets,m_backBufferCount, L"GPU buffer: Random hemisphere samples");
+//	UINT numSamples = m_sampler->m_numSamples * m_sampler->m_numSampleSets;
+//	for (UINT i = 0; i < numSamples; i++)
+//	{
+//		UINT sampleindex = m_sampler->GetSampleIndex();
+//		Vec3 sampleDataPoint = m_sampler->m_hemisphereSampleData[sampleindex];
+//		// Convert [-1,1] to [0,1].
+//		//m_samplesGPUBuffer[i].value = XMFLOAT2(p.x * 0.5f + 0.5f, p.y * 0.5f + 0.5f);
+//		m_hemisphereSamplesGPUBuffer[i].sampleValue = sampleDataPoint;
+//	}
+//}
+//void RendererD12::InitializeIrradianceCaching()
+//{
+//	//UINT maxPixelsInSampleSet1D = 8;
+//	UINT maxSamplesPerSet = 65536;
+//	UINT numSampleSets = 83;
+//	auto device = m_Rdevice.Get();
+//
+//	m_irradianceCacheGPUBuffer.Create(device, maxSamplesPerSet * numSampleSets, m_backBufferCount, L"GPU buffer: Irradiance Cache");
+//}
 
 void RendererD12::Prepare()
 {
@@ -1551,7 +691,6 @@ void RendererD12::Prepare()
 	//	m_RcommandList->ResourceBarrier(1, &barrier);
 	//}
 }
-
 void RendererD12::Present()
 {
 	auto renderTarget = GetBackBuffer();
@@ -1585,7 +724,6 @@ void RendererD12::Present()
 	}
 
 }
-
 void RendererD12::MoveToNextFrame()
 {
 	// Schedule a Signal command in the queue.
@@ -1593,8 +731,6 @@ void RendererD12::MoveToNextFrame()
 	const UINT64 currentFenceValue = m_fenceValues[m_frameIndex];
 	HRESULT result = m_RcommandQueue->Signal(m_fence.Get(), currentFenceValue);
 	if (FAILED(result)) { ERROR_AND_DIE("Failed while moving to next Frame"); }
-
-
 
 	// If the next frame is not ready to be rendered yet, wait until it is ready.
 	if (m_fence->GetCompletedValue() < m_fenceValues[m_frameIndex])
@@ -1633,154 +769,6 @@ void RendererD12::MoveToNextFrame()
 	//So in startup when textures/shaders are created the renderer needs to be prepared.
 	//This bool prevents two prepares : startup->prepare, renderFrame->prepare, renderframe->movetonextframe
 	m_isRendererPrepared = false;
-}
-
-//----------------------------DXR  RAYTRACING FUNCTIONS--------------------------
-void RendererD12::RunRaytracer()
-{
-	auto commandList =	m_RcommandList.Get();
-	auto GetGBuffers = (m_resourceManager->m_GpuresourceBuffers);
-	commandList->SetComputeRootSignature(m_raytracingGlobalRootSignature.Get());
-	// Copy the updated scene constant buffer to GPU.
-	m_sceneCB.CopyStagingToGpu(m_frameIndex);
-	m_lightCB.CopyStagingToGpu(m_frameIndex);
-	//m_irradianceCacheGPUBuffer.CopyFromCPUToGPU(m_frameIndex);
-	commandList->SetComputeRootConstantBufferView((UINT)GlobalRootSignatureParams::SceneConstantSlot, m_sceneCB.GpuVirtualAddress(m_frameIndex));
-	//Bind the heaps, acceleration structure and dispatch rays.
-	
-	{
-		m_resourceManager->TransitionResource(&GetGBuffers[(UINT)GBufferResources::VertexPosition], D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-		m_resourceManager->TransitionResource(&GetGBuffers[(UINT)GBufferResources::VertexNormal], D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-		m_resourceManager->TransitionResource(&GetGBuffers[(UINT)GBufferResources::VertexAlbedo], D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-		m_resourceManager->TransitionResource(&GetGBuffers[(UINT)GBufferResources::MotionVector], D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-		m_resourceManager->TransitionResource(&GetGBuffers[(UINT)GBufferResources::DirectLight], D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-		m_resourceManager->TransitionResource(&GetGBuffers[(UINT)GBufferResources::Depth], D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-		m_resourceManager->TransitionResource(&GetGBuffers[(UINT)GBufferResources::OcclusionTexture], D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-		m_resourceManager->TransitionResource(&GetGBuffers[(UINT)GBufferResources::GBufferEmissivity], D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-		m_resourceManager->TransitionResource(&m_denoiser->m_varianceEstimator->m_varianceResource, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-	}
-
-	m_dispatchRayRuntime = (float)GetCurrentTimeSeconds();
-	commandList->SetDescriptorHeaps(1, m_descriptorHeap.GetAddressOf());
-	commandList->SetComputeRootDescriptorTable((UINT)GlobalRootSignatureParams::GBufferVertexPositionSlot, GetGBuffers[(UINT)GBufferResources::VertexPosition].gpuWriteDescriptorHandle);
-	commandList->SetComputeRootDescriptorTable((UINT)GlobalRootSignatureParams::GBufferVertexNormalSlot, GetGBuffers[(UINT)GBufferResources::VertexNormal].gpuWriteDescriptorHandle);
-	commandList->SetComputeRootDescriptorTable((UINT)GlobalRootSignatureParams::GBufferVertexAlbedoSlot, GetGBuffers[(UINT)GBufferResources::VertexAlbedo].gpuWriteDescriptorHandle);
-	commandList->SetComputeRootDescriptorTable((UINT)GlobalRootSignatureParams::GBufferMotionVectorSlot, GetGBuffers[(UINT)GBufferResources::MotionVector].gpuWriteDescriptorHandle);
-	commandList->SetComputeRootDescriptorTable((UINT)GlobalRootSignatureParams::GBufferDirectLightSlot, GetGBuffers[(UINT)GBufferResources::DirectLight].gpuWriteDescriptorHandle);
-	commandList->SetComputeRootDescriptorTable((UINT)GlobalRootSignatureParams::GBufferDepthSlot, GetGBuffers[(UINT)GBufferResources::Depth].gpuWriteDescriptorHandle);
-	commandList->SetComputeRootDescriptorTable((UINT)GlobalRootSignatureParams::GBufferOcclusionSlot, GetGBuffers[(UINT)GBufferResources::OcclusionTexture].gpuWriteDescriptorHandle);
-	commandList->SetComputeRootDescriptorTable((UINT)GlobalRootSignatureParams::EmissivityTexture, GetGBuffers[(UINT)GBufferResources::GBufferEmissivity].gpuWriteDescriptorHandle);
-	commandList->SetComputeRootDescriptorTable((UINT)GlobalRootSignatureParams::GBufferVariance, m_denoiser->m_varianceEstimator->m_varianceResource.gpuWriteDescriptorHandle);
-
-	if (m_currentScene == Scenes::Minecraft)
-	{
-		//commandList->SetComputeRootDescriptorTable((UINT)GlobalRootSignatureParams::IndexBuffersSlot, m_indexBuffer.gpuDescriptorHandle);
-		commandList->SetComputeRootDescriptorTable((UINT)GlobalRootSignatureParams::VertexBuffersSlot, m_indexBuffer.gpuReadDescriptorHandle);
-		commandList->SetComputeRootShaderResourceView((UINT)GlobalRootSignatureParams::AccelerationStructureSlot, m_topLevelAccelerationStructure->GetGPUVirtualAddress());
-	}
-	else if(m_currentScene == Scenes::Bunny)
-	{
-		//commandList->SetComputeRootDescriptorTable((UINT)GlobalRootSignatureParams::IndexBuffersSlot, m_bunnyIndexBuffer.gpuDescriptorHandle);
-		commandList->SetComputeRootDescriptorTable((UINT)GlobalRootSignatureParams::VertexBuffersSlot, m_bunnyIndexBuffer.gpuReadDescriptorHandle);
-		commandList->SetComputeRootShaderResourceView((UINT)GlobalRootSignatureParams::AccelerationStructureSlot, m_bunnyTlas->GetGPUVirtualAddress());
-	}
-
-	commandList->SetComputeRootDescriptorTable((UINT)GlobalRootSignatureParams::TextureBufferSlot, m_loadedTextures[0]->m_gpuDescriptorHandle);
-	commandList->SetComputeRootDescriptorTable((UINT)GlobalRootSignatureParams::NormalMapBufferSlot, m_loadedTextures[1]->m_gpuDescriptorHandle);
-	commandList->SetComputeRootDescriptorTable((UINT)GlobalRootSignatureParams::MetalnessMapTextureSlot, m_loadedTextures[2]->m_gpuDescriptorHandle);
-	commandList->SetComputeRootDescriptorTable((UINT)GlobalRootSignatureParams::RougnessMapTextureSlot, m_loadedTextures[3]->m_gpuDescriptorHandle);
-	if(m_gameValues.lightfallOff_AmbientIntensity_CosineSampling_DayNight.w == 0.0f)
-	{
-		commandList->SetComputeRootDescriptorTable((UINT)GlobalRootSignatureParams::SkyboxTextureSlot, m_loadedTextures[4]->m_gpuDescriptorHandle);
-		commandList->SetComputeRootDescriptorTable((UINT)GlobalRootSignatureParams::SkyboxNightTextureSlot, m_loadedTextures[5]->m_gpuDescriptorHandle);
-	}
-	else
-	{
-		commandList->SetComputeRootDescriptorTable((UINT)GlobalRootSignatureParams::SkyboxTextureSlot, m_loadedTextures[5]->m_gpuDescriptorHandle);
-		commandList->SetComputeRootDescriptorTable((UINT)GlobalRootSignatureParams::SkyboxNightTextureSlot, m_loadedTextures[4]->m_gpuDescriptorHandle);
-	}
-
-	//commandList->SetComputeRootShaderResourceView((UINT)GlobalRootSignatureParams::IrradianceCacheSlot, m_irradianceCacheGPUBuffer.GpuVirtualAddress(m_frameIndex));
-
-	D3D12_DISPATCH_RAYS_DESC dispatchDesc = {};
-	dispatchDesc.HitGroupTable.StartAddress = HitShaderTable.GetResource()->GetGPUVirtualAddress();
-	dispatchDesc.HitGroupTable.SizeInBytes = HitShaderTable.GetResource()->GetDesc().Width;
-	dispatchDesc.HitGroupTable.StrideInBytes = m_hitGroupShaderTableStrideInBytes;
-	dispatchDesc.MissShaderTable.StartAddress = MissShaderTable.GetResource()->GetGPUVirtualAddress();
-	dispatchDesc.MissShaderTable.SizeInBytes = MissShaderTable.GetResource()->GetDesc().Width;
-	dispatchDesc.MissShaderTable.StrideInBytes = dispatchDesc.MissShaderTable.SizeInBytes;
-	dispatchDesc.RayGenerationShaderRecord.StartAddress = RaygenShaderTable.GetResource()->GetGPUVirtualAddress();
-	dispatchDesc.RayGenerationShaderRecord.SizeInBytes = RaygenShaderTable.GetResource()->GetDesc().Width;
-	dispatchDesc.Width = m_dimensions.x;
-	dispatchDesc.Height = m_dimensions.y;
-	dispatchDesc.Depth = 1;
-	m_dxrCommandList.Get()->SetPipelineState1(m_dxrStateObject.Get());
-	m_dxrCommandList.Get()->DispatchRays(&dispatchDesc);
-
-	m_dispatchRayRuntime = (float)GetCurrentTimeSeconds() - m_dispatchRayRuntime;
-	{
-		m_resourceManager->TransitionResource(&GetGBuffers[(UINT)GBufferResources::VertexPosition], D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-		m_resourceManager->TransitionResource(&GetGBuffers[(UINT)GBufferResources::VertexNormal], D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-		m_resourceManager->TransitionResource(&GetGBuffers[(UINT)GBufferResources::VertexAlbedo], D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-		m_resourceManager->TransitionResource(&GetGBuffers[(UINT)GBufferResources::MotionVector], D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-		m_resourceManager->TransitionResource(&GetGBuffers[(UINT)GBufferResources::DirectLight], D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-		m_resourceManager->TransitionResource(&GetGBuffers[(UINT)GBufferResources::Depth], D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-		m_resourceManager->TransitionResource(&GetGBuffers[(UINT)GBufferResources::OcclusionTexture], D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-		m_resourceManager->TransitionResource(&GetGBuffers[(UINT)GBufferResources::GBufferEmissivity], D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-		m_resourceManager->TransitionResource(&m_denoiser->m_varianceEstimator->m_varianceResource, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-	}
-
-}
-void RendererD12::RunGI()
-{
-	m_globalIllumination->Run(m_dxrCommandList.Get(), m_frameIndex);
-	m_denoiser->m_varianceEstimator->RunPartialDerivatives(m_dxrCommandList.Get(), m_frameIndex);
-
-
-}
-void RendererD12::RunDenoiser(bool temporalSamplerOn ,bool denoiserOn)
-{
-	m_denoiser->Run(m_dxrCommandList.Get(),1,m_descriptorHeap.Get(), temporalSamplerOn, denoiserOn);
-	GpuBuffer* denoiserOutputResource = m_resourceManager->GetDenoiserOutputResource();
-
-	auto uavBarrier = CD3DX12_RESOURCE_BARRIER::UAV(denoiserOutputResource->GetResource());
-	m_RcommandList->ResourceBarrier(1, &uavBarrier);
-	//m_resourceManager->TransitionResource(denoiserOutputeResource, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, true);
-}
-void RendererD12::RunCompositor(bool denoiserOn, bool godRaysOn)
-{
-	m_compositor->Run(m_dxrCommandList.Get(),m_descriptorHeap.Get(), denoiserOn);
-	if(godRaysOn)
-	{
-		m_postProcess->RunGodRays(m_dxrCommandList.Get(), m_descriptorHeap.Get());
-	}
-
-}
-void RendererD12::CopyRaytracingOutputToBackbuffer()
-{
-	auto commandList = m_RcommandList.Get();
-	auto renderTarget = GetBackBuffer();
-
-	D3D12_RESOURCE_BARRIER preCopyBarriers[2];
-	preCopyBarriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(renderTarget, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COPY_DEST);
-	preCopyBarriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(m_resourceManager->m_GpuresourceBuffers[(int)GBufferResources::OutputResource].GetResource(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE);
-	commandList->ResourceBarrier(ARRAYSIZE(preCopyBarriers), preCopyBarriers);
-	commandList->CopyResource(renderTarget, m_resourceManager->m_GpuresourceBuffers[(int)GBufferResources::OutputResource].GetResource());
-
-	D3D12_RESOURCE_BARRIER imguiRenderTargetbarr;
-	imguiRenderTargetbarr = CD3DX12_RESOURCE_BARRIER::Transition(renderTarget, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_RENDER_TARGET);
-	commandList->ResourceBarrier(1, &imguiRenderTargetbarr);
-}
-void RendererD12::FinishRaytraceCopyToBackBuffer()
-{
-	auto commandList = m_RcommandList.Get();
-	auto renderTarget = GetBackBuffer();
-
-	D3D12_RESOURCE_BARRIER postCopyBarriers[2];
-	postCopyBarriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(renderTarget, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
-	postCopyBarriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(m_resourceManager->m_GpuresourceBuffers[(int)GBufferResources::OutputResource].GetResource(), D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-
-	commandList->ResourceBarrier(ARRAYSIZE(postCopyBarriers), postCopyBarriers);
 }
 
 //----------------------------TEXTURES------------------------
@@ -2072,15 +1060,6 @@ void RendererD12::WriteGpuBufferToFile(GpuBuffer* buffer,std::string filePath)
 }
 
 //----------------------------MAIN RENDER FUNCTIONS----------------------
-void RendererD12::AddPointLights(Vec4 position)
-{
-	int currentCounter = m_lightCB->Counter;
-	if (currentCounter < m_lightCB->MaxLights - 1)
-	{
-		m_lightCB->Counter = currentCounter + 1;
-		m_lightCB->PointLightPosition[currentCounter + 1] = position;
-	}
-}
 void RendererD12::ClearScreen(Rgba8 color)
 {
 	auto renderTarget = GetBackBufferCPUHandle();
@@ -2145,7 +1124,6 @@ void RendererD12::DrawIndexedVertexArray(int numberOfVertices, std::vector<Verte
 	cmdList->DrawIndexedInstanced(UINT(indexes.size()), 1, 0, 0, 0);
 	m_dynamicRenderItems.push_back(item);
 }
-
 void RendererD12::DrawVertexArray(int numberOfVertices, std::vector<Vertex_PNCUTB>& verticesToDraw)
 {
 	if (numberOfVertices == 0)
@@ -2166,8 +1144,7 @@ void RendererD12::DrawVertexArray(int numberOfVertices, std::vector<Vertex_PNCUT
 	cmdList->DrawInstanced(numberOfVertices, 1, 0, 0);
 	m_dynamicRenderItems.push_back(item);
 }
-
-void RendererD12::DrawVertexArray(int numberOfVertices, VertexArray verticesToDraw)
+void RendererD12::DrawVertexArray(int numberOfVertices, VertexArray& verticesToDraw)
 {
 	if (numberOfVertices == 0)
 	{
@@ -2187,6 +1164,7 @@ void RendererD12::DrawVertexArray(int numberOfVertices, VertexArray verticesToDr
 	cmdList->DrawInstanced(numberOfVertices, 1, 0, 0);
 	m_dynamicRenderItems.push_back(item);
 }
+
 void RendererD12::SetDepthStencilState(DepthTestD12 depthTest, bool writeDepth)
 {
 	m_depthStencilBuffer.depthDesc.DepthEnable = true;
@@ -2258,7 +1236,6 @@ void RendererD12::SetDepthStencilState(DepthTestD12 depthTest, bool writeDepth)
 	m_RcommandList.Get()->OMSetStencilRef(1);
 }
 //---------------------------GET FUNCTIONS----------------------
-
 RendererD12Config  RendererD12::GetRenderConfig()
 {
 	return m_renderConfig;
@@ -2702,8 +1679,6 @@ IDxcBlob* ShaderCompiler::Compile(IDxcBlobEncoding* sourceBlob, LPCWSTR* args, u
 	return nullptr;
 }
 
-
-
 ShaderD12* RendererD12::CreateOrGetShader(const char* shaderName, const char* shaderFilePath,bool isCompute, bool containsTesselation, bool isShadowShader)
 {
 	for (int i = 0; i < m_loadedShaders.size(); i++)
@@ -2752,13 +1727,11 @@ void RendererD12::BindComputeShader(ShaderD12* shader)
 	commandList->SetComputeRootSignature(shader->m_rootSignature.Get());
 	commandList->SetPipelineState(shader->m_pipelineStateObject.Get());
 }
-
 void RendererD12::DispatchComputeShader(int x, int y , int z, ShaderD12* shader)
 {
 	auto commandList = m_RcommandList.Get();
 	commandList->Dispatch(x,y,z);
 }
-
 void RendererD12::BindShader(ShaderD12* shader, bool isForShadowMap)
 {
 	auto commandList = m_RcommandList.Get();
@@ -2798,8 +1771,7 @@ void RendererD12::BindShader(ShaderD12* shader, bool isForShadowMap)
 BitmapFont* RendererD12::CreateBitmapFont(const char* fontFilePath)
 {
 	std::string fontFilePathWithExtension = std::string(fontFilePath) + ".png";
-	Texture* bitmapFontTexture = nullptr;
-	BitmapFont* newFont = new BitmapFont(fontFilePath, *bitmapFontTexture, IntVec2(256,256));
+	BitmapFont* newFont = new BitmapFont(fontFilePath, IntVec2(256,256));
 	return newFont;
 }
 
@@ -2882,139 +1854,6 @@ int RendererD12::GetFrameIndex()
 	return m_frameIndex;
 }
 
-void RendererD12::RaytracingAssets()
-{
-	//float windowWidth  = GetRenderConfig().m_window->GetClientDimensions().x;
-	//float windowHeight  = GetRenderConfig().m_window->GetClientDimensions().y;
-	//m_Rviewport = CD3DX12_VIEWPORT(0.0f, 0.0f, windowWidth, windowHeight);
-	//m_RscissorRect = CD3DX12_RECT(0, 0, static_cast<LONG>(windowWidth), static_cast<LONG>(windowHeight));
-
-	////ROOT SIGNATURES
-	//CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-	//rootSignatureDesc.Init(0, nullptr, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
-
-	//ComPtr<ID3DBlob> signature;
-	//ComPtr<ID3DBlob> error;
-	//ThrowIfFailed(D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error), "Failed While Serializing Root Signature");
-	//ThrowIfFailed(m_Rdevice->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&m_RrootSignature)), "Failed While Creating Root Signature");
-
-	////COMPILING AND LOADING SHADERS
-	//ComPtr<ID3DBlob> vertexShader;
-	//ComPtr<ID3DBlob> pixelShader;
-
-	//#if defined(ENGINE_DEBUG_RENDER)
-	//// Enable better shader debugging with the graphics debugging tools.
-	//UINT compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
-	//#else
-	//UINT compileFlags = 0;
-	//#endif
-
-	//std::string shaderNameWithExtension = "Data/Shaders/RaytracingUtilities.hlsl";
-	//std::string shaderValues;
-	//FileReadToString(shaderValues, shaderNameWithExtension);
-
-	//std::vector<unsigned char> vertexByte = {};
-	//std::vector<unsigned char> pixelByte = {};
-
-	//CompileShaderToByteCode(vertexByte, shaderNameWithExtension.c_str(), shaderValues.c_str(), "VSMain", "vs_5_0");
-	//CompileShaderToByteCode(pixelByte, shaderNameWithExtension.c_str(), shaderValues.c_str(), "PSMain", "ps_5_0");
-
-	////D3DReadFileToBlob((LPCWSTR)L"Data/Shaders/RaytracingUtilities.hlsl", &vertexShader);
-	////CD3DX12_SHADER_BYTECODE vertexShaderByte;
-	////vertexShaderByte.BytecodeLength = vertexShader->GetBufferSize();
-	////vertexShaderByte.pShaderBytecode = vertexShader->GetBufferPointer();
-
-	//D3DReadFileToBlob((LPCWSTR)L"Data/Shaders/RaytracingUtilities.hlsl", &pixelShader);
-	//CD3DX12_SHADER_BYTECODE pixelShaderByte;
-	//pixelShaderByte.BytecodeLength = pixelShader->GetBufferSize();
-	//pixelShaderByte.pShaderBytecode = pixelShader->GetBufferPointer();
-	//
-	//ThrowIfFailed(D3DCompileFromFile((LPCWSTR)L"Data/Shaders/RaytracingUtilities.hlsl", nullptr, nullptr, "VSMain", "vs_5_0", compileFlags, 0, &vertexShader, nullptr),
-	//"Failed While Creating Vertex Shader");
-	//ThrowIfFailed(D3DCompileFromFile((LPCWSTR)L"Data/Shaders/RaytracingUtilities.hlsl", nullptr, nullptr, "PSMain", "ps_5_0", compileFlags, 0, &pixelShader, nullptr),
-	//"Failed While Creating Pixel Shader");
-
-	//// Define the vertex input layout.
-	//D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
-	//{
-	//	{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-	//	{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
-	//};
-
-	//// Describe and create the graphics pipeline state object (PSO).
-	//D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
-	//psoDesc.InputLayout = { inputElementDescs, _countof(inputElementDescs) };
-	//psoDesc.pRootSignature = m_RrootSignature.Get();
-	//psoDesc.VS = CD3DX12_SHADER_BYTECODE(vertexShader.Get());
-	//psoDesc.PS = CD3DX12_SHADER_BYTECODE(pixelShader.Get());
-	//psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-	//psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-	//psoDesc.DepthStencilState.DepthEnable = FALSE;
-	//psoDesc.DepthStencilState.StencilEnable = FALSE;
-	//psoDesc.SampleMask = UINT_MAX;
-	//psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-	//psoDesc.NumRenderTargets = 1;
-	//psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
-	//psoDesc.SampleDesc.Count = 1;
-	//ThrowIfFailed(m_Rdevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_RpipelineState)), "Failed While Creating Pipeline State Object");
-
-	//// Create the command list.
-	//ThrowIfFailed(m_Rdevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_RcommandAllocator.Get(), m_RpipelineState.Get(), IID_PPV_ARGS(&m_RcommandList)), "Failed While Creating Command List");
-
-	//// Command lists are created in the recording state, but there is nothing
-	//// to record yet. The main loop expects it to be closed, so close it now.
-	//ThrowIfFailed(m_RcommandList->Close(), "Failed While Closing Command List");
-
-	//Vertex triangleVertices[] =
-	//{
-	//	{ { 0.0f, 0.25f * 2, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
-	//	{ {0.25f, -0.25f * 2, 0.0f }, {0.0f, 1.0f, 0.0f, 1.0f } },
-	//	{ {-0.25f, -0.25f * 2, 0.0f }, {0.0f, 0.0f, 1.0f, 1.0f } }
-	//};
-
-	//const UINT vertexBufferSize = sizeof(triangleVertices);
-	//CD3DX12_HEAP_PROPERTIES heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-	//CD3DX12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize);
-	//// Note: using upload heaps to transfer static data like vert buffers is not 
-	//// recommended. Every time the GPU needs it, the upload heap will be marshalled 
-	//// over. Please read up on Default Heap usage. An upload heap is used here for 
-	//// code simplicity and because there are very few verts to actually transfer.
-	//ThrowIfFailed(m_Rdevice->CreateCommittedResource(
-	//	&heapProp,
-	//	D3D12_HEAP_FLAG_NONE,
-	//	&resourceDesc,
-	//	D3D12_RESOURCE_STATE_GENERIC_READ,
-	//	nullptr,
-	//	IID_PPV_ARGS(&m_RvertexBuffer)), "Failed while Creating Committed Resource");
-
-	//// Copy the triangle data to the vertex buffer.
-	//UINT8* pVertexDataBegin;
-	//CD3DX12_RANGE readRange(0, 0);		// We do not intend to read from this resource on the CPU.
-	//ThrowIfFailed(m_RvertexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin)), "Failed While Reading");
-	//memcpy(pVertexDataBegin, triangleVertices, sizeof(triangleVertices));
-	//m_RvertexBuffer->Unmap(0, nullptr);
-
-	//// Initialize the vertex buffer view.
-	//m_RvertexBufferView.BufferLocation = m_RvertexBuffer->GetGPUVirtualAddress();
-	//m_RvertexBufferView.StrideInBytes = sizeof(Vertex);
-	//m_RvertexBufferView.SizeInBytes = vertexBufferSize;
-
-	//// Create synchronization objects and wait until assets have been uploaded to the GPU.
-	//ThrowIfFailed(m_Rdevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence)), "Failed Creating Fence");
-	//m_fenceValue = 1;
-
-	//// Create an event handle to use for frame synchronization.
-	//m_fenceEventHandle = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-	//if (m_fenceEventHandle == nullptr)
-	//{
-	//	ThrowIfFailed(HRESULT_FROM_WIN32(GetLastError()), "Failed Creating Fence");
-	//}
-
-	//// Wait for the command list to execute; we are reusing the same command 
-	//// list in our main loop but for now, we just want to wait for setup to 
-	//// complete before continuing.
-	//WaitForPreviousFrame();
-}
 UINT RendererD12::CreateBufferSRV(GpuBuffer* buffer, UINT numElements, UINT elementSize, DXGI_FORMAT format, D3D12_BUFFER_SRV_FLAGS flags)
 {
 	auto device = m_Rdevice.Get();
@@ -3212,27 +2051,7 @@ void RendererD12::PopulateCommandList()
 	//m_RcommandList->ResourceBarrier(1, &barrier2);
 	//ThrowIfFailed(m_RcommandList->Close(), "Failed While Closing Command List");
 }
-void RendererD12::WaitForPreviousFrame()
-{
-	// WAITING FOR THE FRAME TO COMPLETE BEFORE CONTINUING IS NOT BEST PRACTICE.
-	// This is code implemented as such for simplicity. The D3D12HelloFrameBuffering
-	// sample illustrates how to use fences for efficient resource usage and to
-	// maximize GPU utilization.
 
-	// Signal and increment the fence value.
-	const UINT64 fence = m_fenceValue;
-	ThrowIfFailed(m_RcommandQueue->Signal(m_fence.Get(), fence), "Failed Command queue Signal");
-	m_fenceValue++;
-
-	// Wait until the previous frame is finished.
-	if (m_fence->GetCompletedValue() < fence)
-	{
-		ThrowIfFailed(m_fence->SetEventOnCompletion(fence, m_fenceEventHandle), "Failed Fence event");
-		WaitForSingleObject(m_fenceEventHandle, INFINITE);
-	}
-
-	m_frameIndex = m_RswapChain->GetCurrentBackBufferIndex();
-}
 void RendererD12::GetHardwareAdapter(IDXGIFactory2* pFactory, IDXGIAdapter1** ppAdapter)
 {
 	ComPtr<IDXGIAdapter1> adapter;

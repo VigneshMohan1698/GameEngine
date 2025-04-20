@@ -3,12 +3,9 @@
 #include <Engine/Core/FileUtils.hpp>
 #include "Engine/Core/VertexDefinitions.hpp"
 #include <Engine/Math/IntVec3.hpp>
-
-#include <Engine/Renderer/Renderer.hpp>
 #include <d3d11.h>
 #include <Engine/Math/VertexUtils.hpp>
 
-extern Renderer* g_theRenderer;
 Mesh::~Mesh()
 {	
 	if(m_cpuMesh)

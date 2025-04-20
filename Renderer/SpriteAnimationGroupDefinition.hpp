@@ -16,7 +16,7 @@ typedef tinyxml2::XMLElement XmlElement;
 class SpriteAnimationGroupDefinition
 {
 public:
-	bool LoadFromXmlElement( const XmlElement& element, Renderer* renderer);
+	//bool LoadFromXmlElement( const XmlElement& element, Renderer* renderer);
 	bool LoadFromXmlElementDx12( const XmlElement& element, RendererD12* rendererD12);
 
 	const SpriteAnimDefinition& GetAnimationForDirection( const Vec3& direction ) const;
@@ -27,7 +27,6 @@ public:
 	Shader* m_shader;
 	SpriteSheet* m_spriteSheet; 
 	RendererD12* m_rendererD12 = nullptr;
-	Renderer* m_renderer = nullptr;
 	float m_fps = 1.0f;
 	SpriteAnimPlaybackType m_playbackMode = SpriteAnimPlaybackType::LOOP;
 	bool m_scaleBySpeed = false;

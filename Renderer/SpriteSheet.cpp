@@ -2,26 +2,9 @@
 #include "Game/GameCommon.hpp"
 #include "Engine/Core/EngineCommon.hpp"
 
-SpriteSheet::SpriteSheet(const Texture& texture, IntVec2 const& simpleGridLayout): m_texture(texture)
-{	
-	int index = 0; 
-	for (float yIncrement = 1; yIncrement > 0;)
-	{
-		for (float xIncrement = 0; xIncrement < 1;)
-		{
-			float xInc = ((float)1 / simpleGridLayout.x) + (1/(m_texture.GetDimensions().x*100));
-			float yInc = ((float)1 / simpleGridLayout.y) + (1 / (m_texture.GetDimensions().y * 100));
-			m_spriteDefs.push_back(SpriteDefinition(*this, index, Vec2(xIncrement, yIncrement), Vec2(xIncrement + xInc, yIncrement - yInc)));
-			xIncrement += xInc;
-			index++;
-		}
-		yIncrement -= (float)1 / simpleGridLayout.y;
-	}
-
-}
 
 
-SpriteSheet::SpriteSheet(const Texture& texture, IntVec2 const& textureDimensions, IntVec2 const& simpleGridLayout) : m_texture(texture)
+SpriteSheet::SpriteSheet(IntVec2 const& textureDimensions, IntVec2 const& simpleGridLayout)
 {
 	int index = 0;
 	for (float yIncrement = 1; yIncrement > 0;)
@@ -41,9 +24,10 @@ SpriteSheet::SpriteSheet(const Texture& texture, IntVec2 const& textureDimension
 }
 
 
-SpriteSheet::SpriteSheet(const Texture& texture, IntVec2 const& textureDimensions, IntVec2 const& simpleGridLayout, bool textureLoader) : m_texture(texture)
+SpriteSheet::SpriteSheet(IntVec2 const& textureDimensions, IntVec2 const& simpleGridLayout, bool textureLoader) 
 {
 	textureLoader = false;
+	m_textureDimensions = textureDimensions;
 	//int index = 0;
 	//for (float yIncrement = 1; yIncrement > 0;)
 	//{
@@ -72,11 +56,6 @@ SpriteSheet::SpriteSheet(const Texture& texture, IntVec2 const& textureDimension
 		yIncrement += (float)1 / simpleGridLayout.y;
 	}
 
-}
-
-const Texture& SpriteSheet::GetTexture() const
-{
-	return m_texture;
 }
 
 int SpriteSheet::GetNumSprites() const

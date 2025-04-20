@@ -9,13 +9,14 @@
 #include "Engine/Networking/Net.hpp"
 #include "Engine/Core/XmlUtils.hpp"
 #include <mutex>
-class Renderer;
+
+class RendererD12;
 struct AABB2;
 class BitmapFont;
 
 struct DevConsoleConfig
 {
-	Renderer* m_renderer;
+	RendererD12* m_rendererD12;
 };
 enum class DevConsoleMode
 {
@@ -53,7 +54,7 @@ class DevConsole
 		bool MeshLoadingUtilities(std::string const& consoleCommandText, EventArgs& args);
 		bool RemoteConsoleUtilities(std::string const& consoleCommandText, EventArgs& args);
 		void AddLine(Rgba8 const& color, std::string const& text);
-		void Render(AABB2 const& bounds, Renderer* rendererOverride = nullptr) const;
+		void Render(AABB2 const& bounds) const;
 		void RegisterCommands(std::string commandText);
 
 		DevConsoleMode GetMode() const;
@@ -83,7 +84,7 @@ class DevConsole
 		RaycastToggleMode				m_raycastMode = RaycastToggleMode::RaycastVisible;
 		std::vector<DevConsoleLine>		m_lines;
 protected:
-	void Render_OpenFull(AABB2 const& bounds, Renderer& renderer, BitmapFont& font, float fontAspect = 1.0f) const;
+	void Render_OpenFull(AABB2 const& bounds, RendererD12& renderer, BitmapFont& font, float fontAspect = 1.0f) const;
 
 protected:
 	float							m_consoleTextHeight = 20.0f;
