@@ -26,6 +26,10 @@ struct Rgba8
 		const static Rgba8 GOLDBROWN;
 		const static Rgba8 DARKERBLUE;
 		const static Rgba8 ORANGE;
+		const static Rgba8 ORANGE;
+		const static Rgba8 PASTELBLUE;
+		const static Rgba8 DARKSLATE;
+		const static Rgba8 UNITY;
 		const static Rgba8 SILVER;
 		Rgba8() {}
 		explicit Rgba8(unsigned char r, unsigned char g, unsigned char b, unsigned char a);

@@ -26,8 +26,6 @@ void D3D12ImGui::InitializeImGui()
 	//ImGui::GetIO().ImeWindowHandle = g_theRenderer->GetRenderConfig().m_window->GetHwnd();
 
 	m_relativeScale = g_theRenderer->m_dimensions.x / static_cast<float>(m_windowdim.x);
-	//ImGui::GetIO().DisplaySize =  ImVec2(windowdim.x, windowdim.y);
-	/*ImGui::GetCurrentWindow();*/
 	m_headingColor = new ImVec4(0.0f,1.0f,1.0f,1.0f);
 	m_subheadingColor = new ImVec4(0.0f,0.5f,0.5f,1.0f);
 	

@@ -25,7 +25,6 @@
 #include <minwindef.h>
 #include <Engine/Math/VertexUtils.hpp>
 #include "Engine/Renderer/ShadowMap.hpp"
-//#include "CompiledShaders\Raytracing.hlsl.h"
 
 #define SizeOfInUint32(obj) ((sizeof(obj) - 1) / sizeof(UINT32) + 1)
 
@@ -212,8 +211,8 @@ void RendererD12::BeginRasterizerCamera(const Camera& camera, ShadowMap* shadowM
 
 	//m_cameraCB->cameraPosition = Vec4(m_currentCamera.m_position, 0.0f);
 	m_gameDataCB->ViewX_GIOnY_ShadowPassZ_FrameTime.z = 0;
-	m_cameraCB.CopyStagingToGpu(m_frameIndex);
-	m_gameDataCB.CopyStagingToGpu(m_frameIndex);
+	m_cameraCB.CopyCputoGpu(m_frameIndex);
+	m_gameDataCB.CopyCputoGpu(m_frameIndex);
 }
 
 void RendererD12::BeginShadowMapRender(ShadowMap* shadowMap)
@@ -231,8 +230,8 @@ void RendererD12::BeginShadowMapRender(ShadowMap* shadowMap)
 	m_cameraCB->viewMatrix = m_currentCamera.GetViewMatrix();
 	m_gameDataCB->ViewX_GIOnY_ShadowPassZ_FrameTime.z = 1;
 
-	m_cameraCB.CopyStagingToGpu(m_frameIndex);
-	m_gameDataCB.CopyStagingToGpu(m_frameIndex);
+	m_cameraCB.CopyCputoGpu(m_frameIndex);
+	m_gameDataCB.CopyCputoGpu(m_frameIndex);
 
 	m_fenceValues[m_frameIndex] = m_fenceValues[m_frameIndex] + 1;
 }
@@ -251,11 +250,11 @@ void RendererD12::EndShadowMapRender(ShadowMap* shadowMap)
 	m_RcommandList->OMSetRenderTargets(0, nullptr, FALSE, depthTarget);
 
 }
-void RendererD12::SetModelConstantData(Mat44 modelMatrix, Vec4 color)
+void RendererD12::SetModelConstantData(Mat44 modelMatrix, Vec4 color, int index)
 {
-	m_modelConstantsCB->ModelMatrix = modelMatrix;
-	m_modelConstantsCB->Color = color;
-	m_modelConstantsCB.CopyStagingToGpu(m_frameIndex);
+	m_modelConstantsCB->modelMatrix = modelMatrix;
+	m_modelConstantsCB->color = Vec4(1.0f,0.0f,0.0f,0.0f);
+	m_modelConstantsCB.CopyCputoGpu(index);
 }
 
 void RendererD12::EndCamera(const Camera& camera)
@@ -439,9 +438,9 @@ void RendererD12::D3D12InterfaceInitialization()
 	m_frameIndex = m_RswapChain->GetCurrentBackBufferIndex();
 	m_shaderCompiler = new ShaderCompiler();
 
-	//----------------CREATING RAYTRACING DESCRIPTOR HEAP---------------
+
 	D3D12_DESCRIPTOR_HEAP_DESC heapdesc = {};
-	heapdesc.NumDescriptors = 1000;
+	heapdesc.NumDescriptors = 2000;
 	heapdesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	heapdesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	heapdesc.NodeMask = 0;
@@ -459,9 +458,9 @@ void RendererD12::D3D12InterfaceInitialization()
 void RendererD12::InitializeRasterization()
 {
 	//----------Creating camera Constant buffer---------------
-	m_cameraCB.Create(m_Rdevice.Get(), m_backBufferCount, L"Camera Constant Buffer");
-	m_gameDataCB.Create(m_Rdevice.Get(), m_backBufferCount, L"Game Constant Buffer");
-	m_modelConstantsCB.Create(m_Rdevice.Get(), m_backBufferCount, L"Model Constants Buffer");
+	m_cameraCB = ConstantBufferHandle<CameraConstantBuffer>(m_backBufferCount);
+	m_gameDataCB = ConstantBufferHandle<EngineDataBuffer>(m_backBufferCount);
+	m_modelConstantsCB = ConstantBufferHandle<ModelConstantBuffer>(20);
 }
 void RendererD12::InitializeAdapterAndCheckRaytracingSupport()
 {
@@ -582,7 +581,6 @@ void RendererD12::SerializeAndCreateRaytracingRootSignature(D3D12_ROOT_SIGNATURE
 	result = D3D12SerializeRootSignature(&desc, D3D_ROOT_SIGNATURE_VERSION_1, &blob, &error);
 	m_Rdevice->CreateRootSignature(1, blob->GetBufferPointer(), blob->GetBufferSize(), IID_PPV_ARGS(&(*rootSig)));
 }
-
 void RendererD12::SerializeAndCreateRaytracingRootSignature(ID3D12Device5* device, D3D12_ROOT_SIGNATURE_DESC& desc, ComPtr<ID3D12RootSignature>* rootSig)
 {
 	ID3DBlob* blob;
@@ -924,7 +922,7 @@ void RendererD12::DrawVertexArray(int numberOfVertices, VertexNormalArray vertic
 	item.verticesPNCUTB.ResetResources();
 	//m_RcommandList->Reset(m_rCommand);
 }
-void RendererD12::DrawIndexedVertexArray(int numberOfVertices, std::vector<Vertex_PNCUTB>& verticesToDraw, std::vector<unsigned int>& indexes)
+void RendererD12::DrawIndexedVertexArray(int numberOfVertices, VertexNormalTangentArray& verticesToDraw, std::vector<unsigned int>& indexes)
 {
 	if (numberOfVertices == 0)
 	{
@@ -947,7 +945,7 @@ void RendererD12::DrawIndexedVertexArray(int numberOfVertices, std::vector<Verte
 	cmdList->DrawIndexedInstanced(UINT(indexes.size()), 1, 0, 0, 0);
 	m_dynamicRenderItems.push_back(item);
 }
-void RendererD12::DrawVertexArray(int numberOfVertices, std::vector<Vertex_PNCUTB>& verticesToDraw)
+void RendererD12::DrawVertexArray(int numberOfVertices, VertexNormalTangentArray& verticesToDraw)
 {
 	if (numberOfVertices == 0)
 	{
@@ -987,7 +985,6 @@ void RendererD12::DrawVertexArray(int numberOfVertices, VertexArray& verticesToD
 	cmdList->DrawInstanced(numberOfVertices, 1, 0, 0);
 	m_dynamicRenderItems.push_back(item);
 }
-
 void RendererD12::SetDepthStencilState(DepthTestD12 depthTest, bool writeDepth)
 {
 	D3D12_DEPTH_STENCIL_DESC& depthDesc = m_depthStencilHandle.m_depthDesc;
@@ -1341,7 +1338,7 @@ ComPtr<ID3DBlob> ShaderCompiler::CompileVsPs(const char* filePath, const D3D_SHA
 	ComPtr<ID3DBlob> byteCode = nullptr;
 	ComPtr<ID3DBlob> errors;
 
-	wchar_t wtext[40];
+	wchar_t wtext[80];
 	size_t size = strlen(filePath) + 1;
 	mbstowcs_s(&size, wtext, filePath, strlen(filePath) + 1);//Plus null
 	HRESULT hr = D3DCompileFromFile(wtext, defines, D3D_COMPILE_STANDARD_FILE_INCLUDE, entryPoint.c_str(), target.c_str(), compileFlags, 0, &byteCode, &errors);
@@ -1564,7 +1561,7 @@ void RendererD12::BindShader(ShaderD12* shader, bool isForShadowMap)
 	if (shader->GetShaderType() == ShaderDetails::Shader3D)
 	{
 		commandList->SetGraphicsRootConstantBufferView((UINT)Default3DRootSignatureParams::CameraConstantBuffer, m_cameraCB.GpuVirtualAddress(m_frameIndex));
-		commandList->SetGraphicsRootConstantBufferView((UINT)Default3DRootSignatureParams::ModelConstantBufferD12, m_modelConstantsCB.GpuVirtualAddress(m_frameIndex));
+		//commandList->SetGraphicsRootConstantBufferView((UINT)Default3DRootSignatureParams::ModelConstantBufferD12, m_modelConstantsCB.GpuVirtualAddress(m_frameIndex));
 		commandList->SetGraphicsRootConstantBufferView((UINT)Default3DRootSignatureParams::GameConstantBuffer, m_gameDataCB.GpuVirtualAddress(m_frameIndex));
 	}
 	else if (shader->GetShaderType() == ShaderDetails::PBRShader3D)

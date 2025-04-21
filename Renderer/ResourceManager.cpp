@@ -12,3 +12,12 @@ ResourceManager::ResourceManager()
 ResourceManager::~ResourceManager()
 {
 }
+
+void ResourceManager::CreateVertexBuffer()
+{
+	
+}
+
+void ResourceManager::CreateIndexBuffer()
+{
+}

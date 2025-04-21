@@ -22,6 +22,9 @@ const Rgba8 Rgba8::DARKBLUE = Rgba8(8, 143, 200, 255);
 const Rgba8 Rgba8::GOLDBROWN = Rgba8(153, 101, 21, 255);
 const Rgba8 Rgba8::DARKERBLUE = Rgba8(8, 50, 255, 255);
 const Rgba8 Rgba8::ORANGE = Rgba8(242, 151, 53, 255);
+const Rgba8 Rgba8::PASTELBLUE = Rgba8(100, 149, 237, 255);
+const Rgba8 Rgba8::DARKSLATE = Rgba8(25, 25, 30, 255);
+const Rgba8 Rgba8::UNITY = Rgba8(49, 49, 49, 255);
 
 Rgba8::Rgba8(unsigned char r, unsigned char g, unsigned char b, unsigned char a)
 {

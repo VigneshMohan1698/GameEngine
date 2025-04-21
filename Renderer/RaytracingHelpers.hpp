@@ -83,38 +83,6 @@ enum ReadWriteFlags {
 };
 
 
-template <class T>
-class ConstantBufferD12 : public GpuUploadBufferRTX
-{
-public:
-    ConstantBufferD12() : m_alignedInstanceSize(0), m_numInstances(0), m_mappedConstantData(nullptr) {}
-public:
-    void                        Create(ID3D12Device* device, UINT numInstances = 1, LPCWSTR resourceName = nullptr)
-    {
-        m_numInstances = numInstances;
-        m_alignedInstanceSize = Align(sizeof(T), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
-        UINT bufferSize = numInstances * m_alignedInstanceSize;
-        Allocate(device, bufferSize, resourceName);
-        m_mappedConstantData = MapCpuWriteOnly();
-    }
-    void                        CopyStagingToGpu(UINT instanceIndex = 0)
-    {
-        memcpy(m_mappedConstantData + instanceIndex * m_alignedInstanceSize, &staging, sizeof(T));
-    }
-    T*                          operator->() { return &staging; }
-    UINT                        NumInstances() { return m_numInstances; }
-    D3D12_GPU_VIRTUAL_ADDRESS   GpuVirtualAddress(UINT instanceIndex = 0)
-    {
-        return m_resource->GetGPUVirtualAddress() + instanceIndex * m_alignedInstanceSize;
-    }
-
-public:
-    uint8_t*                 m_mappedConstantData;
-    UINT                     m_alignedInstanceSize;
-    UINT                     m_numInstances;
-    alignas(16) T            staging;
-};
-
 
 template <class T>
 class VertexBufferD12 : public GpuUploadBufferRTX

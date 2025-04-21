@@ -51,16 +51,32 @@ void EditorImGui::UpdateEditor(float deltaSeconds)
 {
 	EngineState& engineState = g_theECS->GetEngineState();
 	int index = engineState.m_currentFrameNumber % 100;
+	float roundedDelta = 0.0f;
 	if (deltaSeconds == 0.0f) {
 		m_frameTimesData[index] = 0.0f;
 	} else {
-		float roundedDelta = std::round(deltaSeconds * 1000.0f) / 1000.0f;
+		roundedDelta = std::round(deltaSeconds * 1000.0f) / 1000.0f;
 		m_frameTimesData[index] = 1.0f / roundedDelta;
 	}
 	
+
 	engineState.m_fps = m_frameTimesData[engineState.m_currentFrameNumber % 100];
 	engineState.m_frameTime = deltaSeconds;
 	engineState.m_currentFrameNumber++;
+	engineState.m_averageFPS = engineState.m_fps;
+
+	//TODO : ONLY ADD THIS WHILE TESTING PERFORMANCE
+	engineState.m_averageFrameTime = 0;
+	engineState.m_averageFPS = 0;
+	if(engineState.m_currentFrameNumber >= 100) {
+		for (int i = 0; i < 100; i++) {
+			engineState.m_averageFPS += m_frameTimesData[i];
+			engineState.m_averageFrameTime += 1.0f / m_frameTimesData[i];
+			
+		}
+	}
+	engineState.m_averageFrameTime /= 100;
+	engineState.m_averageFPS /= 100;
 	
 }
 
@@ -97,7 +113,12 @@ void EditorImGui::DrawEditor()
 		ImGui::PushStyleColor(ImGuiCol_PlotLines, IM_COL32(0, 255, 0, 255)); // green
 	}
 	
-	std::string overlay = "FPS: " + std::to_string(engineState.m_fps);
+	char buffer[16];
+	std::snprintf(buffer, sizeof(buffer), "%.3f", engineState.m_averageFrameTime);
+	std::string avgdeltaseconds = buffer;
+
+	std::string overlay = "Average FPS: " + std::to_string(engineState.m_averageFPS) + " Average ds: " + avgdeltaseconds;
+
 	ImGui::PlotLines("##fps", m_frameTimesData, IM_ARRAYSIZE(m_frameTimesData), engineState.m_currentFrameNumber % IM_ARRAYSIZE(m_frameTimesData),
 		overlay.c_str(), 0.0f, 144.0f, ImVec2(300, 150));
 

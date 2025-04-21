@@ -15,6 +15,7 @@ struct GpuBuffer
     GpuBuffer();
     ~GpuBuffer();
     GpuBuffer(ResourcePtr bufferResource);
+    void AllocateResource(UINT bufferSize);
     void SetDebugName(const std::wstring& name);
     ID3D12Resource* GetResource();
     void ResetResource();
@@ -25,40 +26,58 @@ public:
     std::wstring                           m_debugName;
 };
 
-struct VertexBufferView
-{
-    Dx12VirtualGPUAddr                     m_bufferLocation;
-    UINT                                   m_sizeInBytes;
-    UINT                                   m_strideInBytes;
-};
-
-struct IndexBufferView
-{
-    Dx12VirtualGPUAddr                     m_bufferLocation;
-    UINT                                   m_sizeInBytes;
-    DXGI_FORMAT                            m_format; // e.g., DXGI_FORMAT_R16_UINT, DXGI_FORMAT_R32_UINT
-};
-
 struct ShaderHandle
 {
+public:
+    /*~ShaderHandle();*/
+
+    uint8_t*            MapCpuWriteOnly();
+    void                ResetResources();
+public:
     Dx12ResourceStates  m_usageState = D3D12_RESOURCE_STATE_COMMON;
     GpuBuffer*          m_gpuBuffer = nullptr; 
-
-    ~ShaderHandle()     {  m_gpuBuffer = nullptr; }
+    uint8_t*            m_mappedGPUdata = nullptr;
+   
 };
 
-struct VertexBufferHandle   : public ShaderHandle
+template <typename VertexType>
+struct VertexBufferHandle : public ShaderHandle
 {
-
+    
 };
 
-struct IndexBufferHandle    : public ShaderHandle
+struct IndexBufferHandle  : public ShaderHandle
 {
-
+    
 };
 
+template <typename DataType>
 struct ConstantBufferHandle :  public ShaderHandle
 {
+public:
+    ConstantBufferHandle() = default;
+    ConstantBufferHandle(int totalInstances) {
+        m_totalInstances = totalInstances;
+        m_alignedInstanceSize = Align(sizeof(DataType), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+        UINT bufferSize = totalInstances * m_alignedInstanceSize;
+        m_gpuBuffer = new GpuBuffer();
+        m_gpuBuffer->AllocateResource(bufferSize);
+        m_mappedGPUdata = MapCpuWriteOnly();
+    }
+public:
+    void                     CopyCputoGpu(UINT instanceIndex) {
+        memcpy(m_mappedGPUdata + instanceIndex * m_alignedInstanceSize, &m_data, sizeof(DataType));
+    };
+    void                     SetDebugName(const std::wstring& name);
+    Dx12VirtualGPUAddr       GpuVirtualAddress(UINT instanceIndex = 0) { 
+    return m_gpuBuffer->m_resource->GetGPUVirtualAddress() + instanceIndex * m_alignedInstanceSize; 
+    }
+public:
+    DataType*                operator->() { return &m_data;}
+public:
+    UINT                     m_alignedInstanceSize = 0;
+    UINT                     m_totalInstances = 0;
+    alignas(16) DataType     m_data;
 
 };
 
@@ -74,3 +93,4 @@ struct DepthStencilHandle   :  public ShaderHandle
     D3D12_DEPTH_STENCIL_DESC m_depthDesc;
     Dx12CpuDescriptorHandle  m_cpuDescriptorHandle;
 };
+

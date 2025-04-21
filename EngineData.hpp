@@ -22,6 +22,12 @@ struct FeaturesEnabled
 	bool shadowMapEnabled = true;
 };
 
+struct alignas(256) ModelConstantBuffer
+{
+	Mat44 modelMatrix;
+	Vec4 color;
+};
+
 struct CameraConstantBuffer
 {
 	Mat44 projectionMatrix;
@@ -47,6 +53,8 @@ struct EngineState
 	FeaturesEnabled m_enabledFeatures;
 	EngineDataBuffer m_engineDataBuffer;
 	float			m_frameTime;
+	float			m_averageFrameTime;
 	int				m_fps;
 	long long		m_currentFrameNumber;
+	int				m_averageFPS;
 };

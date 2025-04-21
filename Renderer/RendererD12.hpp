@@ -25,7 +25,7 @@
 #include <stdlib.h>
 #include "ThirdParty/D3D12DXR/WICTextureLoader.h"
 #include "ThirdParty/D3D12DXR/d3dx12.h"
-#include "RenderResources\RenderBuffers.hpp"
+#include "RenderResources/RenderBuffers.hpp"
 
 using namespace Microsoft::WRL;
 
@@ -101,14 +101,6 @@ enum class PBRRootSignatureParams {
 	CameraConstantBuffer,
 	GameConstantBuffer,
 	Count
-};
-
-
-
-struct ModelConstantsD12
-{
-	Mat44 ModelMatrix;
-	Vec4 Color;
 };
 
 enum class LocalRootSignatureParams
@@ -259,14 +251,14 @@ class RendererD12
 		 //----------------CAMERA FUNCTIONS----------------------------
 		 void			BeginCamera(const Camera& camera);
 		 void			BeginRasterizerCamera(const Camera& camera, ShadowMap* shadowMap = nullptr);
-		 void			SetModelConstantData(Mat44 modelMatrix, Vec4 color);
+		 void			SetModelConstantData(Mat44 modelMatrix, Vec4 color, int index);
 		 void			EndCamera(const Camera& camera);
 
 		 //---------------------MAIN RENDER FUNCTIONS------------------------------
 		 void			ClearScreen(Rgba8 color);
 		 void			DrawVertexArray(int size, VertexNormalArray array);
-		 void			DrawIndexedVertexArray(int numberOfVertices, std::vector<Vertex_PNCUTB>& verticesToDraw, std::vector<unsigned int>& indexes);
-		 void			DrawVertexArray(int numberOfVertices, std::vector<Vertex_PNCUTB>& verticesToDraw);
+		 void			DrawIndexedVertexArray(int numberOfVertices, VertexNormalTangentArray& verticesToDraw, std::vector<unsigned int>& indexes);
+		 void			DrawVertexArray(int numberOfVertices, VertexNormalTangentArray& verticesToDraw);
 		 void			DrawVertexArray(int size, VertexArray& array);
 		 void			SetDepthStencilState(DepthTestD12 depthTest, bool writeDepth);
 
@@ -378,9 +370,9 @@ class RendererD12
 		Microsoft::WRL::Wrappers::Event                  m_fenceEvent;
 
 		//------------------------RASTERIZATION VARIABLES-----------------
-		ConstantBufferD12<CameraConstantBuffer>	m_cameraCB;
-		ConstantBufferD12<EngineDataBuffer>		m_gameDataCB;
-		ConstantBufferD12<ModelConstantsD12>	m_modelConstantsCB;
+		ConstantBufferHandle<CameraConstantBuffer>	m_cameraCB;
+		ConstantBufferHandle<EngineDataBuffer>		m_gameDataCB;
+		ConstantBufferHandle<ModelConstantBuffer>	m_modelConstantsCB;
 
 };
 

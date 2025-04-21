@@ -1,6 +1,7 @@
 #include "ECSRenderingSystem.hpp"
 #include <Engine/ECS/ECS.hpp>
 #include <Engine/Renderer/ShadowMap.hpp>
+#include <Engine/Material/MaterialIncludes.hpp>
 
 extern EventSystem* g_theEventSystem;
 
@@ -9,7 +10,7 @@ ECSRenderingSystem::ECSRenderingSystem(ECS* ecs, RendererD12* renderer) : ECSSys
 	m_ecs = ecs;
 	m_renderer = renderer;
 
-	m_shadowShader = m_renderer->CreateOrGetShader("Shadow3D", "Data/Shaders/Shadow3D.hlsl");
+	m_shadowShader = m_renderer->CreateOrGetShader("Shadow3D", DefaultShadow3DFilePath);
 	m_engineShadowMap = new ShadowMap(m_renderer, m_renderer->GetDevice());
 	g_theEventSystem->SubscribeEventCallbackObjectMethod("DebugKeyPressed", *this, &ECSRenderingSystem::DebugKeyPressed);
 }
@@ -18,11 +19,10 @@ ECSRenderingSystem::ECSRenderingSystem(ECS* ecs, RendererD12* renderer) : ECSSys
 void ECSRenderingSystem::Update(float deltaSeconds)
 {
 	m_renderer->Prepare();
-	m_renderer->ClearScreen(Rgba8::BLACK);
+	m_renderer->ClearScreen(Rgba8::UNITY);
    
    //Update the light components first for shadow maps
 	UpdateLightComponents();
-
 	UpdateCameraComponents();
 }
 
@@ -83,7 +83,8 @@ void ECSRenderingSystem::UpdateLightComponents()
 }
 
 void ECSRenderingSystem::RenderShadowPass(ShadowMap* shadowMap, ShaderD12* shader)
-{
+{ 
+	int CBindex = 0;
 	for (auto& pair : m_ecs->m_meshComponents)
 	{
 		VertexNormalTangentArray verts;
@@ -100,13 +101,13 @@ void ECSRenderingSystem::RenderShadowPass(ShadowMap* shadowMap, ShaderD12* shade
 		if (transformComponent)
 		{
 			Mat44 modelMatrix = transformComponent->GetTransformMatrix();
-			m_renderer->SetModelConstantData(modelMatrix, Vec4(1.0f, 1.0f, 1.0f, 1.0f));
-			verts = meshComponent->m_mesh->GetTransformedVertices(transformComponent->GetTransformMatrix());
-			//verts = meshComponent->m_mesh->m_cpuMesh->m_verticesWithTangent;
+			m_renderer->SetModelConstantData(modelMatrix, Vec4(1.0f, 1.0f, 1.0f, 1.0f), CBindex);
+			//verts = meshComponent->m_mesh->GetTransformedVertices(modelMatrix);
+			verts = meshComponent->m_mesh->m_cpuMesh->m_verticesWithTangent;
 		}
 		else if (meshComponent->m_isStatic)
 		{
-			m_renderer->SetModelConstantData(Mat44(), Vec4(1.0f, 1.0f, 1.0f, 1.0f));
+			m_renderer->SetModelConstantData(Mat44(), Vec4(1.0f, 1.0f, 1.0f, 1.0f), CBindex);
 			verts = meshComponent->m_mesh->m_cpuMesh->m_verticesWithTangent;
 		} 
 		else 
@@ -117,13 +118,16 @@ void ECSRenderingSystem::RenderShadowPass(ShadowMap* shadowMap, ShaderD12* shade
 		//Go through a list of mesh components 
 		//Just draw them with the shadow shader.
 		m_renderer->BindShader(shader);
+		m_renderer->GetCommandList()->SetGraphicsRootConstantBufferView((UINT)Default3DRootSignatureParams::ModelConstantBufferD12, m_renderer->m_modelConstantsCB.GpuVirtualAddress(CBindex));
 		m_renderer->DrawIndexedVertexArray((int)verts.size(), verts, meshComponent->m_mesh->m_cpuMesh->m_indices);
+		CBindex++;
 	}
-	m_renderer->SetModelConstantData(Mat44(), Vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	//m_renderer->SetModelConstantData(Mat44(), Vec4(1.0f, 1.0f, 1.0f, 1.0f), CBindex);
 }
 
 void ECSRenderingSystem::RenderCameraPass()
 {
+	int CBindex = 0;
 	//Go through a list of mesh components 
 	//Get their material which has shader and texture
 	//Bind shaders and textures
@@ -143,11 +147,13 @@ void ECSRenderingSystem::RenderCameraPass()
 		if (transformComponent)
 		{
 			Mat44 modelMatrix = transformComponent->GetTransformMatrix();
-			verts = meshComponent->m_mesh->GetTransformedVertices(modelMatrix);
+			m_renderer->SetModelConstantData(modelMatrix, Vec4(1.0f, 1.0f, 1.0f, 1.0f), CBindex);
+			//verts = meshComponent->m_mesh->GetTransformedVertices(modelMatrix);
+			verts = meshComponent->m_mesh->m_cpuMesh->m_verticesWithTangent;
 		}
 		else if (meshComponent->m_isStatic)
 		{
-			m_renderer->SetModelConstantData(Mat44(), Vec4(1.0f, 1.0f, 1.0f, 1.0f));
+			m_renderer->SetModelConstantData(Mat44(), Vec4(1.0f, 1.0f, 1.0f, 1.0f), CBindex);
 			verts = meshComponent->m_mesh->m_cpuMesh->m_verticesWithTangent;
 		}
 		else 
@@ -166,11 +172,12 @@ void ECSRenderingSystem::RenderCameraPass()
 			TextureD12* sphereTexture = m_renderer->GetTextureAtIndex(0);
 			m_renderer->BindTexture(0, albedoTextureIndex);
 		}
-
+		m_renderer->GetCommandList()->SetGraphicsRootConstantBufferView((UINT)Default3DRootSignatureParams::ModelConstantBufferD12, m_renderer->m_modelConstantsCB.GpuVirtualAddress(CBindex));
 		m_renderer->BindHandle(1, m_engineShadowMap->m_shadowShaderResourceHandle.m_gpuReadDescriptorHandle);
 		m_renderer->DrawIndexedVertexArray((int)verts.size(), verts, meshComponent->m_mesh->m_cpuMesh->m_indices);
+		CBindex++;
 	}
-	m_renderer->SetModelConstantData(Mat44(), Vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	m_renderer->SetModelConstantData(Mat44(), Vec4(1.0f, 1.0f, 1.0f, 1.0f), CBindex);
 	m_renderer->FinishUpGPUWork();
 
 	//TO DO: Remove these 2 lines from game and uncomment here: 

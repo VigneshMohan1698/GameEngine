@@ -1,6 +1,7 @@
 #include "ECSUISystem.hpp"
 #include <Engine/ECS/ECS.hpp>
 #include <Engine/Renderer/ShadowMap.hpp>
+#include <Engine/Material/MaterialIncludes.hpp>
 
 ECSUISystem::ECSUISystem(ECS* ecs, RendererD12* renderer)
 {
@@ -34,7 +35,7 @@ void ECSUISystem::Update(float deltaSeconds)
 
 void ECSUISystem::RenderUI(CameraComponent* uiCamera)
 {
-	ShaderD12* shader2D = m_renderer->CreateOrGetShader("Default", "Data/Shaders/Default.hlsl");
+	ShaderD12* shader2D = m_renderer->CreateOrGetShader("Default", Defaul2DShaderFilePath);
 	TextureD12* fontTexture = m_renderer->CreateOrGetTextureFromFile("FontTexture", "Data/Images/SquirrelFixedFont.png");
 
 	std::vector<Vertex_PCU> uiVerts;

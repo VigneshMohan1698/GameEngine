@@ -80,6 +80,12 @@
     <Filter Include="Camera">
       <UniqueIdentifier>{7deee378-5b35-4384-ac38-4d5a75fb351e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Assets\Images">
+      <UniqueIdentifier>{0123e7b0-9be4-4a68-be64-9d7cdd7066ad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Assets\Shaders">
+      <UniqueIdentifier>{411fb152-e4f4-4eb3-9af4-e08e8ec3591f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Math\Vec2.cpp">
@@ -348,6 +354,9 @@
     </ClCompile>
     <ClCompile Include="Renderer\SimpleTriangleFont.cpp">
       <Filter>CoreRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="ECS\ECSMeshSystem.cpp">
+      <Filter>ECS</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -673,6 +682,9 @@
       <Filter>CoreRenderer</Filter>
     </ClInclude>
     <ClInclude Include="EngineData.hpp" />
+    <ClInclude Include="ECS\ECSMeshSystem.hpp">
+      <Filter>ECS</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Font Include="Assets\Fonts\SF.ttf">
@@ -681,5 +693,47 @@
     <Font Include="Assets\Fonts\SFItalic.ttf">
       <Filter>Assets\Fonts</Filter>
     </Font>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Assets\Shaders\Compute.hlsl">
+      <Filter>Assets\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Assets\Shaders\Default.hlsl">
+      <Filter>Assets\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Assets\Shaders\Default3D.hlsl">
+      <Filter>Assets\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Assets\Shaders\Default3DLit.hlsl">
+      <Filter>Assets\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Assets\Shaders\Default3D-NoColor.hlsl">
+      <Filter>Assets\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Assets\Shaders\Effect.hlsl">
+      <Filter>Assets\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Assets\Shaders\PBR3D.hlsl">
+      <Filter>Assets\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Assets\Shaders\Shadow3D.hlsl">
+      <Filter>Assets\Shaders</Filter>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Assets\Shaders\DataStructures.hlsli">
+      <Filter>Assets\Shaders</Filter>
+    </None>
+    <None Include="Assets\Shaders\Math.hlsli">
+      <Filter>Assets\Shaders</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Assets\Images\AlbusLogo.ico">
+      <Filter>Assets\Images</Filter>
+    </Image>
+    <Image Include="Assets\Images\AlbusLogo.png">
+      <Filter>Assets\Images</Filter>
+    </Image>
   </ItemGroup>
 </Project>
